@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — AIMS English LMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/main.css">
+<link rel="stylesheet" href="styles/dashboard.css">
+<link rel="stylesheet" href="styles/admin.css">
+</head>
+<body class="dashboard-page">
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">A</div>
+    <span id="dashboardBrand">AIMS Admin</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Dashboard</div>
+    <button class="nav-item active" onclick="showSection('overview', this)">
+      <span class="nav-icon">📊</span> Overview
+    </button>
+    <button class="nav-item" onclick="showSection('students', this)">
+      <span class="nav-icon">👥</span> Students
+      <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showSection('notifications', this)">
+      <span class="nav-icon">🔔</span> Notifications
+    </button>
+    <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
+      <span class="nav-icon">💰</span> Payments
+    </button>
+    <div class="nav-section-label">System</div>
+    <button class="nav-item" onclick="showSection('portals', this)">
+      <span class="nav-icon">🔗</span> Portals
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebarAvatar">A</div>
+      <div class="user-meta">
+        <div class="user-name" id="sidebarName">Admin</div>
+        <div class="user-role" id="sidebarRole" style="color:var(--gold)">Administrator</div>
+      </div>
+      <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main-content">
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <button class="burger-btn" onclick="toggleSidebar()">☰</button>
+      <span class="page-title" id="pageTitle">Overview</span>
+    </div>
+    <div class="top-bar-right">
+      <span class="badge badge-gold" id="topRoleBadge">Admin</span>
+    </div>
+  </header>
+
+  <div class="content-area">
+
+    <!-- SECTION: Overview -->
+    <section class="page-section active" id="section-overview">
+      <div class="stats-grid" id="adminStatsGrid">
+        <div class="stat-card">
+          <div class="stat-icon teal">👥</div>
+          <div class="stat-body">
+            <div class="stat-value" id="ov-total">—</div>
+            <div class="stat-label" id="totalStudentsLabel">Total Students</div>
+          </div>
+        </div>
+        <div class="stat-card" id="pendingCard">
+          <div class="stat-icon warning">⏳</div>
+          <div class="stat-body">
+            <div class="stat-value" id="ov-pending">—</div>
+            <div class="stat-label">Pending Approval</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon success">✅</div>
+          <div class="stat-body">
+            <div class="stat-value" id="ov-active">—</div>
+            <div class="stat-label">Active Students</div>
+          </div>
+        </div>
+        <div class="stat-card" id="revenueCard">
+          <div class="stat-icon gold">💰</div>
+          <div class="stat-body">
+            <div class="stat-value" id="ov-revenue">৳0</div>
+            <div class="stat-label">Total Collected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending approvals quick view -->
+      <div class="card" id="pendingQuickView">
+        <div class="section-header">
+          <div class="section-title">Pending Approvals</div>
+          <button class="btn-secondary" onclick="showSection('students', document.querySelector('[onclick*=\"students\"]'))">View All Students</button>
+        </div>
+        <div id="pendingList">
+          <div style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Students -->
+    <section class="page-section" id="section-students">
+      <div class="section-header">
+        <div class="section-title" id="studentsSectionTitle">Students</div>
+        <button class="btn-primary" data-admin-only style="width:auto;padding:9px 18px" onclick="openAddStudentModal()">+ Add Student</button>
+      </div>
+      <div class="admin-toolbar">
+        <input class="search-input" type="text" id="studentSearch" placeholder="🔍  Search by name or email..." oninput="filterStudents()">
+        <select class="search-input" style="min-width:160px" id="courseFilter" onchange="filterStudents()">
+          <option value="">All Courses</option>
+          <option value="ielts-academic">IELTS Academic</option>
+          <option value="ielts-general">IELTS General</option>
+          <option value="spoken-english">Spoken English</option>
+          <option value="business-english">Business English</option>
+        </select>
+        <select class="search-input" style="min-width:140px" id="statusFilter" onchange="filterStudents()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentsTable">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Notifications -->
+    <section class="page-section" id="section-notifications">
+      <div class="section-header">
+        <div class="section-title" id="notificationsSectionTitle">Notifications</div>
+        <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="openNotifModal()">+ Send Notification</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Target</th>
+                <th>Sent</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="notifTable">
+              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Payments -->
+    <section class="page-section" id="section-payments">
+      <div class="section-header">
+        <div class="section-title">Payment Records</div>
+      </div>
+      <div class="admin-toolbar">
+        <input class="search-input" type="text" id="paySearch" placeholder="🔍  Search student..." oninput="filterPayments()">
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Total Fee</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="payTable">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Portals -->
+    <section class="page-section" id="section-portals">
+      <div class="section-header">
+        <div class="section-title">AIMS Portals</div>
+      </div>
+      <div class="portals-grid" id="adminPortalsGrid"></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- MODAL: Send Notification -->
+<div class="modal-backdrop hidden" id="notifModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Send Notification</h3>
+      <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Target Audience</label>
+      <select id="notifTarget" onchange="toggleStudentSelect()">
+        <option value="all">📢 All Students (Mass Notification)</option>
+        <option value="individual">👤 Individual Student</option>
+      </select>
+    </div>
+    <div class="field hidden" id="studentSelectField">
+      <label>Select Student</label>
+      <select id="notifStudent"></select>
+    </div>
+    <div class="field">
+      <label>Notification Title</label>
+      <input type="text" id="notifTitle" placeholder="e.g. Class postponed – Saturday">
+    </div>
+    <div class="field">
+      <label>Message</label>
+      <textarea id="notifBody" placeholder="Write your message here..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send Notification</button>
+    </div>
+    <div id="notifModalErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Student -->
+<div class="modal-backdrop hidden" id="editStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Edit Student</h3>
+      <button class="modal-close" onclick="closeModal('editStudentModal')">✕</button>
+    </div>
+    <input type="hidden" id="editStudentId">
+    <div class="field-row-2">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" id="editFirst">
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" id="editLast">
+      </div>
+    </div>
+    <div class="field">
+      <label>Phone</label>
+      <input type="text" id="editPhone">
+    </div>
+    <div class="field">
+      <label>Course</label>
+      <select id="editCourse">
+        <option value="ielts-academic">IELTS Academic</option>
+        <option value="ielts-general">IELTS General</option>
+        <option value="spoken-english">Spoken English</option>
+        <option value="business-english">Business English</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Status</label>
+      <select id="editStatus">
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="suspended">Suspended</option>
+      </select>
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Total Paid (৳)</label>
+        <input type="number" id="editPaid" min="0">
+      </div>
+      <div class="field">
+        <label>Outstanding Due (৳)</label>
+        <input type="number" id="editDue" min="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>Student ID</label>
+      <input type="text" id="editStudentIdField">
+    </div>
+    <div class="field">
+      <label>Assigned Faculty UID <span class="optional">(optional)</span></label>
+      <input type="text" id="editFacultyId" placeholder="Faculty user document ID">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveStudentEdit()">Save Changes</button>
+    </div>
+    <div id="editStudentErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Add Student -->
+<div class="modal-backdrop hidden" id="addStudentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Student</h3>
+      <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
+    </div>
+    <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Manually create a student account (admin-approved instantly).</p>
+    <div class="field-row-2">
+      <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
+      <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="addEmail"></div>
+    <div class="field"><label>Phone</label><input type="tel" id="addPhone"></div>
+    <div class="field">
+      <label>Course</label>
+      <select id="addCourse">
+        <option value="ielts-academic">IELTS Academic</option>
+        <option value="ielts-general">IELTS General</option>
+        <option value="spoken-english">Spoken English</option>
+        <option value="business-english">Business English</option>
+      </select>
+    </div>
+    <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars"></div>
+    <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text" id="addStudentId" placeholder="AIMS-XXXX"></div>
+    <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text" id="addFacultyId" placeholder="Faculty user document ID"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="addStudent()">Create Account</button>
+    </div>
+    <div id="addStudentErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/admin-dashboard.js"></script>
+</body>
+</html>
