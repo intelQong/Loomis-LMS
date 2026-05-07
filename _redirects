@@ -1,0 +1,3 @@
+# Cloudflare Pages routing
+/student    /student-dashboard.html    200
+/admin      /admin-dashboard.html      200
