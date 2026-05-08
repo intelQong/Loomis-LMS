@@ -32,6 +32,30 @@ aims-lms/
 └── js/
 ```
 
+
+---
+
+## No-PC Setup: Use GitHub + Cloudflare Dashboards
+
+If you only have a phone or tablet, you can still deploy this project without installing anything locally:
+
+1. Upload or push this repository to GitHub.
+2. In GitHub, open the repository → **Settings** → **Secrets and variables** → **Actions**.
+3. Add these repository secrets:
+   - `CLOUDFLARE_API_TOKEN` — a Cloudflare API token with Pages and D1 edit permissions.
+   - `CLOUDFLARE_ACCOUNT_ID` — your Cloudflare account ID.
+4. Open **Actions** → **Cloudflare D1 Setup** → **Run workflow**.
+5. Choose `create_database=true` the first time to create `aims_lms`.
+6. Run the same workflow with `apply_migrations=true` to create the tables.
+7. After you sign up on the live site, run the workflow again and enter your email in `promote_admin_email` to make yourself an active admin.
+8. Open **Actions** → **Deploy Cloudflare Pages** → **Run workflow** to deploy the site.
+9. In Cloudflare Pages → your project → Settings → Functions → D1 database bindings, add:
+   - Variable name: `DB`
+   - Database: `aims_lms`
+10. Redeploy once after adding the binding.
+
+The repository includes `.github/workflows/` for CI, D1 setup, and Cloudflare Pages deployment so you do not need a local PC.
+
 ---
 
 ## Step 1: Install Wrangler Locally
@@ -52,15 +76,7 @@ If you do not want to add a `package.json`, you can also run Wrangler directly w
 npx wrangler d1 create aims_lms
 ```
 
-Wrangler prints a `database_id`. Copy that ID into `wrangler.toml`:
-
-```toml
-[[d1_databases]]
-binding = "DB"
-database_name = "aims_lms"
-database_id = "YOUR_DATABASE_ID_FROM_CLOUDFLARE"
-migrations_dir = "migrations"
-```
+Wrangler prints a `database_id`. For dashboard-based deployment, you do not need to edit `wrangler.toml`; add the D1 binding in Cloudflare Pages settings instead. If you later deploy locally using Wrangler config, uncomment the D1 block in `wrangler.toml` and paste the real `database_id`.
 
 ---
 
