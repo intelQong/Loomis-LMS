@@ -7,16 +7,15 @@ let adminUser = null;
 let adminRole = 'admin';
 
 // Auth guard — admins and active faculty can use this dashboard.
-auth.onAuthStateChanged(async (user) => {
-  if (!user) { window.location.href = 'index.html'; return; }
+(async function requireAdminOrFaculty() {
   const data = await getCurrentUserData();
-  if (!data || !['admin', 'faculty'].includes(data.role)) {
-    if (data && data.role === 'student') window.location.href = 'student-dashboard.html';
-    else { await auth.signOut(); window.location.href = 'index.html'; }
+  if (!data) { window.location.href = 'index.html'; return; }
+  if (!['admin', 'faculty'].includes(data.role)) {
+    if (data.role === 'student') window.location.href = 'student-dashboard.html';
+    else window.location.href = 'index.html';
     return;
   }
   if (data.role === 'faculty' && data.status !== 'active') {
-    await auth.signOut();
     window.location.href = 'index.html';
     return;
   }
@@ -26,7 +25,7 @@ auth.onAuthStateChanged(async (user) => {
   document.getElementById('sidebarAvatar').textContent = data.firstName[0].toUpperCase();
   configureDashboardForRole();
   initAdmin();
-});
+})();
 
 function initAdmin() {
   loadStudents();
@@ -63,21 +62,19 @@ function configureDashboardForRole() {
 // ============================================================
 // Students
 // ============================================================
-function loadStudents() {
-  let query = db.collection('users').where('role', '==', 'student');
-  if (isFaculty()) {
-    query = query.where('assignedFacultyId', '==', adminUser.id);
+async function loadStudents() {
+  try {
+    const data = await apiFetch('/api/students');
+    allStudents = data.students;
+    renderOverviewStats();
+    renderPendingList();
+    renderStudentsTable(allStudents);
+    renderPayTable(allStudents);
+    populateNotifStudentSelect(allStudents);
+  } catch (err) {
+    console.error(err);
+    showToast('Unable to load students', 'error');
   }
-
-  query.orderBy('createdAt', 'desc')
-    .onSnapshot(snap => {
-      allStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderOverviewStats();
-      renderPendingList();
-      renderStudentsTable(allStudents);
-      renderPayTable(allStudents);
-      populateNotifStudentSelect(allStudents);
-    }, err => console.error(err));
 }
 
 function renderOverviewStats() {
@@ -168,7 +165,10 @@ function filterStudents() {
 
 async function approveStudent(id) {
   if (!canManageStudents()) return;
-  await db.collection('users').doc(id).update({ status: 'active' });
+  const student = allStudents.find(s => s.id === id);
+  if (!student) return;
+  await saveStudentPayload(id, { ...student, status: 'active' });
+  await loadStudents();
   showToast('Student approved ✓', 'success');
 }
 
@@ -209,7 +209,7 @@ async function saveStudentEdit() {
     const paid = parseFloat(document.getElementById('editPaid').value) || 0;
     const due = parseFloat(document.getElementById('editDue').value) || 0;
 
-    await db.collection('users').doc(id).update({
+    await saveStudentPayload(id, {
       firstName: document.getElementById('editFirst').value.trim(),
       lastName: document.getElementById('editLast').value.trim(),
       phone: document.getElementById('editPhone').value.trim(),
@@ -221,19 +221,8 @@ async function saveStudentEdit() {
       assignedFacultyId: document.getElementById('editFacultyId').value.trim()
     });
 
-    // Log payment entry if paid > 0
-    if (paid > 0) {
-      await db.collection('users').doc(id)
-        .collection('payments')
-        .add({
-          amount: paid,
-          description: 'Admin update',
-          status: 'Received',
-          date: firebase.firestore.FieldValue.serverTimestamp()
-        });
-    }
-
     closeModal('editStudentModal');
+    await loadStudents();
     showToast('Student updated ✓', 'success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message;
@@ -273,27 +262,23 @@ async function addStudent() {
   }
 
   try {
-    // Create auth user (Note: this signs in as the new user temporarily)
-    // In production, use Firebase Admin SDK / Cloud Function for this
-    // For now we use client-side create and re-sign in admin
-    const adminEmail = adminUser.email;
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
-    await db.collection('users').doc(cred.user.uid).set({
-      firstName: first, lastName: last, email, phone,
-      course, studentId, assignedFacultyId, role: 'student', status: 'active',
-      totalPaid: 0, totalDue: COURSES[course] ? COURSES[course].totalFee : 0,
-      enrolledDate: firebase.firestore.FieldValue.serverTimestamp(),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    await apiFetch('/api/students', {
+      method: 'POST',
+      body: JSON.stringify({
+        firstName: first,
+        lastName: last,
+        email,
+        phone,
+        course,
+        password,
+        studentId,
+        assignedFacultyId
+      })
     });
 
-    // Note: Admin will need to re-login. Show warning.
     closeModal('addStudentModal');
-    showToast('Student created! You may need to re-login.', 'info');
-    setTimeout(() => {
-      if (confirm('Adding student signed you out. Re-login as admin?')) {
-        window.location.href = 'index.html';
-      }
-    }, 1500);
+    await loadStudents();
+    showToast('Student created ✓', 'success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -303,18 +288,14 @@ async function addStudent() {
 // ============================================================
 // Notifications
 // ============================================================
-function loadNotifications() {
-  let query = db.collection('notifications');
-  if (isFaculty()) {
-    query = query.where('sentBy', '==', adminUser.id);
+async function loadNotifications() {
+  try {
+    const data = await apiFetch('/api/notifications');
+    renderNotifTable(data.notifications);
+  } catch (err) {
+    console.error(err);
+    showToast('Unable to load notifications', 'error');
   }
-
-  query.orderBy('createdAt', 'desc')
-    .limit(50)
-    .onSnapshot(snap => {
-      const notifs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderNotifTable(notifs);
-    });
 }
 
 function renderNotifTable(notifs) {
@@ -324,7 +305,7 @@ function renderNotifTable(notifs) {
     return;
   }
   tbody.innerHTML = notifs.map(n => {
-    const date = n.createdAt ? n.createdAt.toDate().toLocaleDateString('en-GB') : '—';
+    const date = formatDate(n.createdAt);
     const target = getNotificationTargetLabel(n);
     return `
       <tr>
@@ -397,8 +378,7 @@ async function sendNotification() {
     title, body,
     targetType: target,
     sentBy: adminUser.id,
-    senderRole: adminRole,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    senderRole: adminRole
   };
 
   if (target === 'assigned') {
@@ -423,8 +403,12 @@ async function sendNotification() {
   }
 
   try {
-    await db.collection('notifications').add(notifData);
+    await apiFetch('/api/notifications', {
+      method: 'POST',
+      body: JSON.stringify(notifData)
+    });
     closeModal('notifModal');
+    await loadNotifications();
     showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'} ✓`, 'success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message;
@@ -433,10 +417,9 @@ async function sendNotification() {
 }
 
 async function deleteNotif(id) {
-  const notif = await db.collection('notifications').doc(id).get();
-  if (isFaculty() && (!notif.exists || notif.data().sentBy !== adminUser.id)) return;
   if (!confirm('Delete this notification?')) return;
-  await db.collection('notifications').doc(id).delete();
+  await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' });
+  await loadNotifications();
   showToast('Notification deleted', 'info');
 }
 
@@ -522,10 +505,6 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('show');
 }
 
-async function handleLogout() {
-  await auth.signOut();
-  window.location.href = 'index.html';
-}
 
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');

@@ -27,17 +27,12 @@
   gap: 12px;
   margin-bottom: 48px;
 }
-.logo-mark {
+.logo-img {
   width: 44px;
   height: 44px;
-  background: var(--gold);
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-serif);
-  font-size: 1.4rem;
-  color: white;
+  object-fit: contain;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
 }
 .brand-logo span {
   font-family: var(--font-serif);
