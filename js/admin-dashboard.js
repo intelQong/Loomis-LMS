@@ -175,28 +175,8 @@ async function approveStudent(id) {
 async function suspendStudent(id) {
   if (!canManageStudents()) return;
   if (!confirm('Suspend/reject this student?')) return;
-  const student = allStudents.find(s => s.id === id);
-  if (!student) return;
-  await saveStudentPayload(id, { ...student, status: 'suspended' });
-  await loadStudents();
+  await db.collection('users').doc(id).update({ status: 'suspended' });
   showToast('Student suspended', 'info');
-}
-
-function saveStudentPayload(id, student) {
-  return apiFetch(`/api/students/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      firstName: student.firstName,
-      lastName: student.lastName,
-      phone: student.phone || '',
-      course: student.course,
-      status: student.status,
-      totalPaid: student.totalPaid || 0,
-      totalDue: student.totalDue || 0,
-      studentId: student.studentId || '',
-      assignedFacultyId: student.assignedFacultyId || ''
-    })
-  });
 }
 
 // ============================================================
