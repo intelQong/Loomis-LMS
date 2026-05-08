@@ -18,8 +18,4 @@ jobs:
           node-version: 20
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy . --project-name aims-lms
+        run: npx --yes wrangler@4 pages deploy . --project-name aims-lms
