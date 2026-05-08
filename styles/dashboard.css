@@ -20,18 +20,13 @@
   padding: 20px 20px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.sidebar-logo .logo-mark {
+.sidebar-logo .logo-img {
   width: 36px;
   height: 36px;
-  background: var(--gold);
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-serif);
-  font-size: 1.1rem;
-  color: white;
+  object-fit: contain;
   flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 .sidebar-logo span {
   font-family: var(--font-serif);

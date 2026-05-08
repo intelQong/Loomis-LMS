@@ -1,0 +1,14 @@
+name = "aims-lms"
+compatibility_date = "2026-05-07"
+pages_build_output_dir = "."
+
+# For no-PC deployment, add the D1 binding in the Cloudflare Pages dashboard:
+# Settings → Functions → D1 database bindings → Variable name: DB → Database: aims_lms
+#
+# If you deploy from a local computer later, you can uncomment this block and
+# replace database_id with the real ID printed by `wrangler d1 create aims_lms`.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "aims_lms"
+# database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+# migrations_dir = "migrations"

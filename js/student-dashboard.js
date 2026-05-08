@@ -6,24 +6,23 @@ let currentUser = null;
 let notifUnsubscribe = null;
 
 // Auth guard
-auth.onAuthStateChanged(async (user) => {
-  if (!user) {
+(async function requireStudent() {
+  const data = await getCurrentUserData();
+  if (!data) {
     window.location.href = 'index.html';
     return;
   }
-  const data = await getCurrentUserData();
-  if (!data || data.role !== 'student' || data.status !== 'active') {
-    if (data && (data.role === 'admin' || data.role === 'faculty')) {
+  if (data.role !== 'student' || data.status !== 'active') {
+    if (data.role === 'admin' || data.role === 'faculty') {
       window.location.href = 'admin-dashboard.html';
     } else {
-      await auth.signOut();
       window.location.href = 'index.html';
     }
     return;
   }
   currentUser = data;
   initDashboard();
-});
+})();
 
 function initDashboard() {
   renderSidebarUser();
@@ -165,7 +164,7 @@ function renderProfile() {
     { label: 'Phone', value: currentUser.phone || '—' },
     { label: 'Course', value: course ? course.name : '—' },
     { label: 'Status', value: currentUser.status || '—' },
-    { label: 'Enrolled', value: currentUser.enrolledDate ? currentUser.enrolledDate.toDate().toLocaleDateString('en-GB') : '—' }
+    { label: 'Enrolled', value: formatDate(currentUser.enrolledDate) }
   ];
 
   document.getElementById('profileFields').innerHTML = fields.map(f => `
@@ -177,28 +176,12 @@ function renderProfile() {
 }
 
 // Real-time notifications listener
-function listenNotifications() {
+async function listenNotifications() {
   if (notifUnsubscribe) notifUnsubscribe();
 
-  const latestById = new Map();
-  const queries = [
-    db.collection('notifications').where('targetType', '==', 'all'),
-    db.collection('notifications').where('targetType', '==', 'individual').where('targetUserId', '==', currentUser.id)
-  ];
-
-  if (currentUser.assignedFacultyId) {
-    queries.push(
-      db.collection('notifications')
-        .where('targetType', '==', 'assigned')
-        .where('targetFacultyId', '==', currentUser.assignedFacultyId)
-    );
-  }
-
-  const renderLatest = () => {
-    const notifs = Array.from(latestById.values())
-      .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0))
-      .slice(0, 20);
-
+  try {
+    const data = await apiFetch('/api/notifications');
+    const notifs = data.notifications;
     renderNotifications(notifs);
 
     // Latest for overview
@@ -207,23 +190,12 @@ function listenNotifications() {
       document.getElementById('latestNotif').innerHTML = `
         <div style="font-weight:500;color:var(--gray-800);margin-bottom:6px">${latest.title}</div>
         <div style="font-size:0.875rem;color:var(--gray-600);line-height:1.6">${latest.body}</div>
-        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:8px">${latest.createdAt ? latest.createdAt.toDate().toLocaleDateString('en-GB') : ''}</div>
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:8px">${formatDate(latest.createdAt)}</div>
       `;
     }
-  };
-
-  const unsubscribers = queries.map(query => query
-    .orderBy('createdAt', 'desc')
-    .limit(20)
-    .onSnapshot(snap => {
-      snap.docChanges().forEach(change => {
-        if (change.type === 'removed') latestById.delete(change.doc.id);
-        else latestById.set(change.doc.id, { id: change.doc.id, ...change.doc.data() });
-      });
-      renderLatest();
-    }, () => {}));
-
-  notifUnsubscribe = () => unsubscribers.forEach(unsub => unsub());
+  } catch (e) {
+    renderNotifications([]);
+  }
 }
 
 function renderNotifications(notifs) {
@@ -245,7 +217,7 @@ function renderNotifications(notifs) {
 
   list.innerHTML = notifs.map(n => {
     const isUnread = !readIds.includes(n.id);
-    const date = n.createdAt ? n.createdAt.toDate().toLocaleDateString('en-GB') : '';
+    const date = formatDate(n.createdAt);
     return `
       <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markRead('${n.id}')">
         <div class="notif-item-title">${n.title}</div>
@@ -300,10 +272,6 @@ function toggleNotifPanel() {
   document.getElementById('notifPanel').classList.toggle('open');
 }
 
-async function handleLogout() {
-  await auth.signOut();
-  window.location.href = 'index.html';
-}
 
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');

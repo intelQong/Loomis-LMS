@@ -1,0 +1,69 @@
+name: Cloudflare D1 Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_database:
+        description: "Create the aims_lms D1 database first. Run once, then copy database_id into wrangler.toml if you deploy with Wrangler config."
+        required: true
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+      apply_migrations:
+        description: "Apply migrations to the remote aims_lms D1 database."
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+      promote_admin_email:
+        description: "Optional email to promote to active admin after that user signs up."
+        required: false
+        default: ""
+
+jobs:
+  setup-d1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create D1 database
+        if: ${{ inputs.create_database == 'true' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 create aims_lms
+
+      - name: Apply D1 migrations
+        if: ${{ inputs.apply_migrations == 'true' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 migrations apply aims_lms --remote
+
+      - name: Build admin promotion SQL
+        if: ${{ inputs.promote_admin_email != '' }}
+        id: admin_sql
+        env:
+          ADMIN_EMAIL: ${{ inputs.promote_admin_email }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          email = os.environ['ADMIN_EMAIL'].replace("'", "''").strip().lower()
+          print("sql=UPDATE users SET role='admin', status='active' WHERE lower(email)='{}';".format(email))
+          PY
+
+      - name: Promote admin user
+        if: ${{ inputs.promote_admin_email != '' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: d1 execute aims_lms --remote --command "${{ steps.admin_sql.outputs.sql }}"

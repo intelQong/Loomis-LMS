@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Auth Logic
+// AIMS LMS — Auth Logic (Cloudflare Pages Functions + D1)
 // ============================================================
 
 function switchTab(tab) {
@@ -27,11 +27,14 @@ async function handleLogin() {
 
   try {
     showLoading(true);
-    await auth.signInWithEmailAndPassword(email, password);
-    // onAuthStateChanged will handle redirect
+    const data = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    redirectByRole(data.user);
   } catch (e) {
     showLoading(false);
-    showError(errEl, getAuthError(e.code));
+    showError(errEl, e.message);
   }
 }
 
@@ -57,77 +60,42 @@ async function handleSignup() {
 
   try {
     showLoading(true);
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
-    
-    // Save user profile to Firestore
-    await db.collection('users').doc(cred.user.uid).set({
-      firstName: first,
-      lastName: last,
-      email: email,
-      phone: phone || '',
-      course: course,
-      studentId: studentId || '',
-      role: 'student',
-      status: 'pending', // Admin must approve
-      totalPaid: 0,
-      totalDue: COURSES[course] ? COURSES[course].totalFee : 0,
-      enrolledDate: firebase.firestore.FieldValue.serverTimestamp(),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    await apiFetch('/api/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify({
+        firstName: first,
+        lastName: last,
+        email,
+        phone,
+        course,
+        password,
+        studentId
+      })
     });
 
-    // Sign out immediately - need admin approval
-    await auth.signOut();
     showLoading(false);
-    
-    // Show success message
-    const errEl = document.getElementById('signupError');
     errEl.className = 'success-msg';
     errEl.textContent = '✅ Account created! Please wait for admin approval before logging in.';
     errEl.classList.remove('hidden');
-    
   } catch (e) {
     showLoading(false);
-    showError(errEl, getAuthError(e.code));
+    showError(errEl, e.message);
   }
 }
 
-// Auth state observer
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    try {
-      const userData = await getCurrentUserData();
-      if (!userData) { await auth.signOut(); return; }
-      
-      if (userData.status === 'pending') {
-        await auth.signOut();
-        const errEl = document.getElementById('loginError');
-        showError(errEl, 'Your account is pending admin approval.');
-        showLoading(false);
-        return;
-      }
-      
-      if (userData.status === 'suspended') {
-        await auth.signOut();
-        const errEl = document.getElementById('loginError');
-        showError(errEl, 'Your account has been suspended. Contact AIMS admin.');
-        showLoading(false);
-        return;
-      }
+async function checkExistingSession() {
+  const userData = await getCurrentUserData();
+  if (userData) redirectByRole(userData);
+  else showLoading(false);
+}
 
-      // Redirect based on role
-      if (userData.role === 'admin' || userData.role === 'faculty') {
-        window.location.href = 'admin-dashboard.html';
-      } else {
-        window.location.href = 'student-dashboard.html';
-      }
-    } catch(e) {
-      showLoading(false);
-      console.error(e);
-    }
+function redirectByRole(userData) {
+  if (userData.role === 'admin' || userData.role === 'faculty') {
+    window.location.href = 'admin-dashboard.html';
   } else {
-    showLoading(false);
+    window.location.href = 'student-dashboard.html';
   }
-});
+}
 
 function showError(el, msg) {
   el.textContent = msg;
@@ -147,15 +115,4 @@ function showLoading(show) {
   overlay.style.display = show ? 'flex' : 'none';
 }
 
-function getAuthError(code) {
-  const errors = {
-    'auth/user-not-found': 'No account found with this email.',
-    'auth/wrong-password': 'Incorrect password.',
-    'auth/invalid-email': 'Invalid email address.',
-    'auth/email-already-in-use': 'An account with this email already exists.',
-    'auth/weak-password': 'Password is too weak.',
-    'auth/too-many-requests': 'Too many attempts. Try again later.',
-    'auth/network-request-failed': 'Network error. Check your connection.'
-  };
-  return errors[code] || 'An error occurred. Please try again.';
-}
+checkExistingSession();
