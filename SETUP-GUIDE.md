@@ -178,6 +178,18 @@ If this is the first deploy, follow the prompts to create the Pages project. Mak
 
 ---
 
+## Troubleshooting: GitHub Action says Wrangler is missing
+
+If a deploy log shows an error like `npx canceled due to missing packages` or `Wrangler not found or version is incompatible`, rerun the latest workflow from this repository. The workflows intentionally call Wrangler directly with:
+
+```bash
+npx --yes wrangler@4 ...
+```
+
+The `--yes` flag allows GitHub Actions to install Wrangler non-interactively, which is required when running from a phone or tablet.
+
+---
+
 ## Admin Quick Reference
 
 | Action | Where |

@@ -117,26 +117,19 @@ function renderPayments() {
   document.getElementById('pay-paid').textContent = `৳${paid.toLocaleString()}`;
   document.getElementById('pay-due').textContent = `৳${due.toLocaleString()}`;
 
-  // Payment history from subcollection (optional — admin adds entries)
-  db.collection('users').doc(currentUser.id)
-    .collection('payments')
-    .orderBy('date', 'desc')
-    .get()
-    .then(snap => {
+  // Payment history from Cloudflare D1 (optional — admin adds entries)
+  apiFetch('/api/payments')
+    .then(data => {
       const tbody = document.getElementById('paymentHistory');
-      if (snap.empty) return;
-      tbody.innerHTML = snap.docs.map(doc => {
-        const p = doc.data();
-        const date = p.date ? p.date.toDate().toLocaleDateString('en-GB') : '—';
-        return `
-          <tr>
-            <td>${date}</td>
-            <td>${p.description || 'Payment'}</td>
-            <td>৳${(p.amount || 0).toLocaleString()}</td>
-            <td><span class="badge badge-success">${p.status || 'Received'}</span></td>
-          </tr>
-        `;
-      }).join('');
+      if (!data.payments.length) return;
+      tbody.innerHTML = data.payments.map(p => `
+        <tr>
+          <td>${formatDate(p.date)}</td>
+          <td>${p.description || 'Payment'}</td>
+          <td>৳${(p.amount || 0).toLocaleString()}</td>
+          <td><span class="badge badge-success">${p.status || 'Received'}</span></td>
+        </tr>
+      `).join('');
     }).catch(() => {});
 }
 
