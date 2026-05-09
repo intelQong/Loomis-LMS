@@ -193,18 +193,24 @@ async function listenNotifications() {
 
 function renderNotifications(notifs) {
   const list = document.getElementById('notifList');
+  const pageList = document.getElementById('pageNotifList');
   const dot = document.getElementById('notifDot');
+  const badge = document.getElementById('sidebarNotifBadge');
   const readIds = JSON.parse(localStorage.getItem('readNotifs') || '[]');
   const unread = notifs.filter(n => !readIds.includes(n.id));
 
   if (unread.length > 0) {
     dot.classList.remove('hidden');
+    badge.style.display = '';
+    badge.textContent = unread.length;
   } else {
     dot.classList.add('hidden');
+    badge.style.display = 'none';
   }
 
   if (notifs.length === 0) {
     list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    if(pageList) pageList.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:32px">No notifications yet.</td></tr>';
     return;
   }
 
@@ -219,6 +225,20 @@ function renderNotifications(notifs) {
       </div>
     `;
   }).join('');
+
+  if (pageList) {
+    pageList.innerHTML = notifs.map(n => {
+      const isUnread = !readIds.includes(n.id);
+      const date = formatDate(n.createdAt);
+      return `
+        <tr style="cursor:pointer; ${isUnread ? 'background:var(--gray-50);font-weight:500;' : ''}" onclick="markRead('${n.id}')">
+          <td>${n.title} ${isUnread ? '<span class="nav-badge" style="display:inline-block;margin-left:8px">New</span>' : ''}</td>
+          <td style="color:var(--gray-600)">${n.body}</td>
+          <td style="color:var(--gray-400)">${date}</td>
+        </tr>
+      `;
+    }).join('');
+  }
 }
 
 function markRead(id) {
@@ -227,10 +247,8 @@ function markRead(id) {
     readIds.push(id);
     localStorage.setItem('readNotifs', JSON.stringify(readIds));
   }
-  // Re-render
-  const el = document.querySelector(`[onclick="markRead('${id}')"]`);
-  if (el) el.classList.remove('unread');
-  document.getElementById('notifDot').classList.add('hidden');
+  // Re-fetch or re-render is better, but we can just trigger listenNotifications()
+  listenNotifications();
 }
 
 // UI helpers
@@ -244,6 +262,7 @@ function showSection(name, btn) {
     'overview': 'Overview',
     'my-course': 'My Course',
     'payments': 'Payments',
+    'notifications': 'Notifications',
     'portals': 'Portals',
     'profile': 'My Profile'
   };
