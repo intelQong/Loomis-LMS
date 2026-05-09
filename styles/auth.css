@@ -201,8 +201,13 @@
 @media (max-width: 768px) {
   .auth-page { height: auto; overflow: auto; }
   .auth-split { grid-template-columns: 1fr; height: auto; }
-  .brand-panel { padding: 40px 24px; }
-  .brand-headline { font-size: 2.2rem; }
-  .auth-panel { padding: 32px 24px; }
-  .auth-page { overflow-y: auto; }
+  
+  /* Make brand panel compact */
+  .brand-panel { padding: 32px 24px 24px; }
+  .brand-logo { margin-bottom: 16px; }
+  .brand-headline { font-size: 2rem; margin-bottom: 0; }
+  .brand-sub, .brand-stats { display: none; } /* Hide on mobile to save vertical space */
+  
+  .auth-panel { padding: 24px; }
+  .auth-tabs { margin-bottom: 24px; }
 }
