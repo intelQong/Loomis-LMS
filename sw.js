@@ -13,7 +13,7 @@ const ASSETS = [
   '/js/api-client.js',
   '/js/student-dashboard.js',
   '/js/admin-dashboard.js',
-  '/assets/aims-logo.svg'
+  '/assets/aims-logo.png'
 ];
 
 self.addEventListener('install', (e) => {
