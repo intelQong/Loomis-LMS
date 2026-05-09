@@ -8,8 +8,8 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "assets/aims-logo.svg",
-      "type": "image/svg+xml",
+      "src": "assets/aims-logo.png",
+      "type": "image/png",
       "sizes": "any",
       "purpose": "any maskable"
     }
