@@ -557,10 +557,13 @@ function renderAnnouncementsList(ads) {
   }
   container.innerHTML = ads.map(ad => `
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
-      <div style="background:${ad.bg_gradient};padding:20px 24px;color:white">
-        <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
-        <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
-        ${ad.link_url ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${ad.link_text || 'Learn More'} →</span></div>` : ''}
+      <div style="background:${ad.bg_gradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        ${ad.image_url ? `<img src="${ad.image_url}" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
+        <div style="flex:1;min-width:200px">
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
+          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
+          ${ad.link_url ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${ad.link_text || 'Learn More'} →</span></div>` : ''}
+        </div>
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(ad.created_at)}</span>
@@ -573,6 +576,7 @@ function renderAnnouncementsList(ads) {
 function openAnnouncementModal() {
   document.getElementById('adTitle').value = '';
   document.getElementById('adBody').value = '';
+  document.getElementById('adImageUrl').value = '';
   document.getElementById('adLinkUrl').value = '';
   document.getElementById('adLinkText').value = 'Learn More';
   document.getElementById('adGradient').selectedIndex = 0;
@@ -583,6 +587,7 @@ function openAnnouncementModal() {
 async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
+  const imageUrl = document.getElementById('adImageUrl').value.trim();
   const linkUrl = document.getElementById('adLinkUrl').value.trim();
   const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
   const bgGradient = document.getElementById('adGradient').value;
@@ -598,7 +603,7 @@ async function createAnnouncement() {
   try {
     await apiFetch('/api/announcements', {
       method: 'POST',
-      body: JSON.stringify({ title, body, linkUrl, linkText, bgGradient })
+      body: JSON.stringify({ title, body, imageUrl, linkUrl, linkText, bgGradient })
     });
     closeModal('announcementModal');
     await loadAnnouncements();
