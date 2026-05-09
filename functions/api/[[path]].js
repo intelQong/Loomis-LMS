@@ -351,10 +351,11 @@ async function createAnnouncement({ request, env }, user) {
   const adBody = body.body || '';
   const linkUrl = body.linkUrl || '';
   const linkText = body.linkText || 'Learn More';
+  const imageUrl = body.imageUrl || '';
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
   const id = randomId().slice(0, 16);
-  await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,1,?)')
-    .bind(id, title, adBody, linkUrl, linkText, bgGradient, new Date().toISOString())
+  await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,1,?)')
+    .bind(id, title, adBody, linkUrl, linkText, imageUrl, bgGradient, new Date().toISOString())
     .run();
   return json({ ok: true, id });
 }

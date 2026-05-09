@@ -182,11 +182,14 @@ async function loadAdBanners() {
     container.style.gap = '12px';
 
     container.innerHTML = ads.map(ad => `
-      <div class="ad-banner" style="background:${ad.bg_gradient};border-radius:var(--radius);padding:20px 24px;color:white;position:relative;overflow:hidden">
-        <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:0.1;pointer-events:none">📢</div>
-        <div style="font-weight:600;font-size:1.05rem;margin-bottom:6px">${ad.title}</div>
-        ${ad.body ? `<div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
-        ${ad.link_url ? `<a href="${ad.link_url}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${ad.link_text || 'Learn More'} →</a>` : ''}
+      <div class="ad-banner" style="background:${ad.bg_gradient};border-radius:var(--radius-lg);color:white;position:relative;overflow:hidden;display:flex;flex-wrap:wrap">
+        ${ad.image_url ? `<img src="${ad.image_url}" style="width:180px;min-height:120px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'" alt="${ad.title}">` : ''}
+        <div style="flex:1;min-width:200px;padding:20px 24px;position:relative">
+          <div style="position:absolute;top:-20px;right:-10px;font-size:4rem;opacity:0.08;pointer-events:none">📢</div>
+          <div style="font-weight:600;font-size:1.05rem;margin-bottom:6px">${ad.title}</div>
+          ${ad.body ? `<div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
+          ${ad.link_url ? `<a href="${ad.link_url}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${ad.link_text || 'Learn More'} →</a>` : ''}
+        </div>
       </div>
     `).join('');
   } catch (e) {
