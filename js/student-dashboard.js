@@ -7,6 +7,33 @@ let notifUnsubscribe = null;
 
 // Auth guard
 (async function requireStudent() {
+  // Check maintenance mode first
+  try {
+    const maint = await apiFetch('/api/settings/maintenance');
+    if (maint.enabled) {
+      document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:white;font-family:'DM Sans',sans-serif;text-align:center;padding:40px">
+          <div style="max-width:480px">
+            <div style="font-size:4rem;margin-bottom:16px">🚧</div>
+            <h1 style="font-size:2rem;font-weight:600;margin-bottom:12px">Under Maintenance</h1>
+            <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
+              AIMS English LMS is currently undergoing scheduled maintenance.<br>
+              We'll be back shortly. Thank you for your patience!
+            </p>
+            <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;backdrop-filter:blur(4px)">
+              <div style="font-size:0.9rem;opacity:0.7;margin-bottom:8px">Need help? Contact us:</div>
+              <a href="https://wa.me/10000000000" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:white;text-decoration:none;padding:10px 20px;border-radius:8px;font-weight:500;font-size:0.9rem">
+                📱 WhatsApp: 10000000000
+              </a>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+  } catch (e) {
+    // If check fails, continue normally
+  }
+
   const data = await getCurrentUserData();
   if (!data) {
     window.location.href = 'index.html';

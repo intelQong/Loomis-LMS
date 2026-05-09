@@ -32,6 +32,7 @@ function initAdmin() {
   loadNotifications();
   loadAnnouncements();
   renderAdminPortals();
+  loadMaintenanceStatus();
 }
 
 function isFaculty() {
@@ -139,6 +140,7 @@ function renderStudentsTable(students) {
           <div class="action-btns">
             ${canManageStudents() && s.status === 'pending' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
             ${canManageStudents() ? `<button class="btn-xs btn-xs-edit" onclick="openEditStudent('${s.id}')">Edit</button>` : ''}
+            ${canManageStudents() ? `<button class="btn-xs" style="background:var(--gray-100);color:var(--gray-700)" onclick="openResetPasswordModal('${s.id}')">🔑</button>` : ''}
             ${canManageStudents() && s.status !== 'suspended' && s.status !== 'pending' ? `<button class="btn-xs btn-xs-suspend" onclick="suspendStudent('${s.id}')">Suspend</button>` : ''}
             ${canManageStudents() && s.status === 'suspended' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Reactivate</button>` : ''}
             ${!canManageStudents() ? '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>' : ''}
@@ -695,20 +697,100 @@ async function clearAllCaches() {
 
 async function forceFullReload() {
   try {
-    // Unregister all service workers
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(registrations.map(reg => reg.unregister()));
     }
-    // Clear all caches
     const keys = await caches.keys();
     await Promise.all(keys.map(key => caches.delete(key)));
-    // Hard reload
     window.location.reload(true);
   } catch (e) {
     showToast('Error: ' + e.message, 'error');
   }
 }
+
+// ============================================================
+// Maintenance Mode
+// ============================================================
+async function loadMaintenanceStatus() {
+  try {
+    const data = await apiFetch('/api/settings/maintenance');
+    const toggle = document.getElementById('maintenanceToggle');
+    const statusEl = document.getElementById('maintenanceStatus');
+    if (toggle) {
+      toggle.checked = data.enabled;
+      statusEl.textContent = data.enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+      statusEl.style.color = data.enabled ? 'var(--danger)' : 'var(--success)';
+    }
+  } catch (e) {
+    console.error('Maintenance status:', e);
+  }
+}
+
+async function toggleMaintenanceMode(enabled) {
+  const statusEl = document.getElementById('maintenanceStatus');
+  try {
+    statusEl.textContent = 'Updating...';
+    statusEl.style.color = 'var(--gray-500)';
+    await apiFetch('/api/settings/maintenance', {
+      method: 'PUT',
+      body: JSON.stringify({ enabled })
+    });
+    statusEl.textContent = enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+    statusEl.style.color = enabled ? 'var(--danger)' : 'var(--success)';
+    showToast(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', enabled ? 'error' : 'success');
+  } catch (e) {
+    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.style.color = 'var(--danger)';
+    document.getElementById('maintenanceToggle').checked = !enabled;
+  }
+}
+
+// ============================================================
+// Password Reset (Admin)
+// ============================================================
+function openResetPasswordModal(studentId) {
+  if (!canManageStudents()) return;
+  const s = allStudents.find(x => x.id === studentId);
+  if (!s) return;
+  document.getElementById('resetPwStudentId').value = studentId;
+  document.getElementById('resetPwStudentName').textContent = `${s.firstName} ${s.lastName}`;
+  document.getElementById('resetPwNew').value = '';
+  document.getElementById('resetPwConfirm').value = '';
+  document.getElementById('resetPwErr').classList.add('hidden');
+  openModal('resetPasswordModal');
+}
+
+async function saveResetPassword() {
+  const id = document.getElementById('resetPwStudentId').value;
+  const newPw = document.getElementById('resetPwNew').value;
+  const confirmPw = document.getElementById('resetPwConfirm').value;
+  const errEl = document.getElementById('resetPwErr');
+
+  if (!newPw || newPw.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPw !== confirmPw) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch(`/api/students/${id}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword: newPw })
+    });
+    closeModal('resetPasswordModal');
+    showToast('Password reset successfully ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 
 // Close modals on backdrop click
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {

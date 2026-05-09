@@ -83,6 +83,17 @@ async function handleSignup() {
 }
 
 async function checkExistingSession() {
+  // Show maintenance banner on login page if enabled
+  try {
+    const maint = await apiFetch('/api/settings/maintenance');
+    if (maint.enabled) {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#fef3c7;color:#92400e;padding:12px 20px;text-align:center;font-size:0.9rem;font-weight:500;border-bottom:1px solid #fcd34d';
+      banner.innerHTML = '🚧 <strong>Maintenance Mode is ON.</strong> Students cannot access the dashboard right now.';
+      document.body.prepend(banner);
+    }
+  } catch (e) { /* ignore */ }
+
   const userData = await getCurrentUserData();
   if (userData) redirectByRole(userData);
   else showLoading(false);

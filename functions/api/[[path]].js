@@ -31,6 +31,7 @@ export async function onRequest(context) {
     const user = await requireUser(context);
 
     if (path[0] === 'students' && method === 'GET') return listStudents(context, user);
+    if (path[0] === 'students' && path[1] && path[2] === 'reset-password' && method === 'POST') return resetStudentPassword(context, user, path[1]);
     if (path[0] === 'students' && path[1] && method === 'PATCH') return updateStudent(context, user, path[1]);
     if (path[0] === 'students' && method === 'POST') return createStudent(context, user);
 
@@ -43,6 +44,9 @@ export async function onRequest(context) {
     if (path[0] === 'announcements' && method === 'GET') return listAnnouncements(context);
     if (path[0] === 'announcements' && method === 'POST') return createAnnouncement(context, user);
     if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
+
+    if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
+    if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
 
     return error('Not found', 404);
   } catch (e) {
@@ -368,6 +372,58 @@ async function deleteAnnouncement({ env }, user, id) {
 
 function requireRole(user, roles) {
   if (!roles.includes(user.role)) throw httpError('Not allowed.', 403);
+}
+
+// ============================================================
+// Settings — Maintenance Mode
+// ============================================================
+async function ensureSettingsTable({ env }) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+}
+
+async function getMaintenanceMode(context) {
+  await ensureSettingsTable(context);
+  const row = await context.env.DB.prepare('SELECT value FROM site_settings WHERE key = ?').bind('maintenance_mode').first();
+  return json({ enabled: row ? row.value === '1' : false });
+}
+
+async function setMaintenanceMode(context, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(context.request);
+  const enabled = body.enabled ? '1' : '0';
+  await ensureSettingsTable(context);
+  await context.env.DB.prepare(
+    'INSERT INTO site_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at'
+  ).bind('maintenance_mode', enabled, new Date().toISOString()).run();
+  return json({ ok: true, enabled: enabled === '1' });
+}
+
+// ============================================================
+// Password Reset
+// ============================================================
+async function resetStudentPassword({ request, env }, user, studentId) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const newPassword = required(body.newPassword, 'New password');
+  if (newPassword.length < 6) throw httpError('Password must be at least 6 characters.', 400);
+
+  const student = await env.DB.prepare('SELECT id FROM users WHERE id = ? AND role = ?').bind(studentId, 'student').first();
+  if (!student) throw httpError('Student not found.', 404);
+
+  const salt = randomId().slice(0, 32);
+  const hash = await hashPassword(newPassword, salt);
+  await env.DB.prepare('UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?')
+    .bind(hash, salt, new Date().toISOString(), studentId)
+    .run();
+
+  // Invalidate all sessions for this student
+  await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(studentId).run();
+
+  return json({ ok: true });
 }
 
 function required(value, label) {

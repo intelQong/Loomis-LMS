@@ -316,3 +316,7 @@ tr:hover td { background: var(--gray-50); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+
+/* Toggle switch */
+#maintenanceToggle:checked + span { background: var(--danger); }
+#maintenanceToggle:checked + span + span { left: 30px; }

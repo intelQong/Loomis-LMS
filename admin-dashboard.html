@@ -253,6 +253,23 @@
       <div class="section-header">
         <div class="section-title">Site Tools</div>
       </div>
+      <div class="card" style="max-width:600px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <h3 style="font-size:1.1rem;margin-bottom:4px;color:var(--gray-800)">🚧 Maintenance Mode</h3>
+            <p style="font-size:0.85rem;color:var(--gray-500);line-height:1.5;max-width:360px">
+              When enabled, students and visitors will see a "Site Under Maintenance" page instead of the normal dashboard.
+            </p>
+          </div>
+          <label style="position:relative;display:inline-block;width:56px;height:30px;flex-shrink:0">
+            <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)" style="opacity:0;width:0;height:0">
+            <span style="position:absolute;cursor:pointer;inset:0;background:var(--gray-300);border-radius:30px;transition:0.3s"></span>
+            <span style="position:absolute;left:4px;top:4px;width:22px;height:22px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2)" id="maintenanceSlider"></span>
+          </label>
+        </div>
+        <div id="maintenanceStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)">Loading status...</div>
+      </div>
+
       <div class="card" style="max-width:600px">
         <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🧹 Service Worker Cache</h3>
         <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
@@ -544,6 +561,37 @@
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
     </div>
     <div id="paymentErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Reset Password -->
+<div class="modal-backdrop hidden" id="resetPasswordModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Reset Password</h3>
+      <button class="modal-close" onclick="closeModal('resetPasswordModal')">✕</button>
+    </div>
+    <input type="hidden" id="resetPwStudentId">
+
+    <div style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
+      <div style="font-size:0.85rem;color:var(--gray-500)">Resetting password for:</div>
+      <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="resetPwStudentName">Student Name</div>
+    </div>
+
+    <div class="field">
+      <label>New Password</label>
+      <input type="password" id="resetPwNew" placeholder="Minimum 6 characters">
+    </div>
+    <div class="field">
+      <label>Confirm Password</label>
+      <input type="password" id="resetPwConfirm" placeholder="Re-enter new password">
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('resetPasswordModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveResetPassword()">Reset Password</button>
+    </div>
+    <div id="resetPwErr" class="error-msg hidden"></div>
   </div>
 </div>
 
