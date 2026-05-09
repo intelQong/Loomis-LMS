@@ -1,0 +1,17 @@
+{
+  "name": "AIMS-LMS",
+  "short_name": "AIMS",
+  "description": "AIMS English LMS",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/aims-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ]
+}
