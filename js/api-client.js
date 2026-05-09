@@ -50,3 +50,15 @@ async function handleLogout() {
   await apiFetch('/api/auth/logout', { method: 'POST', body: '{}' });
   window.location.href = 'index.html';
 }
+
+function getValidityEnd(enrolledDate) {
+  if (!enrolledDate) return null;
+  const d = new Date(enrolledDate);
+  d.setMonth(d.getMonth() + 6);
+  return d;
+}
+
+function formatValidity(enrolledDate) {
+  const d = getValidityEnd(enrolledDate);
+  return d ? d.toLocaleDateString('en-GB') : '—';
+}
