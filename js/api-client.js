@@ -13,7 +13,13 @@ async function apiFetch(path, options = {}) {
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    // Server returned non-JSON (e.g. Cloudflare error page)
+    if (!res.ok) throw new Error('Server error. Please try again or clear cache (Ctrl+Shift+R).');
+  }
 
   if (!res.ok) {
     throw new Error(data?.error || `Request failed with status ${res.status}`);
