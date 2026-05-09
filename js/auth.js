@@ -2,7 +2,7 @@
 // AIMS LMS — Auth Logic (Cloudflare Pages Functions + D1)
 // ============================================================
 
-function switchTab(tab) {
+function switchTab(event, tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
   document.querySelector(`#${tab}Form`).classList.add('active');
