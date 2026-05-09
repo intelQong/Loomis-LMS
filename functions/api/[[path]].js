@@ -56,6 +56,7 @@ async function signup({ request, env }) {
   const salt = randomId();
   const passwordHash = await hashPassword(password, salt);
   const id = crypto.randomUUID();
+  const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
     INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, role, status, password_hash, password_salt, total_due)
@@ -67,7 +68,7 @@ async function signup({ request, env }) {
     email,
     body.phone || '',
     course,
-    body.studentId || '',
+    finalStudentId,
     passwordHash,
     salt,
     COURSES[course].totalFee
@@ -132,6 +133,7 @@ async function createStudent({ request, env }, user) {
   const salt = randomId();
   const passwordHash = await hashPassword(password, salt);
   const id = crypto.randomUUID();
+  const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
     INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due)
@@ -143,7 +145,7 @@ async function createStudent({ request, env }, user) {
     email,
     body.phone || '',
     course,
-    body.studentId || '',
+    finalStudentId,
     body.assignedFacultyId || '',
     passwordHash,
     salt,
