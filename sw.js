@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aims-lms-v4';
+const CACHE_NAME = 'aims-lms-v5';
 const ASSETS = [
   '/',
   '/index.html',

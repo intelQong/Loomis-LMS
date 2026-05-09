@@ -672,6 +672,44 @@ async function deleteAd(id) {
   showToast('Announcement deleted', 'info');
 }
 
+// ============================================================
+// Site Tools — Cache Management
+// ============================================================
+async function clearAllCaches() {
+  const statusEl = document.getElementById('cacheStatus');
+  try {
+    statusEl.textContent = 'Clearing caches...';
+    statusEl.style.color = 'var(--gray-500)';
+
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+
+    statusEl.textContent = `✅ Cleared ${keys.length} cache(s) successfully. Students will get fresh files on next visit.`;
+    statusEl.style.color = 'var(--success)';
+    showToast(`Cleared ${keys.length} cache(s)`, 'success');
+  } catch (e) {
+    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.style.color = 'var(--danger)';
+  }
+}
+
+async function forceFullReload() {
+  try {
+    // Unregister all service workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(reg => reg.unregister()));
+    }
+    // Clear all caches
+    const keys = await caches.keys();
+    await Promise.all(keys.map(key => caches.delete(key)));
+    // Hard reload
+    window.location.reload(true);
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
 // Close modals on backdrop click
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
   backdrop.addEventListener('click', function(e) {
