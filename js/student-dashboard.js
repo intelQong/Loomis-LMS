@@ -54,22 +54,11 @@ function renderGreeting() {
 
 function renderStats() {
   const course = COURSES[currentUser.course];
-  const paid = currentUser.totalPaid || 0;
-  const due = currentUser.totalDue || 0;
-  const pct = course ? Math.round((paid / course.totalFee) * 100) : 0;
 
   document.getElementById('stat-course').textContent = course ? course.icon : '—';
-  document.getElementById('stat-paid').textContent = `৳${paid.toLocaleString()}`;
-  document.getElementById('stat-due').textContent = `৳${due.toLocaleString()}`;
 
   const statusBadge = currentUser.status === 'active' ? 'Active' : currentUser.status;
   document.getElementById('stat-status').textContent = statusBadge;
-
-  // Payment bar
-  document.getElementById('paidLabel').textContent = `Paid: ৳${paid.toLocaleString()}`;
-  document.getElementById('dueLabel').textContent = `Due: ৳${due.toLocaleString()}`;
-  document.getElementById('payBar').style.width = `${Math.min(pct, 100)}%`;
-  document.getElementById('payPercent').textContent = `${pct}% of total fee paid`;
 }
 
 function renderCourse() {
@@ -181,17 +170,23 @@ async function loadAdBanners() {
     container.style.flexDirection = 'column';
     container.style.gap = '12px';
 
-    container.innerHTML = ads.map(ad => `
-      <div class="ad-banner" style="background:${ad.bg_gradient};border-radius:var(--radius-lg);color:white;position:relative;overflow:hidden;display:flex;flex-wrap:wrap">
-        ${ad.image_url ? `<img src="${ad.image_url}" style="width:180px;min-height:120px;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'" alt="${ad.title}">` : ''}
+    container.innerHTML = ads.map(ad => {
+      const imgUrl = ad.image_url || ad.imageUrl || 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=400&q=80';
+      const linkUrl = ad.link_url || ad.linkUrl;
+      const linkText = ad.link_text || ad.linkText || 'Learn More';
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
+
+      return `
+      <div class="announcement-card" style="background:${bgGradient};border-radius:var(--radius-lg);color:white;position:relative;overflow:hidden;display:flex;flex-wrap:wrap">
+        <img src="${imgUrl}" style="width:180px;min-height:120px;object-fit:cover;flex-shrink:0;background:rgba(0,0,0,0.1)" alt="${ad.title}">
         <div style="flex:1;min-width:200px;padding:20px 24px;position:relative">
           <div style="position:absolute;top:-20px;right:-10px;font-size:4rem;opacity:0.08;pointer-events:none">📢</div>
           <div style="font-weight:600;font-size:1.05rem;margin-bottom:6px">${ad.title}</div>
           ${ad.body ? `<div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
-          ${ad.link_url ? `<a href="${ad.link_url}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${ad.link_text || 'Learn More'} →</a>` : ''}
+          ${linkUrl ? `<a href="${linkUrl}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${linkText} →</a>` : ''}
         </div>
       </div>
-    `).join('');
+    `}).join('');
   } catch (e) {
     console.error('Ad banners:', e);
   }
