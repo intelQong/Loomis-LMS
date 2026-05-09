@@ -45,7 +45,7 @@ async function handleSignup() {
   const phone = document.getElementById('signupPhone').value.trim();
   const course = document.getElementById('signupCourse').value;
   const password = document.getElementById('signupPassword').value;
-  const studentId = document.getElementById('signupStudentId').value.trim();
+
   const errEl = document.getElementById('signupError');
   errEl.classList.add('hidden');
 
@@ -68,8 +68,7 @@ async function handleSignup() {
         email,
         phone,
         course,
-        password,
-        studentId
+        password
       })
     });
 
