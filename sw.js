@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aims-lms-v1';
+const CACHE_NAME = 'aims-lms-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -17,17 +17,47 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // Instantly replace the old broken SW
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
+      );
+    })
+  );
+  self.clients.claim(); // Take control of all pages immediately
+});
+
 self.addEventListener('fetch', (e) => {
-  // Exclude API requests
-  if (e.request.url.includes('/api/')) {
+  // Fix for Chrome/Edge ERR_FAILED on hard refresh
+  if (e.request.cache === 'only-if-cached' && e.request.mode !== 'same-origin') {
     return;
   }
+  
+  // Exclude API calls and non-GET requests
+  if (e.request.method !== 'GET' || e.request.url.includes('/api/')) {
+    return;
+  }
+  
+  // Network first strategy (safer for LMS)
   e.respondWith(
-    caches.match(e.request).then((response) => response || fetch(e.request))
+    fetch(e.request)
+      .then((res) => {
+        // Only cache valid responses
+        if (res && res.status === 200 && res.type === 'basic') {
+          const resClone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
