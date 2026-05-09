@@ -30,6 +30,7 @@ let adminRole = 'admin';
 function initAdmin() {
   loadStudents();
   loadNotifications();
+  loadAnnouncements();
   renderAdminPortals();
 }
 
@@ -507,6 +508,7 @@ function showSection(name, btn) {
     'students': 'Students',
     'notifications': 'Notifications',
     'payments': 'Payments',
+    'announcements': 'Announcements',
     'portals': 'Portals'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
@@ -533,6 +535,85 @@ function showToast(msg, type = 'info') {
   toast.textContent = msg;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
+}
+
+// ============================================================
+// Announcements / Ads
+// ============================================================
+async function loadAnnouncements() {
+  try {
+    const data = await apiFetch('/api/announcements');
+    renderAnnouncementsList(data.announcements);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderAnnouncementsList(ads) {
+  const container = document.getElementById('announcementsManageList');
+  if (!ads || ads.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--gray-400)">No announcements yet. Click "+ New Announcement" to create one.</div>';
+    return;
+  }
+  container.innerHTML = ads.map(ad => `
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+      <div style="background:${ad.bg_gradient};padding:20px 24px;color:white">
+        <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
+        <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
+        ${ad.link_url ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${ad.link_text || 'Learn More'} →</span></div>` : ''}
+      </div>
+      <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(ad.created_at)}</span>
+        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${ad.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAnnouncementModal() {
+  document.getElementById('adTitle').value = '';
+  document.getElementById('adBody').value = '';
+  document.getElementById('adLinkUrl').value = '';
+  document.getElementById('adLinkText').value = 'Learn More';
+  document.getElementById('adGradient').selectedIndex = 0;
+  document.getElementById('adErr').classList.add('hidden');
+  openModal('announcementModal');
+}
+
+async function createAnnouncement() {
+  const title = document.getElementById('adTitle').value.trim();
+  const body = document.getElementById('adBody').value.trim();
+  const linkUrl = document.getElementById('adLinkUrl').value.trim();
+  const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
+  const bgGradient = document.getElementById('adGradient').value;
+  const errEl = document.getElementById('adErr');
+  errEl.classList.add('hidden');
+
+  if (!title) {
+    errEl.textContent = 'Title is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/announcements', {
+      method: 'POST',
+      body: JSON.stringify({ title, body, linkUrl, linkText, bgGradient })
+    });
+    closeModal('announcementModal');
+    await loadAnnouncements();
+    showToast('Announcement published ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function deleteAd(id) {
+  if (!confirm('Delete this announcement?')) return;
+  await apiFetch(`/api/announcements/${id}`, { method: 'DELETE' });
+  await loadAnnouncements();
+  showToast('Announcement deleted', 'info');
 }
 
 // Close modals on backdrop click

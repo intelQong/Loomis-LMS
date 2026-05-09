@@ -33,6 +33,7 @@ function initDashboard() {
   renderPortals();
   renderProfile();
   listenNotifications();
+  loadAdBanners();
 }
 
 function renderSidebarUser() {
@@ -166,6 +167,31 @@ function renderProfile() {
       <span style="font-size:0.9rem;font-weight:500;color:var(--gray-800)">${f.value}</span>
     </div>
   `).join('');
+}
+
+// Ad Banners
+async function loadAdBanners() {
+  try {
+    const data = await apiFetch('/api/announcements');
+    const ads = data.announcements;
+    const container = document.getElementById('adBanners');
+    if (!ads || ads.length === 0) { container.style.display = 'none'; return; }
+
+    container.style.display = 'flex';
+    container.style.flexDirection = 'column';
+    container.style.gap = '12px';
+
+    container.innerHTML = ads.map(ad => `
+      <div class="ad-banner" style="background:${ad.bg_gradient};border-radius:var(--radius);padding:20px 24px;color:white;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:-20px;font-size:5rem;opacity:0.1;pointer-events:none">📢</div>
+        <div style="font-weight:600;font-size:1.05rem;margin-bottom:6px">${ad.title}</div>
+        ${ad.body ? `<div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
+        ${ad.link_url ? `<a href="${ad.link_url}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${ad.link_text || 'Learn More'} →</a>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('Ad banners:', e);
+  }
 }
 
 // Real-time notifications listener
