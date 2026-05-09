@@ -124,10 +124,23 @@
         <input class="search-input" type="text" id="studentSearch" placeholder="🔍  Search by name or email..." oninput="filterStudents()">
         <select class="search-input" style="min-width:160px" id="courseFilter" onchange="filterStudents()">
           <option value="">All Courses</option>
-          <option value="ielts-academic">IELTS Academic</option>
-          <option value="ielts-general">IELTS General</option>
-          <option value="spoken-english">Spoken English</option>
-          <option value="business-english">Business English</option>
+          <optgroup label="IELTS">
+            <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+            <option value="ielts-fast-track">IELTS Fast Track</option>
+            <option value="ielts-platinum">IELTS Platinum</option>
+            <option value="ielts-online">IELTS Live/Online</option>
+            <option value="ielts-skill-focus">IELTS Skill Focus</option>
+            <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+          </optgroup>
+          <optgroup label="PTE">
+            <option value="pte-academic">PTE Academic</option>
+          </optgroup>
+          <optgroup label="Spoken English">
+            <option value="spoken-english">Spoken English</option>
+            <option value="business-english">Business English for Professionals</option>
+            <option value="spoken-english-online">Spoken English (Online)</option>
+            <option value="foundation-english">Foundation English & Phonetics</option>
+          </optgroup>
         </select>
         <select class="search-input" style="min-width:140px" id="statusFilter" onchange="filterStudents()">
           <option value="">All Status</option>
@@ -281,10 +294,23 @@
     <div class="field">
       <label>Course</label>
       <select id="editCourse">
-        <option value="ielts-academic">IELTS Academic</option>
-        <option value="ielts-general">IELTS General</option>
-        <option value="spoken-english">Spoken English</option>
-        <option value="business-english">Business English</option>
+        <optgroup label="IELTS">
+          <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+          <option value="ielts-fast-track">IELTS Fast Track</option>
+          <option value="ielts-platinum">IELTS Platinum</option>
+          <option value="ielts-online">IELTS Live/Online</option>
+          <option value="ielts-skill-focus">IELTS Skill Focus</option>
+          <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+        </optgroup>
+        <optgroup label="PTE">
+          <option value="pte-academic">PTE Academic</option>
+        </optgroup>
+        <optgroup label="Spoken English">
+          <option value="spoken-english">Spoken English</option>
+          <option value="business-english">Business English for Professionals</option>
+          <option value="spoken-english-online">Spoken English (Online)</option>
+          <option value="foundation-english">Foundation English & Phonetics</option>
+        </optgroup>
       </select>
     </div>
     <div class="field">
@@ -338,10 +364,23 @@
     <div class="field">
       <label>Course</label>
       <select id="addCourse">
-        <option value="ielts-academic">IELTS Academic</option>
-        <option value="ielts-general">IELTS General</option>
-        <option value="spoken-english">Spoken English</option>
-        <option value="business-english">Business English</option>
+        <optgroup label="IELTS">
+          <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+          <option value="ielts-fast-track">IELTS Fast Track</option>
+          <option value="ielts-platinum">IELTS Platinum</option>
+          <option value="ielts-online">IELTS Live/Online</option>
+          <option value="ielts-skill-focus">IELTS Skill Focus</option>
+          <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+        </optgroup>
+        <optgroup label="PTE">
+          <option value="pte-academic">PTE Academic</option>
+        </optgroup>
+        <optgroup label="Spoken English">
+          <option value="spoken-english">Spoken English</option>
+          <option value="business-english">Business English for Professionals</option>
+          <option value="spoken-english-online">Spoken English (Online)</option>
+          <option value="foundation-english">Foundation English & Phonetics</option>
+        </optgroup>
       </select>
     </div>
     <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars"></div>

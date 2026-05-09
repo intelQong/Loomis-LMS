@@ -6,68 +6,145 @@
 // Course config — central definition
 // ============================================================
 const COURSES = {
-  'ielts-academic': {
-    name: 'IELTS Academic',
+  'ielts-regular': {
+    name: 'IELTS Regular (AC/GT)',
     icon: '🎓',
-    duration: '3 months',
+    category: 'IELTS',
+    duration: '3 Months',
     sessions: '36 classes',
-    totalFee: 15000,
+    originalFee: 10000,
+    totalFee: 7000,
     features: [
-      { icon: '📖', label: 'Reading Module (Academic)' },
-      { icon: '✍️', label: 'Writing Task 1 & 2' },
-      { icon: '🎧', label: 'Listening Practice' },
-      { icon: '🗣️', label: 'Speaking Sessions' },
-      { icon: '📝', label: 'Mock Tests (Band 4–9)' },
-      { icon: '📊', label: 'Progress Tracking' },
-      { icon: '📚', label: 'Study Materials' },
-      { icon: '🏅', label: 'British Council Affiliated' }
+      { icon: '💻', label: '25 CD Mock Tests' },
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
     ]
   },
-  'ielts-general': {
-    name: 'IELTS General Training',
-    icon: '📋',
-    duration: '3 months',
-    sessions: '36 classes',
-    totalFee: 13000,
+  'ielts-fast-track': {
+    name: 'IELTS Fast Track',
+    icon: '⚡',
+    category: 'IELTS',
+    duration: '1.5 Months',
+    sessions: '18 classes',
+    originalFee: 10000,
+    totalFee: 7000,
     features: [
-      { icon: '📖', label: 'Reading Module (General)' },
-      { icon: '✍️', label: 'Writing Task 1 (Letters) & 2' },
-      { icon: '🎧', label: 'Listening Practice' },
-      { icon: '🗣️', label: 'Speaking Sessions' },
-      { icon: '📝', label: 'Mock Tests' },
-      { icon: '📊', label: 'Progress Tracking' },
-      { icon: '📚', label: 'Study Materials' },
-      { icon: '🏅', label: 'British Council Affiliated' }
+      { icon: '💻', label: '25 CD Mock Tests' },
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
+    ]
+  },
+  'ielts-platinum': {
+    name: 'IELTS Platinum',
+    icon: '💎',
+    category: 'IELTS',
+    duration: '3 Months',
+    sessions: '36 classes',
+    originalFee: 20000,
+    totalFee: 15000,
+    features: [
+      { icon: '💻', label: '40 CD Mock Tests' },
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
+    ]
+  },
+  'ielts-online': {
+    name: 'IELTS Live/Online',
+    icon: '🌐',
+    category: 'IELTS',
+    duration: '3 Months',
+    sessions: '36 classes',
+    originalFee: 7000,
+    totalFee: 3000,
+    features: [
+      { icon: '💻', label: '10 CD Mock Tests' },
+      { icon: '🗣️', label: '2 Months Language Lounge Access' }
+    ]
+  },
+  'ielts-skill-focus': {
+    name: 'IELTS Skill Focus',
+    icon: '🎯',
+    category: 'IELTS',
+    duration: '1 Month',
+    sessions: '12 classes',
+    totalFee: 2500,
+    features: [
+      { icon: '🗣️', label: '1 Month Language Lounge Access' }
+    ]
+  },
+  'executive-ielts': {
+    name: 'Executive IELTS (Fri/Sat)',
+    icon: '👔',
+    category: 'IELTS',
+    duration: '4 Months',
+    sessions: '16+ classes',
+    totalFee: 7000,
+    features: [
+      { icon: '💻', label: '25 CD Mock Tests' },
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
+    ]
+  },
+  'pte-academic': {
+    name: 'PTE Academic',
+    icon: '📋',
+    category: 'PTE',
+    duration: '2 Months',
+    sessions: '24 classes',
+    originalFee: 10000,
+    totalFee: 8000,
+    features: [
+      { icon: '💻', label: '25 CD Mock Tests' },
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
     ]
   },
   'spoken-english': {
     name: 'Spoken English',
     icon: '💬',
-    duration: '2 months',
+    category: 'Spoken English',
+    duration: '2 Months',
     sessions: '24 classes',
-    totalFee: 8000,
+    totalFee: 4500,
     features: [
-      { icon: '🗣️', label: 'Daily Conversation Practice' },
-      { icon: '🎙️', label: 'Pronunciation Training' },
-      { icon: '📰', label: 'Vocabulary Building' },
-      { icon: '🎧', label: 'Listening & Comprehension' },
-      { icon: '🤝', label: 'Group Discussion Sessions' },
-      { icon: '🎬', label: 'Audio-Visual Materials' }
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
     ]
   },
   'business-english': {
-    name: 'Business English',
+    name: 'Business English for Professionals',
     icon: '💼',
-    duration: '2 months',
-    sessions: '24 classes',
-    totalFee: 10000,
+    category: 'Spoken English',
+    duration: '4 Months',
+    sessions: 'Friday classes',
+    totalFee: 6000,
     features: [
-      { icon: '📧', label: 'Business Writing & Email' },
-      { icon: '🗣️', label: 'Presentation Skills' },
-      { icon: '🤝', label: 'Meeting & Negotiation English' },
-      { icon: '📊', label: 'Report Writing' },
-      { icon: '💬', label: 'Professional Communication' },
-      { icon: '📚', label: 'Industry Vocabulary' }
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
+    ]
+  },
+  'spoken-english-online': {
+    name: 'Spoken English (Online)',
+    icon: '🖥️',
+    category: 'Spoken English',
+    duration: '3 Months',
+    sessions: 'Online classes',
+    totalFee: 2000,
+    features: [
+      { icon: '🗣️', label: '6 Months Language Lounge Access' },
+      { icon: '🎬', label: '6 Months Movie Club Access' }
+    ]
+  },
+  'foundation-english': {
+    name: 'Foundation English & Phonetics',
+    icon: '📖',
+    category: 'Spoken English',
+    duration: '1 Month',
+    sessions: '12 classes',
+    totalFee: 2500,
+    features: [
+      { icon: '🗣️', label: '2 Months Language Lounge Access' },
+      { icon: '🎬', label: '2 Months Movie Club Access' }
     ]
   }
 };

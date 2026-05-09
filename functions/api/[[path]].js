@@ -1,8 +1,15 @@
 const COURSES = {
-  'ielts-academic': { totalFee: 15000 },
-  'ielts-general': { totalFee: 13000 },
-  'spoken-english': { totalFee: 8000 },
-  'business-english': { totalFee: 10000 }
+  'ielts-regular': { totalFee: 7000 },
+  'ielts-fast-track': { totalFee: 7000 },
+  'ielts-platinum': { totalFee: 15000 },
+  'ielts-online': { totalFee: 3000 },
+  'ielts-skill-focus': { totalFee: 2500 },
+  'executive-ielts': { totalFee: 7000 },
+  'pte-academic': { totalFee: 8000 },
+  'spoken-english': { totalFee: 4500 },
+  'business-english': { totalFee: 6000 },
+  'spoken-english-online': { totalFee: 2000 },
+  'foundation-english': { totalFee: 2500 }
 };
 
 const SESSION_DAYS = 7;
