@@ -134,8 +134,6 @@ function renderStudentsTable(students) {
           <div style="font-size:0.8rem;color:var(--gray-400)">${s.email}</div>
         </td>
         <td>${course ? course.name : s.course || '—'}</td>
-        <td>৳${(s.totalPaid || 0).toLocaleString()}</td>
-        <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'}">৳${(s.totalDue || 0).toLocaleString()}</td>
         <td><span class="badge ${statusClass}">${s.status || 'pending'}</span></td>
         <td>
           <div class="action-btns">
@@ -213,8 +211,6 @@ function openEditStudent(id) {
   document.getElementById('editPhone').value = s.phone || '';
   document.getElementById('editCourse').value = s.course || '';
   document.getElementById('editStatus').value = s.status || 'pending';
-  document.getElementById('editPaid').value = s.totalPaid || 0;
-  document.getElementById('editDue').value = s.totalDue || 0;
   document.getElementById('editStudentIdField').value = s.studentId || '';
   document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
   document.getElementById('editStudentErr').classList.add('hidden');
@@ -227,8 +223,9 @@ async function saveStudentEdit() {
   const errEl = document.getElementById('editStudentErr');
   try {
     const course = document.getElementById('editCourse').value;
-    const paid = parseFloat(document.getElementById('editPaid').value) || 0;
-    const due = parseFloat(document.getElementById('editDue').value) || 0;
+    const existing = allStudents.find(x => x.id === id);
+    const paid = existing ? (existing.totalPaid || 0) : 0;
+    const due = existing ? (existing.totalDue || 0) : 0;
 
     await saveStudentPayload(id, {
       firstName: document.getElementById('editFirst').value.trim(),
@@ -467,7 +464,7 @@ function renderPayTable(students) {
         <td style="color:var(--success);font-weight:500">৳${(s.totalPaid || 0).toLocaleString()}</td>
         <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'};font-weight:500">৳${(s.totalDue || 0).toLocaleString()}</td>
         <td>
-          ${canManageStudents() ? `<button class="btn-xs btn-xs-pay" onclick="openEditStudent('${s.id}')">Update Payment</button>` : '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>'}
+          ${canManageStudents() ? `<button class="btn-xs btn-xs-pay" onclick="openPaymentModal('${s.id}')">Update Payment</button>` : '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>'}
         </td>
       </tr>
     `;
@@ -478,6 +475,53 @@ function filterPayments() {
   const q = document.getElementById('paySearch').value.toLowerCase();
   const filtered = q ? allStudents.filter(s => `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(q)) : allStudents;
   renderPayTable(filtered);
+}
+
+function openPaymentModal(id) {
+  if (!canManageStudents()) return;
+  const s = allStudents.find(x => x.id === id);
+  if (!s) return;
+  
+  const course = COURSES[s.course];
+  const totalFee = course ? course.totalFee : 0;
+  const courseName = course ? course.name : s.course || '—';
+  
+  document.getElementById('paymentStudentId').value = id;
+  document.getElementById('paymentStudentName').textContent = `${s.firstName} ${s.lastName}`;
+  document.getElementById('paymentStudentCourse').textContent = courseName;
+  document.getElementById('paymentTotalFee').textContent = totalFee.toLocaleString();
+  
+  document.getElementById('paymentPaid').value = s.totalPaid || 0;
+  document.getElementById('paymentDue').value = s.totalDue || 0;
+  document.getElementById('paymentErr').classList.add('hidden');
+  
+  openModal('paymentModal');
+}
+
+async function savePayment() {
+  if (!canManageStudents()) return;
+  const id = document.getElementById('paymentStudentId').value;
+  const errEl = document.getElementById('paymentErr');
+  try {
+    const existing = allStudents.find(x => x.id === id);
+    if (!existing) throw new Error("Student not found");
+    
+    const paid = parseFloat(document.getElementById('paymentPaid').value) || 0;
+    const due = parseFloat(document.getElementById('paymentDue').value) || 0;
+
+    await saveStudentPayload(id, {
+      ...existing,
+      totalPaid: paid,
+      totalDue: due
+    });
+
+    closeModal('paymentModal');
+    await loadStudents();
+    showToast('Payment updated ✓', 'success');
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
 }
 
 // ============================================================
@@ -555,22 +599,29 @@ function renderAnnouncementsList(ads) {
     container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--gray-400)">No announcements yet. Click "+ New Announcement" to create one.</div>';
     return;
   }
-  container.innerHTML = ads.map(ad => `
+  container.innerHTML = ads.map(ad => {
+    const imgUrl = ad.image_url || ad.imageUrl || 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=400&q=80';
+    const linkUrl = ad.link_url || ad.linkUrl;
+    const linkText = ad.link_text || ad.linkText || 'Learn More';
+    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
+    const createdAt = ad.created_at || ad.createdAt;
+    
+    return `
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
-      <div style="background:${ad.bg_gradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-        ${ad.image_url ? `<img src="${ad.image_url}" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.style.display='none'">` : ''}
+      <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+        <img src="${imgUrl}" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.1)" alt="${ad.title}">
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
-          ${ad.link_url ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${ad.link_text || 'Learn More'} →</span></div>` : ''}
+          ${linkUrl ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${linkText} →</span></div>` : ''}
         </div>
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(ad.created_at)}</span>
+        <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(createdAt)}</span>
         <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${ad.id}')">Delete</button>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function openAnnouncementModal() {

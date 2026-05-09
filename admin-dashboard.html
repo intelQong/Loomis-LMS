@@ -159,8 +159,6 @@
               <tr>
                 <th>Student</th>
                 <th>Course</th>
-                <th>Paid</th>
-                <th>Due</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -385,16 +383,7 @@
         <option value="suspended">Suspended</option>
       </select>
     </div>
-    <div class="field-row-2">
-      <div class="field">
-        <label>Total Paid (৳)</label>
-        <input type="number" id="editPaid" min="0">
-      </div>
-      <div class="field">
-        <label>Outstanding Due (৳)</label>
-        <input type="number" id="editDue" min="0">
-      </div>
-    </div>
+
     <div class="field">
       <label>Student ID</label>
       <input type="text" id="editStudentIdField">
@@ -490,6 +479,41 @@
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send</button>
     </div>
     <div id="notifModalErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Update Payment -->
+<div class="modal-backdrop hidden" id="paymentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Update Payment</h3>
+      <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
+    </div>
+    <input type="hidden" id="paymentStudentId">
+    
+    <div style="background:var(--gray-50);padding:16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
+      <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800);margin-bottom:4px" id="paymentStudentName">Student Name</div>
+      <div style="font-size:0.875rem;color:var(--gray-500);display:flex;justify-content:space-between">
+        <span id="paymentStudentCourse">Course Name</span>
+        <span style="font-weight:600;color:var(--gray-700)">Fee: ৳<span id="paymentTotalFee">0</span></span>
+      </div>
+    </div>
+
+    <div class="field-row-2">
+      <div class="field">
+        <label>Total Paid (৳)</label>
+        <input type="number" id="paymentPaid" min="0">
+      </div>
+      <div class="field">
+        <label>Outstanding Due (৳)</label>
+        <input type="number" id="paymentDue" min="0">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
+    </div>
+    <div id="paymentErr" class="error-msg hidden"></div>
   </div>
 </div>
 
