@@ -45,6 +45,9 @@
     <button class="nav-item" onclick="showSection('portals', this)">
       <span class="nav-icon">🔗</span> Portals
     </button>
+    <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
+      <span class="nav-icon">⚙️</span> Site Tools
+    </button>
   </nav>
   <div class="sidebar-footer">
     <div class="user-info">
@@ -243,6 +246,33 @@
         <div class="section-title">AIMS Portals</div>
       </div>
       <div class="portals-grid" id="adminPortalsGrid"></div>
+    </section>
+
+    <!-- SECTION: Site Tools -->
+    <section class="page-section" id="section-site-tools">
+      <div class="section-header">
+        <div class="section-title">Site Tools</div>
+      </div>
+      <div class="card" style="max-width:600px">
+        <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🧹 Service Worker Cache</h3>
+        <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
+          If students are seeing outdated pages after a deployment, click below to clear the service worker cache. This forces all browsers to download fresh files on their next visit.
+        </p>
+        <button class="btn-danger" style="display:inline-flex;align-items:center;gap:8px" onclick="clearAllCaches()">
+          🗑️ Clear Service Worker Cache
+        </button>
+        <div id="cacheStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)"></div>
+
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--gray-100)">
+          <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🔄 Force Reload</h3>
+          <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
+            Unregister the service worker entirely and hard-reload this page. Useful if cached files are stuck.
+          </p>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="forceFullReload()">
+            🚀 Unregister SW &amp; Reload
+          </button>
+        </div>
+      </div>
     </section>
 
   </div>
