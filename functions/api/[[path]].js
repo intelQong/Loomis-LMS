@@ -90,8 +90,9 @@ async function login({ request, env }) {
   const password = required(body.password, 'Password');
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
 
-  if (!user || await hashPassword(password, user.password_salt) !== user.password_hash) {
-    throw httpError('Invalid email or password.', 401);
+  if (!user) throw httpError('No account found with this email. Please sign up first.', 401);
+  if (await hashPassword(password, user.password_salt) !== user.password_hash) {
+    throw httpError('Invalid password. Please try again.', 401);
   }
   if (user.status === 'pending') throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact AIMS admin.', 403);
