@@ -602,7 +602,7 @@ function renderAnnouncementsList(ads) {
     return;
   }
   container.innerHTML = ads.map(ad => {
-    const imgUrl = ad.image_url || ad.imageUrl || 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=400&q=80';
+    const imgUrl = ad.image_url || ad.imageUrl || '';
     const linkUrl = ad.link_url || ad.linkUrl;
     const linkText = ad.link_text || ad.linkText || 'Learn More';
     const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
@@ -611,7 +611,7 @@ function renderAnnouncementsList(ads) {
     return `
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-        <img src="${imgUrl}" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.1)" alt="${ad.title}">
+       ${imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${ad.title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`}
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
