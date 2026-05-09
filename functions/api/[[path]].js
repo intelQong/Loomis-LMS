@@ -40,6 +40,10 @@ export async function onRequest(context) {
 
     if (path[0] === 'payments' && method === 'GET') return listPayments(context, user, url.searchParams.get('userId'));
 
+    if (path[0] === 'announcements' && method === 'GET') return listAnnouncements(context);
+    if (path[0] === 'announcements' && method === 'POST') return createAnnouncement(context, user);
+    if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
+
     return error('Not found', 404);
   } catch (e) {
     return error(e.message || 'Server error', e.status || 500);
@@ -330,6 +334,35 @@ function serializePayment(row) {
     status: row.status || 'Received',
     date: row.date
   };
+}
+
+// ============================================================
+// Announcements
+// ============================================================
+async function listAnnouncements({ env }) {
+  const rows = await env.DB.prepare('SELECT * FROM announcements WHERE active = 1 ORDER BY created_at DESC').all();
+  return json({ announcements: rows.results });
+}
+
+async function createAnnouncement({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const title = required(body.title, 'Title');
+  const adBody = body.body || '';
+  const linkUrl = body.linkUrl || '';
+  const linkText = body.linkText || 'Learn More';
+  const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
+  const id = randomId().slice(0, 16);
+  await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,1,?)')
+    .bind(id, title, adBody, linkUrl, linkText, bgGradient, new Date().toISOString())
+    .run();
+  return json({ ok: true, id });
+}
+
+async function deleteAnnouncement({ env }, user, id) {
+  requireRole(user, ['admin']);
+  await env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
+  return json({ ok: true });
 }
 
 function requireRole(user, roles) {

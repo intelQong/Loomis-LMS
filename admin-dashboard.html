@@ -39,6 +39,9 @@
       <span class="nav-icon">💰</span> Payments
     </button>
     <div class="nav-section-label">System</div>
+    <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
+      <span class="nav-icon">📢</span> Announcements
+    </button>
     <button class="nav-item" onclick="showSection('portals', this)">
       <span class="nav-icon">🔗</span> Portals
     </button>
@@ -224,6 +227,18 @@
       </div>
     </section>
 
+    <!-- SECTION: Announcements -->
+    <section class="page-section" id="section-announcements">
+      <div class="section-header">
+        <div class="section-title">Announcements / Ads</div>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openAnnouncementModal()">+ New Announcement</button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These banners appear on the student dashboard. Students can see them immediately.</p>
+      <div id="announcementsManageList" style="display:flex;flex-direction:column;gap:16px">
+        <div style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</div>
+      </div>
+    </section>
+
     <!-- SECTION: Portals -->
     <section class="page-section" id="section-portals">
       <div class="section-header">
@@ -232,6 +247,50 @@
       <div class="portals-grid" id="adminPortalsGrid"></div>
     </section>
 
+  </div>
+</div>
+
+<!-- MODAL: Create Announcement -->
+<div class="modal-backdrop hidden" id="announcementModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create Announcement</h3>
+      <button class="modal-close" onclick="closeModal('announcementModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="adTitle" placeholder="e.g. 🎉 Eid Special Offer!">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <textarea id="adBody" rows="3" placeholder="Get 30% off on all IELTS courses this month!"></textarea>
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Button Link <span class="optional">(optional)</span></label>
+        <input type="url" id="adLinkUrl" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>Button Text</label>
+        <input type="text" id="adLinkText" placeholder="Learn More" value="Learn More">
+      </div>
+    </div>
+    <div class="field">
+      <label>Banner Style</label>
+      <select id="adGradient">
+        <option value="linear-gradient(135deg, #0d9488 0%, #0891b2 100%)">🟢 Teal (Default)</option>
+        <option value="linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)">🟣 Purple</option>
+        <option value="linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)">🟠 Orange / Gold</option>
+        <option value="linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)">🔴 Red / Pink</option>
+        <option value="linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)">🔵 Blue</option>
+        <option value="linear-gradient(135deg, #1e293b 0%, #334155 100%)">⚫ Dark</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('announcementModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createAnnouncement()">Publish</button>
+    </div>
+    <div id="adErr" class="error-msg hidden"></div>
   </div>
 </div>
 
