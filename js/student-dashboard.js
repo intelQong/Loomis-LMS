@@ -361,30 +361,32 @@ async function loadAdBanners() {
       
       const hasImg = !!imgUrl;
       const hasVideo = !!videoUrl;
-      const finalBg = (hasImg || hasVideo) ? '#ffffff' : bgGradient;
-      const textColor = (hasImg || hasVideo) ? 'var(--gray-800)' : 'white';
-      
+      const isGradient = !hasImg && !hasVideo;
+      const slideClass = `ad-slide ${i === 0 ? 'active' : ''} ${isGradient ? 'ad-slide-gradient' : ''}`;
+      const slideStyle = i === 0 ? 'flex' : 'none';
+      const bgStyle = isGradient ? bgGradient : '#ffffff';
+
       return `
-        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; height:200px; align-items:stretch; justify-content:flex-start; flex-direction:row; position:relative; transition:opacity 0.4s ease; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
+        <div class="${slideClass}" data-index="${i}" data-has-video="${hasVideo}" style="display:${slideStyle}; background:${bgStyle};">
           ${hasVideo ? `
-            <div style="flex: 0 0 45%; min-width: 200px; background:#000; position:relative; overflow:hidden;">
+            <div class="ad-video-container">
               ${videoUrl.startsWith('<') ? videoUrl : `
-                <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
+                <iframe src="${videoUrl}" 
                   allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
                   allowfullscreen
                   referrerpolicy="no-referrer-when-downgrade"></iframe>
               `}
             </div>
           ` : hasImg ? `
-            <div style="flex: 0 0 35%; min-width: 150px; background: #f8fafc; border-right: 1px solid var(--gray-100);">
-              <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" alt="${ad.title}" onerror="this.style.display='none'">
+            <div class="ad-image-container">
+              <img src="${imgUrl}" alt="${ad.title}" onerror="this.style.display='none'">
             </div>
           ` : `
             <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none">✨</div>
           `}
-          <div style="flex:1; padding:24px 30px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; text-align: left;">
-            <div style="font-weight:800; font-size:1.3rem; margin-bottom:8px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${ad.title}</div>
-            <div style="font-size:0.9rem; opacity:0.85; line-height:1.5; margin-bottom:16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${ad.body || ''}</div>
+          <div class="ad-content">
+            <div class="ad-content-title">${ad.title}</div>
+            <div class="ad-content-body">${ad.body || ''}</div>
             ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; color:white; border:none; text-decoration:none; padding:8px 20px; border-radius:8px; font-size:0.85rem; font-weight:600; transition: transform 0.2s;">${linkText} →</a>` : ''}
           </div>
         </div>`;
