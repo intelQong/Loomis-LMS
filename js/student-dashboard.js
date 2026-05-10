@@ -357,7 +357,7 @@ async function loadAdBanners() {
       const videoUrl = getEmbedUrl(rawVideoUrl);
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)';
       
       const hasImg = !!imgUrl;
       const hasVideo = !!videoUrl;

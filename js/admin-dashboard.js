@@ -831,7 +831,7 @@ function renderAnnouncementsList(ads) {
     const videoUrl = ad.video_url || ad.videoUrl || '';
     const linkUrl = ad.link_url || ad.linkUrl;
     const linkText = ad.link_text || ad.linkText || 'Learn More';
-    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
+    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--primary)';
     const createdAt = ad.created_at || ad.createdAt;
     
     return `
