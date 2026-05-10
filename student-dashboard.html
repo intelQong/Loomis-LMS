@@ -55,6 +55,9 @@
       <button class="nav-item" onclick="showSection('profile', this)">
         <span class="nav-icon">👤</span> My Profile
       </button>
+      <button class="nav-item" id="nav-settings" onclick="showSection('settings', this)">
+        <span class="nav-icon">⚙️</span> Settings
+      </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -66,8 +69,6 @@
         </div>
         <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
       </div>
-      <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08); font-size:0.7rem; color:rgba(255,255,255,0.4); text-align:center;">
-        Developed by <a href="https://example.com" target="_blank" style="color:rgba(255,255,255,0.6); text-decoration:none;">Operations Team</a>
       </div>
     </div>
   </aside>
@@ -360,6 +361,22 @@
               📍 Open in Maps
             </a>
           </div>
+
+          <!-- Developer Info -->
+          <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--gray-100);">
+            <div style="display: flex; align-items: center; gap: 16px; background: var(--gray-50); padding: 16px; border-radius: var(--radius);">
+              <div style="width: 48px; height: 48px; background: var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white;">
+                👨‍💻
+              </div>
+              <div>
+                <div style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Application Developer</div>
+                <div style="font-weight: 700; color: var(--gray-800);">Operations Team</div>
+                <a href="https://example.com" target="_blank" style="font-size: 0.85rem; color: var(--teal); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                  Connect on LinkedIn ↗
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -383,6 +400,32 @@
           <div id="profileFields"></div>
           <div style="margin-top:24px">
             <button class="btn-danger" onclick="handleLogout()">Sign Out</button>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- SECTION: Settings -->
+      <section class="page-section" id="section-settings">
+        <div class="section-header">
+          <div class="section-title">Display Settings</div>
+        </div>
+        <div class="card" style="max-width:600px">
+          <h4 style="margin-bottom:16px">Theme Color</h4>
+          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:24px;">Personalize your dashboard with your favorite color.</p>
+          
+          <div class="theme-palette" style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="theme-opt" data-theme="teal" onclick="applyTheme('teal')" style="cursor:pointer; text-align:center;">
+              <div style="width:60px; height:60px; border-radius:12px; background:#4338CA; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+              <span style="font-size:0.8rem; font-weight:600;">Teal</span>
+            </div>
+            <div class="theme-opt" data-theme="coral" onclick="applyTheme('coral')" style="cursor:pointer; text-align:center;">
+              <div style="width:60px; height:60px; border-radius:12px; background:#FF7F50; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+              <span style="font-size:0.8rem; font-weight:600;">Coral</span>
+            </div>
+            <div class="theme-opt" data-theme="emerald" onclick="applyTheme('emerald')" style="cursor:pointer; text-align:center;">
+              <div style="width:60px; height:60px; border-radius:12px; background:#10B981; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+              <span style="font-size:0.8rem; font-weight:600;">Emerald</span>
+            </div>
           </div>
         </div>
       </section>
@@ -411,9 +454,6 @@
       });
     }
   </script>
-<div style="text-align:center; padding: 20px; font-size: 0.8rem; color: var(--gray-400);">
-  Developed by <a href="https://example.com" target="_blank" style="color: var(--teal); text-decoration: none; font-weight: 600;">Operations Team</a>
-</div>
 </body>
 
 </html>

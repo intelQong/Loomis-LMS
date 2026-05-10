@@ -673,4 +673,14 @@
   border-radius: 4px;
 }
 
-
+/* Theme Palette */
+.theme-opt.active .color-preview {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--teal);
+}
+.theme-opt:hover .color-preview {
+  transform: scale(1.05);
+}
+.color-preview {
+  transition: all 0.2s ease;
+}
