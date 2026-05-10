@@ -419,9 +419,12 @@
       
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
+        if (refreshing) return;
+        refreshing = true;
+        // Break infinite loops: only reload once per version
+        if (!sessionStorage.getItem('sw-reload-v36')) {
+          sessionStorage.setItem('sw-reload-v36', '1');
           window.location.reload();
-          refreshing = true;
         }
       });
     }
