@@ -149,6 +149,16 @@ function renderStudentsTable(students) {
   tbody.innerHTML = students.map(s => {
     const course = COURSES[s.course];
     const statusClass = s.status === 'active' ? 'badge-success' : s.status === 'pending' ? 'badge-warning' : 'badge-danger';
+    
+    // Enrollment and Expiry calc
+    const enrollDate = s.enrolledDate ? new Date(s.enrolledDate) : null;
+    let expiryStr = '—';
+    if (enrollDate && !isNaN(enrollDate)) {
+      const expiryDate = new Date(enrollDate);
+      expiryDate.setMonth(expiryDate.getMonth() + 6);
+      expiryStr = formatDate(expiryDate);
+    }
+
     return `
       <tr>
         <td>
@@ -157,6 +167,8 @@ function renderStudentsTable(students) {
         </td>
         <td>${course ? course.name : s.course || '—'}</td>
         <td><span class="badge ${statusClass}">${s.status || 'pending'}</span></td>
+        <td>${s.enrolledDate ? formatDate(s.enrolledDate) : '—'}</td>
+        <td style="font-weight:500;color:var(--teal)">${expiryStr}</td>
         <td>
           <div class="action-btns">
             ${canManageStudents() && s.status === 'pending' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
@@ -217,7 +229,8 @@ function saveStudentPayload(id, student) {
       totalDue: student.totalDue || 0,
       nextPaymentDate: student.nextPaymentDate || '',
       studentId: student.studentId || '',
-      assignedFacultyId: student.assignedFacultyId || ''
+      assignedFacultyId: student.assignedFacultyId || '',
+      enrolledDate: student.enrolledDate || ''
     })
   });
 }
@@ -237,6 +250,7 @@ function openEditStudent(id) {
   document.getElementById('editStatus').value = s.status || 'pending';
   document.getElementById('editStudentIdField').value = s.studentId || '';
   document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
+  document.getElementById('editEnrolledDate').value = s.enrolledDate ? s.enrolledDate.split('T')[0] : '';
   document.getElementById('editStudentErr').classList.add('hidden');
   openModal('editStudentModal');
 }
@@ -260,7 +274,8 @@ async function saveStudentEdit() {
       totalPaid: paid,
       totalDue: due,
       studentId: document.getElementById('editStudentIdField').value.trim(),
-      assignedFacultyId: document.getElementById('editFacultyId').value.trim()
+      assignedFacultyId: document.getElementById('editFacultyId').value.trim(),
+      enrolledDate: document.getElementById('editEnrolledDate').value
     });
 
     closeModal('editStudentModal');
@@ -278,9 +293,11 @@ async function saveStudentEdit() {
 function openAddStudentModal() {
   if (!canManageStudents()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
-  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId'].forEach(id => {
+  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  // Default to today
+  document.getElementById('addEnrolledDate').value = new Date().toISOString().split('T')[0];
   openModal('addStudentModal');
 }
 
@@ -294,11 +311,12 @@ async function addStudent() {
   const password = document.getElementById('addPassword').value;
   const studentId = document.getElementById('addStudentId').value.trim();
   const assignedFacultyId = document.getElementById('addFacultyId').value.trim();
+  const enrolledDate = document.getElementById('addEnrolledDate').value;
   const errEl = document.getElementById('addStudentErr');
   errEl.classList.add('hidden');
 
   if (!first || !last || !email || !course || !password) {
-    errEl.textContent = 'Fill in all required fields.';
+    errEl.textContent = 'Please fill all required fields.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -306,16 +324,7 @@ async function addStudent() {
   try {
     await apiFetch('/api/students', {
       method: 'POST',
-      body: JSON.stringify({
-        firstName: first,
-        lastName: last,
-        email,
-        phone,
-        course,
-        password,
-        studentId,
-        assignedFacultyId
-      })
+      body: JSON.stringify({ firstName: first, lastName: last, email, phone, course, password, studentId, assignedFacultyId, enrolledDate })
     });
 
     closeModal('addStudentModal');
