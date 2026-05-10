@@ -87,12 +87,30 @@ function renderStats() {
   const statusEl = document.getElementById('statStatus');
   statusEl.textContent = currentUser.status === 'active' ? 'Active' : currentUser.status;
   
-  const dueEl = document.getElementById('statDue');
-  if (currentUser.payment && typeof currentUser.payment.due !== 'undefined') {
-    dueEl.textContent = `৳${currentUser.payment.due.toLocaleString()}`;
-    dueEl.style.color = currentUser.payment.due > 0 ? 'var(--danger)' : 'var(--success)';
+  const dueCard = document.getElementById('statDueCard');
+  const dueValue = currentUser.payment ? (currentUser.payment.due || 0) : 0;
+  
+  if (dueValue > 0) {
+    // Show Balance Due
+    dueCard.innerHTML = `
+      <div class="stat-icon gold">💳</div>
+      <div class="stat-body">
+        <div class="stat-label">Balance Due</div>
+        <div class="stat-value" style="color:var(--danger)">৳${dueValue.toLocaleString()}</div>
+      </div>
+    `;
+    dueCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
   } else {
-    dueEl.textContent = '৳0';
+    // Show Latest Broadcast preview
+    dueCard.innerHTML = `
+      <div class="stat-icon pink">📢</div>
+      <div class="stat-body">
+        <div class="stat-label">Latest Broadcast</div>
+        <div class="stat-value" style="font-size:0.9rem; font-weight:600; color:var(--indigo-700); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;" id="statLastBroadcast">Loading...</div>
+      </div>
+    `;
+    dueCard.onclick = () => showSection('notifications', document.getElementById('nav-notif'));
+    fetchLatestBroadcastForStat();
   }
 
   // Schedule Logic
@@ -108,6 +126,23 @@ function renderStats() {
   } else {
     daysEl.textContent = 'Not set';
     timeEl.textContent = '—';
+  }
+}
+
+async function fetchLatestBroadcastForStat() {
+  const el = document.getElementById('statLastBroadcast');
+  if (!el) return;
+  try {
+    const notifications = await apiFetch('/api/notifications');
+    const personal = await apiFetch(`/api/notifications/${currentUser.id}`);
+    const all = [...notifications, ...personal].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    if (all.length > 0) {
+      el.textContent = all[0].title;
+    } else {
+      el.textContent = 'No new messages';
+    }
+  } catch (e) {
+    el.textContent = 'Check broadcasts';
   }
 }
 

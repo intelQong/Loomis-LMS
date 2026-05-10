@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#FF7F50">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/aims-logo.png">
   <title>My Dashboard — AIMS English</title>
@@ -12,10 +12,10 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=13">
-  <link rel="stylesheet" href="styles/dashboard.css?v=13">
-  <script src="js/api-client.js?v=13"></script>
-  <script src="js/student-dashboard.js?v=13"></script>
+  <link rel="stylesheet" href="styles/main.css?v=14">
+  <link rel="stylesheet" href="styles/dashboard.css?v=14">
+  <script src="js/api-client.js?v=14"></script>
+  <script src="js/student-dashboard.js?v=14"></script>
 </head>
 
 <body class="dashboard-page">
@@ -157,12 +157,8 @@
               <div class="stat-value" id="statStatus">Active</div>
             </div>
           </div>
-          <div class="stat-card" style="cursor:pointer" onclick="showSection('payments', document.getElementById('nav-payments'))">
-            <div class="stat-icon gold">💳</div>
-            <div class="stat-body">
-              <div class="stat-label">Balance Due</div>
-              <div class="stat-value" id="statDue">৳0</div>
-            </div>
+          <div class="stat-card" id="statDueCard" style="cursor:pointer">
+            <!-- Dynamic Content: Balance Due or Latest Broadcast -->
           </div>
         </div>
 
@@ -395,12 +391,12 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Cloudflare API client -->
-  <script src="js/app-data.js?v=12"></script>
-  <script src="js/api-client.js?v=12"></script>
-  <script src="js/student-dashboard.js?v=12"></script>
+  <script src="js/app-data.js?v=14"></script>
+  <script src="js/api-client.js?v=14"></script>
+  <script src="js/student-dashboard.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=12').then(reg => {
+      navigator.serviceWorker.register('/sw.js?v=14').then(reg => {
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           installingWorker.onstatechange = () => {

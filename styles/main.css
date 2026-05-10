@@ -6,12 +6,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Primary — Deep Indigo */
-  --teal: #4338CA;
-  --teal-dark: #3730A3;
-  --teal-light: #EEF2FF;
-  --teal-mid: #6366F1;
-  /* Accent — Warm Amber */
+  /* Primary — Vibrant Coral */
+  --teal: #FF7F50;
+  --teal-dark: #E35D44;
+  --teal-light: #FFF1EE;
+  --teal-mid: #FF9F7D;
+  /* Accent — Warm Amber/Gold */
   --gold: #D97706;
   --gold-light: #FFFBEB;
   --gold-dark: #B45309;
@@ -29,15 +29,15 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --info: #6366F1;
+  --info: #FF7F50;
   --font-sans: 'DM Sans', sans-serif;
   --font-serif: 'DM Serif Display', serif;
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow: 0 4px 16px rgba(67,56,202,0.1);
-  --shadow-lg: 0 8px 32px rgba(67,56,202,0.14);
+  --shadow: 0 4px 16px rgba(255,127,80,0.12);
+  --shadow-lg: 0 8px 32px rgba(255,127,80,0.18);
   --transition: 0.2s ease;
 }
 
