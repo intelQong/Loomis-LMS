@@ -348,23 +348,32 @@ async function loadAdBanners() {
     // Build slideshow HTML
     const slidesHtml = ads.map((ad, i) => {
       const imgUrl = ad.image_url || ad.imageUrl || '';
+      const videoUrl = ad.video_url || ad.videoUrl || '';
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const finalBg = imgUrl ? '#ffffff' : bgGradient;
-      const textColor = imgUrl ? 'var(--gray-800)' : 'white';
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
+      
+      const hasImg = !!imgUrl;
+      const hasVideo = !!videoUrl;
+      const finalBg = (hasImg || hasVideo) ? '#ffffff' : bgGradient;
+      const textColor = (hasImg || hasVideo) ? 'var(--gray-800)' : 'white';
       
       return `
-        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:180px; align-items:center; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 12px; border: ${imgUrl ? '1px solid var(--gray-100)' : 'none'};">
-          ${imgUrl ? `
-            <div style="flex: 0 0 auto; padding: 8px; display: flex; align-items: center; justify-content: center;">
+        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:180px; align-items:stretch; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
+          ${hasVideo ? `
+            <div style="flex: 1 1 300px; min-height:200px; background:#000;">
+              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none;" allow="autoplay; fullscreen; picture-in-picture"></iframe>
+            </div>
+          ` : hasImg ? `
+            <div style="flex: 0 0 auto; padding: 20px; display: flex; align-items: center; justify-content: center;">
               <img src="${imgUrl}" style="max-width:280px; max-height:180px; object-fit:contain; border-radius:10px;" alt="${ad.title}" onerror="this.style.display='none'">
             </div>
           ` : ''}
-          <div style="flex:1; min-width:260px; padding:20px 30px; text-align: ${imgUrl ? 'left' : 'center'}; position:relative; z-index:1">
-            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:${imgUrl ? '0.05' : '0.1'}; pointer-events:none">✨</div>
-            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; color: ${imgUrl ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
-            ${ad.body ? `<div style="font-size:0.95rem; opacity:0.9; line-height:1.5; margin-bottom:12px; max-width: 450px; ${imgUrl ? '' : 'margin: 0 auto;'}">${ad.body}</div>` : ''}
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; background:${imgUrl ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600;">${linkText} →</a>` : ''}
+          <div style="flex:1.2; min-width:260px; padding:24px 30px; text-align: left; position:relative; z-index:1; display:flex; flex-direction:column; justify-content:center;">
+            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:${(hasImg || hasVideo) ? '0.05' : '0.1'}; pointer-events:none">✨</div>
+            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
+            ${ad.body ? `<div style="font-size:0.95rem; opacity:0.9; line-height:1.5; margin-bottom:16px; max-width: 450px;">${ad.body}</div>` : ''}
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600;">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
@@ -395,6 +404,11 @@ async function loadAdBanners() {
 
 function startAdTimer() {
   clearInterval(_adSlideTimer);
+  
+  // Check if current slide has video. If so, don't start/restart timer.
+  const currentSlide = document.querySelector(`.ad-slide[data-index="${_adSlideIndex}"]`);
+  if (currentSlide && currentSlide.dataset.hasVideo === 'true') return;
+
   _adSlideTimer = setInterval(() => nextAdSlide(), 5000);
 }
 
@@ -407,7 +421,7 @@ function goToAdSlide(index) {
   _adSlideIndex = (index + slides.length) % slides.length;
   slides[_adSlideIndex].style.display = 'flex';
   dots[_adSlideIndex]?.classList.add('active');
-  startAdTimer(); // reset timer on manual nav
+  startAdTimer(); // will check for video and potentially NOT start timer
 }
 
 function nextAdSlide() { goToAdSlide(_adSlideIndex + 1); }

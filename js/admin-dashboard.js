@@ -843,6 +843,7 @@ function openAnnouncementModal() {
   document.getElementById('adTitle').value = '';
   document.getElementById('adBody').value = '';
   document.getElementById('adImageUrl').value = '';
+  document.getElementById('adVideoUrl').value = '';
   document.getElementById('adLinkUrl').value = '';
   document.getElementById('adLinkText').value = 'Learn More';
   document.getElementById('adGradient').selectedIndex = 0;
@@ -859,6 +860,7 @@ async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
   const imageUrl = document.getElementById('adImageUrl').value.trim();
+  const videoUrl = document.getElementById('adVideoUrl').value.trim();
   const linkUrl = document.getElementById('adLinkUrl').value.trim();
   const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
   const bgGradient = document.getElementById('adGradient').value;
@@ -874,7 +876,7 @@ async function createAnnouncement() {
   try {
     await apiFetch('/api/announcements', {
       method: 'POST',
-      body: JSON.stringify({ title, body, imageUrl, linkUrl, linkText, bgGradient })
+      body: JSON.stringify({ title, body, imageUrl, videoUrl, linkUrl, linkText, bgGradient })
     });
     closeModal('announcementModal');
     await loadAnnouncements();
