@@ -7,7 +7,7 @@
 // Bump CACHE_VERSION on every deployment to bust stale caches.
 // ============================================================
 
-const CACHE_VERSION = 'aims-lms-v22';
+const CACHE_VERSION = 'aims-lms-v23';
 
 // Static assets that are safe to cache (NOT html pages)
 const STATIC_ASSETS = [
