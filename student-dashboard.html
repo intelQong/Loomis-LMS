@@ -12,8 +12,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=11">
-  <link rel="stylesheet" href="styles/dashboard.css?v=11">
+  <link rel="stylesheet" href="styles/main.css?v=12">
+  <link rel="stylesheet" href="styles/dashboard.css?v=12">
 </head>
 
 <body class="dashboard-page">
@@ -104,28 +104,58 @@
         <div id="adBanners" style="display:none;margin-bottom:20px"></div>
 
         <div class="greeting-banner">
+          <div class="greeting-card">
           <div class="greeting-text">
-            <h2 id="greetingName">Welcome back!</h2>
-            <p id="greetingCourse">Loading your course info...</p>
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+              <img src="assets/aims-logo.png" style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
+              <span style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS English LMS</span>
+            </div>
+            <h2 id="greetName">Good morning, Niloy!</h2>
+            <p id="greetCourse">Enrolled in Spoken English</p>
           </div>
-          <div class="greeting-emoji" id="greetingEmoji">👋</div>
+          <div class="greeting-icon" id="greetIcon">☀️</div>
+        </div>
         </div>
 
-        <div class="stats-grid" id="statsGrid">
+        <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon teal">📚</div>
             <div class="stat-body">
-              <div class="stat-value" id="stat-course">—</div>
               <div class="stat-label">Course</div>
+              <div class="stat-value" id="statCourseName">...</div>
             </div>
           </div>
-
           <div class="stat-card">
-            <div class="stat-icon gold">🏅</div>
+            <div class="stat-icon success">🎯</div>
             <div class="stat-body">
-              <div class="stat-value" id="stat-status">—</div>
               <div class="stat-label">Status</div>
+              <div class="stat-value" id="statStatus">Active</div>
             </div>
+          </div>
+          <div class="stat-card" style="cursor:pointer" onclick="showSection('payments', document.getElementById('nav-payments'))">
+            <div class="stat-icon gold">💳</div>
+            <div class="stat-body">
+              <div class="stat-label">Balance Due</div>
+              <div class="stat-value" id="statDue">৳0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="margin-bottom: 32px;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--gray-800); display: flex; align-items: center; gap: 8px;">
+            ⚡ Quick Actions
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('my-course', document.getElementById('nav-course'))">
+              📖 View Lessons
+            </button>
+            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('payments', document.getElementById('nav-payments'))">
+              💸 Pay Fees
+            </button>
+            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('notifications', document.getElementById('nav-notif'))">
+              📢 View Broadcasts
+            </button>
           </div>
         </div>
 
@@ -340,12 +370,12 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Cloudflare API client -->
-  <script src="js/app-data.js?v=11"></script>
-  <script src="js/api-client.js?v=11"></script>
-  <script src="js/student-dashboard.js?v=11"></script>
+  <script src="js/app-data.js?v=12"></script>
+  <script src="js/api-client.js?v=12"></script>
+  <script src="js/student-dashboard.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=11').then(reg => {
+      navigator.serviceWorker.register('/sw.js?v=12').then(reg => {
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           installingWorker.onstatechange = () => {
