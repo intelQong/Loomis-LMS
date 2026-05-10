@@ -361,11 +361,12 @@ async function loadAdBanners() {
       const textColor = (hasImg || hasVideo) ? 'var(--gray-800)' : 'white';
       
       return `
-        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:140px; align-items:stretch; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
+        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:150px; align-items:stretch; justify-content:center; flex-direction:${hasVideo ? 'column' : 'row'}; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
           ${hasVideo ? `
-            <div style="flex: 1 1 280px; min-height:160px; background:#000; position:relative;">
+            <div style="width:100%; height:240px; background:#000; position:relative; flex-shrink:0;">
               <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+                allowfullscreen
                 referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           ` : hasImg ? `
