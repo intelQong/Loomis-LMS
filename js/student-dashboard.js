@@ -348,7 +348,8 @@ async function loadAdBanners() {
     // Build slideshow HTML
     const slidesHtml = ads.map((ad, i) => {
       const imgUrl = ad.image_url || ad.imageUrl || '';
-      const videoUrl = ad.video_url || ad.videoUrl || '';
+      const rawVideoUrl = ad.video_url || ad.videoUrl || '';
+      const videoUrl = getEmbedUrl(rawVideoUrl);
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
       const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
@@ -359,21 +360,21 @@ async function loadAdBanners() {
       const textColor = (hasImg || hasVideo) ? 'var(--gray-800)' : 'white';
       
       return `
-        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:180px; align-items:stretch; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
+        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:140px; align-items:stretch; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
           ${hasVideo ? `
-            <div style="flex: 1 1 300px; min-height:200px; background:#000;">
-              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none;" allow="autoplay; fullscreen; picture-in-picture"></iframe>
+            <div style="flex: 1 1 280px; min-height:160px; background:#000;">
+              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none;" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
             </div>
           ` : hasImg ? `
-            <div style="flex: 0 0 auto; padding: 20px; display: flex; align-items: center; justify-content: center;">
-              <img src="${imgUrl}" style="max-width:280px; max-height:180px; object-fit:contain; border-radius:10px;" alt="${ad.title}" onerror="this.style.display='none'">
+            <div style="flex: 0 0 auto; padding: 16px; display: flex; align-items: center; justify-content: center;">
+              <img src="${imgUrl}" style="max-width:240px; max-height:140px; object-fit:contain; border-radius:8px;" alt="${ad.title}" onerror="this.style.display='none'">
             </div>
           ` : ''}
-          <div style="flex:1.2; min-width:260px; padding:24px 30px; text-align: left; position:relative; z-index:1; display:flex; flex-direction:column; justify-content:center;">
-            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:${(hasImg || hasVideo) ? '0.05' : '0.1'}; pointer-events:none">✨</div>
-            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
-            ${ad.body ? `<div style="font-size:0.95rem; opacity:0.9; line-height:1.5; margin-bottom:16px; max-width: 450px;">${ad.body}</div>` : ''}
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600;">${linkText} →</a>` : ''}
+          <div style="flex:1.2; min-width:240px; padding:16px 24px; text-align: left; position:relative; z-index:1; display:flex; flex-direction:column; justify-content:center;">
+            <div style="position:absolute; top:8px; right:16px; font-size:3rem; opacity:${(hasImg || hasVideo) ? '0.04' : '0.08'}; pointer-events:none">✨</div>
+            <div style="font-weight:800; font-size:1.2rem; margin-bottom:4px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
+            ${ad.body ? `<div style="font-size:0.85rem; opacity:0.9; line-height:1.4; margin-bottom:12px; max-width: 400px;">${ad.body}</div>` : ''}
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:6px 18px; border-radius:6px; font-size:0.85rem; font-weight:600;">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
@@ -400,6 +401,25 @@ async function loadAdBanners() {
   } catch (e) {
     console.error('Ad banners:', e);
   }
+}
+
+function getEmbedUrl(url) {
+  if (!url) return '';
+  let finalUrl = url.trim();
+  // YouTube
+  if (finalUrl.includes('youtube.com/watch?v=')) {
+    finalUrl = finalUrl.replace('watch?v=', 'embed/');
+    const ampersandPosition = finalUrl.indexOf('&');
+    if (ampersandPosition !== -1) finalUrl = finalUrl.substring(0, ampersandPosition);
+  } else if (finalUrl.includes('youtu.be/')) {
+    finalUrl = finalUrl.replace('youtu.be/', 'youtube.com/embed/');
+  }
+  // Vimeo
+  else if (finalUrl.includes('vimeo.com/') && !finalUrl.includes('player.vimeo.com')) {
+    const videoId = finalUrl.split('/').pop();
+    finalUrl = `https://player.vimeo.com/video/${videoId}`;
+  }
+  return finalUrl;
 }
 
 function startAdTimer() {
