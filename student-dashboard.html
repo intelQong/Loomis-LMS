@@ -6,16 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FF7F50">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/assets/aims-logo.png">
+  <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
   <title>My Dashboard — AIMS English</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=14">
-  <link rel="stylesheet" href="styles/dashboard.css?v=14">
-  <script src="js/api-client.js?v=14"></script>
-  <script src="js/student-dashboard.js?v=14"></script>
+  <link rel="stylesheet" href="styles/main.css?v=16">
+  <link rel="stylesheet" href="styles/dashboard.css?v=16">
+  <script src="js/api-client.js?v=16"></script>
+  <script src="js/student-dashboard.js?v=16"></script>
 </head>
 
 <body class="dashboard-page">
@@ -26,7 +26,7 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img class="logo-img" src="assets/aims-logo.png" alt="AIMS English logo">
+      <img class="logo-img" src="assets/aims-logo.jpeg" alt="AIMS English logo">
       <span>AIMS English LMS</span>
     </div>
 
@@ -111,7 +111,7 @@
           <div class="greeting-card">
             <div class="greeting-text">
               <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                <img src="assets/aims-logo.png" style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
+                <img src="assets/aims-logo.jpeg" style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
                 <span style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS English LMS</span>
               </div>
               <h2 id="greetName">Good morning, Niloy!</h2>
@@ -415,8 +415,12 @@
           
           <div class="theme-palette" style="display:flex; gap:16px; flex-wrap:wrap;">
             <div class="theme-opt" data-theme="teal" onclick="applyTheme('teal')" style="cursor:pointer; text-align:center;">
-              <div style="width:60px; height:60px; border-radius:12px; background:#4338CA; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+              <div style="width:60px; height:60px; border-radius:12px; background:#0D9488; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
               <span style="font-size:0.8rem; font-weight:600;">Teal</span>
+            </div>
+            <div class="theme-opt" data-theme="indigo" onclick="applyTheme('indigo')" style="cursor:pointer; text-align:center;">
+              <div style="width:60px; height:60px; border-radius:12px; background:#4338CA; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+              <span style="font-size:0.8rem; font-weight:600;">Indigo</span>
             </div>
             <div class="theme-opt" data-theme="coral" onclick="applyTheme('coral')" style="cursor:pointer; text-align:center;">
               <div style="width:60px; height:60px; border-radius:12px; background:#FF7F50; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
@@ -437,12 +441,12 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Cloudflare API client -->
-  <script src="js/app-data.js?v=14"></script>
-  <script src="js/api-client.js?v=14"></script>
-  <script src="js/student-dashboard.js?v=14"></script>
+  <script src="js/app-data.js?v=16"></script>
+  <script src="js/api-client.js?v=16"></script>
+  <script src="js/student-dashboard.js?v=16"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=14').then(reg => {
+      navigator.serviceWorker.register('/sw.js?v=16').then(reg => {
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           installingWorker.onstatechange = () => {

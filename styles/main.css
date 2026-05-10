@@ -6,11 +6,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Primary — Deep Indigo/Teal */
-  --teal: #4338CA;
-  --teal-dark: #3730A3;
-  --teal-light: #EEF2FF;
-  --teal-mid: #6366F1;
+  /* Primary — True Teal */
+  --teal: #0D9488;
+  --teal-dark: #0F766E;
+  --teal-light: #F0FDFA;
+  --teal-mid: #2DD4BF;
   /* Accent — Warm Amber/Gold */
   --gold: #D97706;
   --gold-light: #FFFBEB;
@@ -36,8 +36,8 @@
   --radius-sm: 8px;
   --radius-lg: 16px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow: 0 4px 16px rgba(67,56,202,0.12);
-  --shadow-lg: 0 8px 32px rgba(67,56,202,0.18);
+  --shadow: 0 4px 16px rgba(13,148,136,0.12);
+  --shadow-lg: 0 8px 32px rgba(13,148,136,0.18);
   --transition: 0.2s ease;
 }
 
@@ -233,6 +233,9 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+.greeting-banner {
+  margin-bottom: 24px;
 }
 .modal {
   background: white;

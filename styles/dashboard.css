@@ -498,16 +498,7 @@
 
 /* Greeting banner */
 .greeting-banner {
-  background: linear-gradient(135deg, #3730A3 0%, #4338CA 60%, #6366F1 100%);
-  border-radius: var(--radius-lg);
-  padding: 24px 28px;
-  color: white;
   margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
 }
 .greeting-text h2 { font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 4px; }
 .greeting-text p { font-size: 0.9rem; color: rgba(255,255,255,0.75); }
