@@ -9,9 +9,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css">
-<link rel="stylesheet" href="styles/dashboard.css">
-<link rel="stylesheet" href="styles/admin.css">
+<link rel="stylesheet" href="styles/main.css?v=11">
+<link rel="stylesheet" href="styles/dashboard.css?v=11">
+<link rel="stylesheet" href="styles/admin.css?v=11">
 </head>
 <body class="dashboard-page">
 
@@ -652,13 +652,20 @@
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/app-data.js"></script>
-<script src="js/api-client.js"></script>
-<script src="js/admin-dashboard.js"></script>
+<script src="js/app-data.js?v=11"></script>
+<script src="js/api-client.js?v=11"></script>
+<script src="js/admin-dashboard.js?v=11"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js?v=6', { updateViaCache: 'none' }).catch(err => console.error('SW registration failed:', err));
+    navigator.serviceWorker.register('/sw.js?v=11').then(reg => {
+      reg.onupdatefound = () => {
+        const installingWorker = reg.installing;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
+        };
+      };
     });
   }
 </script>
