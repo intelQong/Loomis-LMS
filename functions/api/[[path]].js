@@ -156,8 +156,8 @@ async function createStudent({ request, env }, user) {
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
-    INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?, ?)
+    INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date, class_days, class_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?, ?, ?, ?)
   `).bind(
     id,
     firstName,
@@ -170,7 +170,9 @@ async function createStudent({ request, env }, user) {
     passwordHash,
     salt,
     COURSES[course].totalFee,
-    body.enrolledDate || new Date().toISOString()
+    body.enrolledDate || new Date().toISOString(),
+    body.classDays || '',
+    body.classTime || ''
   ).run();
 
   return json({ user: { id, firstName, lastName, email } }, 201);
@@ -187,7 +189,7 @@ async function updateStudent({ request, env }, user, studentId) {
 
   await env.DB.prepare(`
     UPDATE users
-    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND role = 'student'
   `).bind(
     required(body.firstName, 'First name'),
@@ -201,6 +203,8 @@ async function updateStudent({ request, env }, user, studentId) {
     body.assignedFacultyId || '',
     body.nextPaymentDate || '',
     body.enrolledDate || existing.enrolled_date,
+    body.classDays || '',
+    body.classTime || '',
     studentId
   ).run();
 
@@ -365,7 +369,9 @@ function serializeUser(row) {
     totalDue: row.total_due || 0,
     nextPaymentDate: row.next_payment_date || '',
     enrolledDate: row.enrolled_date,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    classDays: row.class_days || '',
+    classTime: row.class_time || ''
   };
 }
 

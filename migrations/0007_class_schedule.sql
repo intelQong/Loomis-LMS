@@ -1,0 +1,2 @@
+ALTER TABLE users ADD COLUMN class_days TEXT DEFAULT '';
+ALTER TABLE users ADD COLUMN class_time TEXT DEFAULT '';
