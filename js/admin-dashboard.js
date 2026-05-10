@@ -171,20 +171,23 @@ function renderPendingList() {
   const pending = allStudents.filter(s => s.status === 'pending');
   const container = document.getElementById('pendingList');
   if (pending.length === 0) {
-    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400)">No pending approvals 🎉</div>';
+    container.innerHTML = '<div style="text-align:center;padding:16px;color:var(--gray-400);grid-column: 1/-1;">No pending approvals 🎉</div>';
     return;
   }
   container.innerHTML = pending.map(s => {
     const course = COURSES[s.course];
     return `
-      <div class="pending-item">
-        <div class="pending-info">
-          <div class="pending-name">${s.firstName} ${s.lastName}</div>
-          <div class="pending-meta">${s.email} · ${course ? course.name : s.course} · ${s.phone || 'No phone'}</div>
+      <div class="pending-item" style="border: 1px solid var(--gray-100); padding: 12px; border-radius: 10px; background: var(--gray-50); display: flex; flex-direction: column; gap: 8px;">
+        <div class="pending-info" style="margin:0">
+          <div class="pending-name" style="font-size: 0.95rem; font-weight: 600;">${s.firstName} ${s.lastName}</div>
+          <div class="pending-meta" style="font-size: 0.8rem; line-height: 1.4;">
+            ${course ? course.name : s.course}<br>
+            <span style="color:var(--gray-400)">${s.phone || s.email}</span>
+          </div>
         </div>
-        <div class="action-btns">
-          <button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">✓ Approve</button>
-          <button class="btn-xs btn-xs-suspend" onclick="suspendStudent('${s.id}')">✗ Reject</button>
+        <div class="action-btns" style="margin-top: auto; padding-top: 8px; border-top: 1px solid var(--gray-200); display: flex; gap: 8px;">
+          <button class="btn-xs btn-xs-approve" style="flex:1" onclick="approveStudent('${s.id}')">Approve</button>
+          <button class="btn-xs btn-xs-suspend" style="flex:1" onclick="suspendStudent('${s.id}')">Reject</button>
         </div>
       </div>
     `;
@@ -351,10 +354,13 @@ async function saveStudentEdit() {
 function openAddStudentModal() {
   if (!canManageStudents()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
-  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate','addClassDays','addClassTime'].forEach(id => {
+  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  // Default selections
+  document.getElementById('addClassDays').value = 'Sat, Mon, Wed';
+  document.getElementById('addClassTime').value = '4:00 PM';
   // Default to today
   document.getElementById('addEnrolledDate').value = new Date().toISOString().split('T')[0];
   openModal('addStudentModal');

@@ -82,6 +82,7 @@
   <div class="content-area">
 
     <!-- SECTION: Overview -->
+    <section class="page-section active" id="section-overview">
       <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
         <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gray-800); margin: 0;">Financial Insights</h3>
         <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--gray-100); box-shadow: var(--shadow-sm);">
@@ -126,14 +127,14 @@
         </div>
       </div>
 
-      <!-- Pending approvals quick view -->
-      <div class="card" id="pendingQuickView">
-        <div class="section-header">
-          <div class="section-title">Pending Approvals</div>
-          <button class="btn-secondary" onclick="showSection('students', document.getElementById('nav-students'))">View All Students</button>
+      <!-- Compact Pending approvals -->
+      <div class="card" id="pendingQuickView" style="padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h4 style="margin:0; font-size: 1rem; color: var(--gray-800);">Recent Registrations</h4>
+          <button class="btn-xs" style="padding: 6px 12px;" onclick="showSection('students', document.getElementById('nav-students'))">Manage All</button>
         </div>
-        <div id="pendingList">
-          <div style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</div>
+        <div id="pendingList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+          <div style="text-align:center;padding:16px;color:var(--gray-400);grid-column: 1 / -1;">Loading...</div>
         </div>
       </div>
     </section>
@@ -495,11 +496,31 @@
     <div class="field-row-2">
       <div class="field">
         <label>Class Days</label>
-        <input type="text" id="editClassDays" placeholder="e.g. Sat, Mon, Wed">
+        <select id="editClassDays">
+          <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
+          <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
+          <option value="Fri, Sat">Fri, Sat</option>
+          <option value="Everyday">Everyday</option>
+          <option value="Mon-Fri">Mon-Fri</option>
+        </select>
       </div>
       <div class="field">
         <label>Class Time</label>
-        <input type="text" id="editClassTime" placeholder="e.g. 4:00 PM">
+        <select id="editClassTime">
+          <option value="8:00 AM">8:00 AM</option>
+          <option value="9:00 AM">9:00 AM</option>
+          <option value="10:00 AM">10:00 AM</option>
+          <option value="11:00 AM">11:00 AM</option>
+          <option value="12:00 PM">12:00 PM</option>
+          <option value="1:00 PM">1:00 PM</option>
+          <option value="2:00 PM">2:00 PM</option>
+          <option value="3:00 PM">3:00 PM</option>
+          <option value="4:00 PM">4:00 PM</option>
+          <option value="5:00 PM">5:00 PM</option>
+          <option value="6:00 PM">6:00 PM</option>
+          <option value="7:00 PM">7:00 PM</option>
+          <option value="8:00 PM">8:00 PM</option>
+        </select>
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
@@ -551,8 +572,34 @@
     <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text" id="addFacultyId" placeholder="Faculty user document ID"></div>
     <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
     <div class="field-row-2">
-      <div class="field"><label>Class Days</label><input type="text" id="addClassDays" placeholder="Sat, Mon, Wed"></div>
-      <div class="field"><label>Class Time</label><input type="text" id="addClassTime" placeholder="4:00 PM"></div>
+      <div class="field">
+        <label>Class Days</label>
+        <select id="addClassDays">
+          <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
+          <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
+          <option value="Fri, Sat">Fri, Sat</option>
+          <option value="Everyday">Everyday</option>
+          <option value="Mon-Fri">Mon-Fri</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Class Time</label>
+        <select id="addClassTime">
+          <option value="8:00 AM">8:00 AM</option>
+          <option value="9:00 AM">9:00 AM</option>
+          <option value="10:00 AM">10:00 AM</option>
+          <option value="11:00 AM">11:00 AM</option>
+          <option value="12:00 PM">12:00 PM</option>
+          <option value="1:00 PM">1:00 PM</option>
+          <option value="2:00 PM">2:00 PM</option>
+          <option value="3:00 PM">3:00 PM</option>
+          <option value="4:00 PM">4:00 PM</option>
+          <option value="5:00 PM">5:00 PM</option>
+          <option value="6:00 PM">6:00 PM</option>
+          <option value="7:00 PM">7:00 PM</option>
+          <option value="8:00 PM">8:00 PM</option>
+        </select>
+      </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
