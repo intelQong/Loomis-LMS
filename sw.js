@@ -7,7 +7,7 @@
 // Bump CACHE_VERSION on every deployment to bust stale caches.
 // ============================================================
 
-const CACHE_VERSION = 'aims-lms-v19';
+const CACHE_VERSION = 'aims-lms-v20';
 
 // Static assets that are safe to cache (NOT html pages)
 const STATIC_ASSETS = [
@@ -59,7 +59,7 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // 3. Static assets (JS/CSS/images): Network-first, fall back to cache
+  // 3. Static assets: Network-first, fall back to cache
   e.respondWith(
     fetch(e.request)
       .then((res) => {
