@@ -419,13 +419,9 @@
       
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        // Break infinite loops: only reload once per version
-        if (!sessionStorage.getItem('sw-reload-v36')) {
-          sessionStorage.setItem('sw-reload-v36', '1');
-          window.location.reload();
-        }
+        // Disabled auto-reload to prevent loops. 
+        // User will get new version on next manual refresh.
+        console.log('New service worker version available.');
       });
     }
   </script>

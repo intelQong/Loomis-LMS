@@ -100,6 +100,16 @@ async function checkExistingSession() {
 }
 
 function redirectByRole(userData) {
+  // Prevent redirect loops for pending/suspended students
+  if (userData.role === 'student' && userData.status !== 'active') {
+    showLoading(false);
+    const errEl = document.getElementById('loginError');
+    if (errEl) {
+      showError(errEl, `Account Status: ${userData.status.toUpperCase()}. Please wait for admin approval.`);
+    }
+    return;
+  }
+
   if (userData.role === 'admin' || userData.role === 'faculty') {
     window.location.href = 'admin-dashboard.html';
   } else {

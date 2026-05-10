@@ -748,15 +748,8 @@
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js?v=36', { updateViaCache: 'none' });
     
-    let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
-      refreshing = true;
-      // Break infinite loops: only reload once per version
-      if (!sessionStorage.getItem('sw-reload-v36')) {
-        sessionStorage.setItem('sw-reload-v36', '1');
-        window.location.reload();
-      }
+      console.log('New version ready.');
     });
   }
 </script>
