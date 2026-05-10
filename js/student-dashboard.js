@@ -74,18 +74,26 @@ function renderGreeting() {
   let greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   let emoji = hour < 12 ? '☀️' : hour < 17 ? '📖' : '🌙';
   const course = COURSES[currentUser.course];
-  document.getElementById('greetingName').textContent = `${greeting}, ${currentUser.firstName}!`;
-  document.getElementById('greetingCourse').textContent = course ? `Enrolled in ${course.name}` : 'Welcome to AIMS English';
-  document.getElementById('greetingEmoji').textContent = emoji;
+  
+  document.getElementById('greetName').textContent = `${greeting}, ${currentUser.firstName}!`;
+  document.getElementById('greetCourse').textContent = course ? `Enrolled in ${course.name}` : 'Welcome to AIMS English';
+  document.getElementById('greetIcon').textContent = emoji;
 }
 
 function renderStats() {
   const course = COURSES[currentUser.course];
-
-  document.getElementById('stat-course').textContent = course ? course.icon : '—';
-
-  const statusBadge = currentUser.status === 'active' ? 'Active' : currentUser.status;
-  document.getElementById('stat-status').textContent = statusBadge;
+  document.getElementById('statCourseName').textContent = course ? course.name : 'Not Assigned';
+  
+  const statusEl = document.getElementById('statStatus');
+  statusEl.textContent = currentUser.status === 'active' ? 'Active' : currentUser.status;
+  
+  const dueEl = document.getElementById('statDue');
+  if (currentUser.payment && typeof currentUser.payment.due !== 'undefined') {
+    dueEl.textContent = `৳${currentUser.payment.due.toLocaleString()}`;
+    dueEl.style.color = currentUser.payment.due > 0 ? 'var(--danger)' : 'var(--success)';
+  } else {
+    dueEl.textContent = '৳0';
+  }
 }
 
 function renderCourse() {
