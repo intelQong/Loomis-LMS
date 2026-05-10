@@ -14,9 +14,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=12">
-<link rel="stylesheet" href="styles/dashboard.css?v=12">
-<link rel="stylesheet" href="styles/admin.css?v=12">
+<link rel="stylesheet" href="styles/main.css?v=13">
+<link rel="stylesheet" href="styles/dashboard.css?v=13">
+<link rel="stylesheet" href="styles/admin.css?v=13">
 </head>
 <body class="dashboard-page">
 
@@ -480,6 +480,16 @@
       <label>Enrolled Date</label>
       <input type="date" id="editEnrolledDate">
     </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label>Class Days</label>
+        <input type="text" id="editClassDays" placeholder="e.g. Sat, Mon, Wed">
+      </div>
+      <div class="field">
+        <label>Class Time</label>
+        <input type="text" id="editClassTime" placeholder="e.g. 4:00 PM">
+      </div>
+    </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveStudentEdit()">Save Changes</button>
@@ -528,6 +538,10 @@
     <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text" id="addStudentId" placeholder="AIMS-XXXX"></div>
     <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text" id="addFacultyId" placeholder="Faculty user document ID"></div>
     <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
+    <div class="field-row-2">
+      <div class="field"><label>Class Days</label><input type="text" id="addClassDays" placeholder="Sat, Mon, Wed"></div>
+      <div class="field"><label>Class Time</label><input type="text" id="addClassTime" placeholder="4:00 PM"></div>
+    </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="addStudent()">Create Account</button>

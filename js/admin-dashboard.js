@@ -230,7 +230,9 @@ function saveStudentPayload(id, student) {
       nextPaymentDate: student.nextPaymentDate || '',
       studentId: student.studentId || '',
       assignedFacultyId: student.assignedFacultyId || '',
-      enrolledDate: student.enrolledDate || ''
+      enrolledDate: student.enrolledDate || '',
+      classDays: student.classDays || '',
+      classTime: student.classTime || ''
     })
   });
 }
@@ -251,6 +253,8 @@ function openEditStudent(id) {
   document.getElementById('editStudentIdField').value = s.studentId || '';
   document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
   document.getElementById('editEnrolledDate').value = s.enrolledDate ? s.enrolledDate.split('T')[0] : '';
+  document.getElementById('editClassDays').value = s.classDays || '';
+  document.getElementById('editClassTime').value = s.classTime || '';
   document.getElementById('editStudentErr').classList.add('hidden');
   openModal('editStudentModal');
 }
@@ -275,7 +279,9 @@ async function saveStudentEdit() {
       totalDue: due,
       studentId: document.getElementById('editStudentIdField').value.trim(),
       assignedFacultyId: document.getElementById('editFacultyId').value.trim(),
-      enrolledDate: document.getElementById('editEnrolledDate').value
+      enrolledDate: document.getElementById('editEnrolledDate').value,
+      classDays: document.getElementById('editClassDays').value.trim(),
+      classTime: document.getElementById('editClassTime').value.trim()
     });
 
     closeModal('editStudentModal');
@@ -293,8 +299,9 @@ async function saveStudentEdit() {
 function openAddStudentModal() {
   if (!canManageStudents()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
-  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate'].forEach(id => {
-    document.getElementById(id).value = '';
+  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate','addClassDays','addClassTime'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
   // Default to today
   document.getElementById('addEnrolledDate').value = new Date().toISOString().split('T')[0];
@@ -324,7 +331,19 @@ async function addStudent() {
   try {
     await apiFetch('/api/students', {
       method: 'POST',
-      body: JSON.stringify({ firstName: first, lastName: last, email, phone, course, password, studentId, assignedFacultyId, enrolledDate })
+      body: JSON.stringify({ 
+        firstName: first, 
+        lastName: last, 
+        email, 
+        phone, 
+        course, 
+        password, 
+        studentId, 
+        assignedFacultyId, 
+        enrolledDate,
+        classDays: document.getElementById('addClassDays').value.trim(),
+        classTime: document.getElementById('addClassTime').value.trim()
+      })
     });
 
     closeModal('addStudentModal');

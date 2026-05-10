@@ -94,6 +94,21 @@ function renderStats() {
   } else {
     dueEl.textContent = '৳0';
   }
+
+  // Schedule Logic
+  const daysEl = document.getElementById('statClassDays');
+  const timeEl = document.getElementById('statClassTime');
+  
+  if (currentUser.classDays) {
+    daysEl.textContent = currentUser.classDays;
+    timeEl.textContent = currentUser.classTime || 'TBA';
+  } else if (course && course.defaultSchedule) {
+    daysEl.textContent = course.defaultSchedule.days;
+    timeEl.textContent = course.defaultSchedule.time || 'TBA';
+  } else {
+    daysEl.textContent = 'Not set';
+    timeEl.textContent = '—';
+  }
 }
 
 function renderCourse() {
