@@ -876,6 +876,13 @@ async function createAnnouncement() {
     return;
   }
 
+  // Basic Video URL validation to prevent recursive site embedding
+  if (videoUrl && videoUrl.includes(window.location.hostname)) {
+    errEl.textContent = 'Cannot use internal site links as Video URLs. Please use a YouTube or Vimeo link.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
   try {
     await apiFetch('/api/announcements', {
       method: 'POST',

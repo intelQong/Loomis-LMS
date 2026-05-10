@@ -415,19 +415,38 @@ async function loadAdBanners() {
 function getEmbedUrl(url) {
   if (!url) return '';
   let finalUrl = url.trim();
-  // YouTube
-  if (finalUrl.includes('youtube.com/watch?v=')) {
-    finalUrl = finalUrl.replace('watch?v=', 'embed/');
-    const ampersandPosition = finalUrl.indexOf('&');
-    if (ampersandPosition !== -1) finalUrl = finalUrl.substring(0, ampersandPosition);
-  } else if (finalUrl.includes('youtu.be/')) {
-    finalUrl = finalUrl.replace('youtu.be/', 'youtube.com/embed/');
+  
+  try {
+    // YouTube long URLs (watch?v=...)
+    if (finalUrl.includes('youtube.com/watch?v=')) {
+      const urlObj = new URL(finalUrl);
+      const videoId = urlObj.searchParams.get('v');
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    } 
+    // YouTube short URLs (youtu.be/...)
+    else if (finalUrl.includes('youtu.be/')) {
+      const videoId = finalUrl.split('/').pop().split('?')[0];
+      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Vimeo URLs
+    else if (finalUrl.includes('vimeo.com/') && !finalUrl.includes('player.vimeo.com')) {
+      const videoId = finalUrl.split('/').pop().split('?')[0];
+      if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+    }
+    // Already an embed URL
+    if (finalUrl.includes('youtube.com/embed/') || finalUrl.includes('player.vimeo.com/video/')) {
+      return finalUrl;
+    }
+    
+    // Safety check: block internal links from being loaded as video iframes
+    if (finalUrl.includes(window.location.hostname)) {
+      console.warn('Blocked recursive dashboard embed:', finalUrl);
+      return '';
+    }
+  } catch (e) {
+    console.error('Invalid Video URL:', finalUrl);
   }
-  // Vimeo
-  else if (finalUrl.includes('vimeo.com/') && !finalUrl.includes('player.vimeo.com')) {
-    const videoId = finalUrl.split('/').pop();
-    finalUrl = `https://player.vimeo.com/video/${videoId}`;
-  }
+  
   return finalUrl;
 }
 
