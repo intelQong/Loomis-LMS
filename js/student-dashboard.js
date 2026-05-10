@@ -54,6 +54,7 @@ let notifUnsubscribe = null;
 function initDashboard() {
   renderSidebarUser();
   renderGreeting();
+  renderSchedule();
   renderStats();
   renderCourse();
   renderPayments();
@@ -62,6 +63,13 @@ function initDashboard() {
   listenNotifications();
   loadAdBanners();
   initTheme();
+}
+
+function renderSchedule() {
+  const daysEl = document.getElementById('statClassDays');
+  const timeEl = document.getElementById('statClassTime');
+  if (daysEl) daysEl.textContent = currentUser.classDays || 'Not set';
+  if (timeEl) timeEl.textContent = currentUser.classTime || 'Not set';
 }
 
 // ============================================================
