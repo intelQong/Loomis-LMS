@@ -106,8 +106,15 @@ async function login({ request, env }) {
   if (await hashPassword(password, user.password_salt) !== user.password_hash) {
     throw httpError('Invalid password. Please try again.', 401);
   }
-  if (user.status === 'pending') throw httpError('Your account is pending admin approval.', 403);
+  if (user.status === 'pending' && email !== 'mahmudulkhan.office@gmail.com') throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact AIMS admin.', 403);
+
+  // Super Admin Promotion
+  if (email === 'mahmudulkhan.office@gmail.com' && (user.role !== 'admin' || user.status !== 'active')) {
+    await env.DB.prepare("UPDATE users SET role = 'admin', status = 'active' WHERE id = ?").bind(user.id).run();
+    user.role = 'admin';
+    user.status = 'active';
+  }
 
   const sessionId = randomId();
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
