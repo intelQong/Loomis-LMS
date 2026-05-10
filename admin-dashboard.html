@@ -14,9 +14,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=34">
-<link rel="stylesheet" href="styles/dashboard.css?v=34">
-<link rel="stylesheet" href="styles/admin.css?v=34">
+<link rel="stylesheet" href="styles/main.css?v=36">
+<link rel="stylesheet" href="styles/dashboard.css?v=36">
+<link rel="stylesheet" href="styles/admin.css?v=36">
 </head>
 <body class="dashboard-page">
 
@@ -499,6 +499,7 @@
       <label>Enrolled Date</label>
       <input type="date" id="editEnrolledDate">
     </div>
+
     <div class="field-row-2">
       <div class="field">
         <label>Class Days</label>
@@ -740,12 +741,12 @@
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/app-data.js?v=34"></script>
-<script src="js/api-client.js?v=34"></script>
-<script src="js/admin-dashboard.js?v=34"></script>
+<script src="js/app-data.js?v=36"></script>
+<script src="js/api-client.js?v=36"></script>
+<script src="js/admin-dashboard.js?v=36"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js?v=34', { updateViaCache: 'none' });
+    navigator.serviceWorker.register('/sw.js?v=36', { updateViaCache: 'none' });
     
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
