@@ -334,8 +334,12 @@ function renderProfile() {
 let _adSlideIndex = 0;
 let _adSlideTimer = null;
 let _adSlides = [];
+let _adInitialized = false;
 
 async function loadAdBanners() {
+  if (_adInitialized) return;
+  _adInitialized = true;
+  
   try {
     const data = await apiFetch('/api/announcements?t=' + Date.now());
     const ads = data.announcements;
@@ -427,29 +431,41 @@ function getEmbedUrl(url) {
 }
 
 function startAdTimer() {
-  clearInterval(_adSlideTimer);
+  if (_adSlideTimer) {
+    clearInterval(_adSlideTimer);
+    _adSlideTimer = null;
+  }
   
-  // Check if current slide has video. If so, don't start/restart timer.
-  const currentSlide = document.querySelector(`.ad-slide[data-index="${_adSlideIndex}"]`);
+  if (!_adSlides.length) return;
+  const currentSlide = document.querySelector('.ad-slide[data-index="' + _adSlideIndex + '"]');
   if (currentSlide && currentSlide.dataset.hasVideo === 'true') return;
 
-  _adSlideTimer = setInterval(() => nextAdSlide(), 5000);
+  _adSlideTimer = setInterval(function() { nextAdSlide(); }, 5000);
+}
+
+function nextAdSlide() {
+  goToAdSlide(_adSlideIndex + 1);
+}
+
+function prevAdSlide() {
+  goToAdSlide(_adSlideIndex - 1);
 }
 
 function goToAdSlide(index) {
   const slides = document.querySelectorAll('.ad-slide');
   const dots = document.querySelectorAll('.ad-dot');
   if (!slides.length) return;
+  
   slides[_adSlideIndex].style.display = 'none';
-  dots[_adSlideIndex]?.classList.remove('active');
+  if (dots[_adSlideIndex]) dots[_adSlideIndex].classList.remove('active');
+  
   _adSlideIndex = (index + slides.length) % slides.length;
+  
   slides[_adSlideIndex].style.display = 'flex';
-  dots[_adSlideIndex]?.classList.add('active');
-  startAdTimer(); // will check for video and potentially NOT start timer
+  if (dots[_adSlideIndex]) dots[_adSlideIndex].classList.add('active');
+  
+  startAdTimer();
 }
-
-function nextAdSlide() { goToAdSlide(_adSlideIndex + 1); }
-function prevAdSlide() { goToAdSlide(_adSlideIndex - 1); }
 
 
 
