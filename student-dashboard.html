@@ -151,35 +151,36 @@
 
       <!-- SECTION: Payments -->
       <section class="page-section" id="section-payments">
-        <div class="section-header">
-          <div class="section-title">Payment Summary</div>
-        </div>
-        <div class="stats-grid" style="margin-bottom:24px">
-          <div class="stat-card">
-            <div class="stat-icon success">💰</div>
-            <div class="stat-body">
-              <div class="stat-value" id="pay-totalFee">৳0</div>
-              <div class="stat-label">Course Fee</div>
-            </div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="section-header">
+            <div class="section-title">Payment Summary</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon teal">✅</div>
-            <div class="stat-body">
-              <div class="stat-value" id="pay-paid">৳0</div>
-              <div class="stat-label">Paid</div>
+          <div class="stats-grid" style="margin-bottom:0">
+            <div class="stat-card">
+              <div class="stat-icon success">💰</div>
+              <div class="stat-body">
+                <div class="stat-value" id="pay-totalFee">৳0</div>
+                <div class="stat-label">Course Fee</div>
+              </div>
             </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon danger">⚠️</div>
-            <div class="stat-body">
-              <div class="stat-value" id="pay-due">৳0</div>
-              <div class="stat-label">Remaining Due</div>
+            <div class="stat-card">
+              <div class="stat-icon teal">✅</div>
+              <div class="stat-body">
+                <div class="stat-value" id="pay-paid">৳0</div>
+                <div class="stat-label">Paid</div>
+              </div>
             </div>
-          </div>
+            <div class="stat-card">
+              <div class="stat-icon danger">⚠️</div>
+              <div class="stat-body">
+                <div class="stat-value" id="pay-due">৳0</div>
+                <div class="stat-label">Remaining Due</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- NEW: Installment Plan (Timeline) -->
+        <!-- Installment Plan (Timeline) -->
         <div class="card" id="installmentCard" style="display:none; margin-bottom:24px">
           <div class="section-header">
             <div class="section-title">Instalment Plan</div>
@@ -190,7 +191,6 @@
         </div>
 
         <div class="card">
-
           <div class="section-header">
             <div class="section-title">Payment History</div>
           </div>
@@ -206,19 +206,17 @@
               </thead>
               <tbody id="paymentHistory">
                 <tr>
-                  <td colspan="4" style="text-align:center;color:var(--gray-400);padding:32px">No payment records yet.
-                  </td>
+                  <td colspan="4" style="text-align:center;color:var(--gray-400);padding:32px">No payment records yet.</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div
-            style="margin-top:16px;padding:12px 0;border-top:1px solid var(--gray-100);font-size:0.85rem;color:var(--gray-500)">
-            💡 Payment records are updated by AIMS admin. Contact us at  Your Center Addressfor
-            any queries.
+          <div style="margin-top:16px;padding:12px 0;border-top:1px solid var(--gray-100);font-size:0.85rem;color:var(--gray-500)">
+            💡 Payment records are updated by AIMS admin. Contact us at  Your Center Addressfor any queries.
           </div>
         </div>
       </section>
+
 
       <!-- SECTION: Notifications -->
       <section class="page-section" id="section-notifications">
