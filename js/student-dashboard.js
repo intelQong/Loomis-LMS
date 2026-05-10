@@ -357,7 +357,7 @@ async function loadAdBanners() {
       const videoUrl = getEmbedUrl(rawVideoUrl);
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
       
       const hasImg = !!imgUrl;
       const hasVideo = !!videoUrl;
@@ -365,24 +365,25 @@ async function loadAdBanners() {
       const textColor = (hasImg || hasVideo) ? 'var(--gray-800)' : 'white';
       
       return `
-        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:150px; align-items:stretch; justify-content:center; flex-direction:${hasVideo ? 'column' : 'row'}; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
+        <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; height:200px; align-items:stretch; justify-content:flex-start; flex-direction:row; position:relative; transition:opacity 0.4s ease; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
           ${hasVideo ? `
-            <div style="width:100%; height:240px; background:#000; position:relative; flex-shrink:0;">
+            <div style="flex: 0 0 45%; min-width: 200px; background:#000; position:relative; overflow:hidden;">
               <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
                 allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
                 allowfullscreen
                 referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           ` : hasImg ? `
-            <div style="flex: 0 0 auto; padding: 16px; display: flex; align-items: center; justify-content: center;">
-              <img src="${imgUrl}" style="max-width:240px; max-height:140px; object-fit:contain; border-radius:8px;" alt="${ad.title}" onerror="this.style.display='none'">
+            <div style="flex: 0 0 35%; min-width: 150px; background: #f8fafc; border-right: 1px solid var(--gray-100);">
+              <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover;" alt="${ad.title}" onerror="this.style.display='none'">
             </div>
-          ` : ''}
-          <div style="flex:1.2; min-width:240px; padding:16px 24px; text-align: left; position:relative; z-index:1; display:flex; flex-direction:column; justify-content:center;">
-            <div style="position:absolute; top:8px; right:16px; font-size:3rem; opacity:${(hasImg || hasVideo) ? '0.04' : '0.08'}; pointer-events:none">✨</div>
-            <div style="font-weight:800; font-size:1.2rem; margin-bottom:4px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
-            ${ad.body ? `<div style="font-size:0.85rem; opacity:0.9; line-height:1.4; margin-bottom:12px; max-width: 400px;">${ad.body}</div>` : ''}
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:6px 18px; border-radius:6px; font-size:0.85rem; font-weight:600;">${linkText} →</a>` : ''}
+          ` : `
+            <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none">✨</div>
+          `}
+          <div style="flex:1; padding:24px 30px; display:flex; flex-direction:column; justify-content:center; overflow:hidden; text-align: left;">
+            <div style="font-weight:800; font-size:1.3rem; margin-bottom:8px; line-height:1.2; color: ${(hasImg || hasVideo) ? 'var(--indigo-700)' : 'white'}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${ad.title}</div>
+            <div style="font-size:0.9rem; opacity:0.85; line-height:1.5; margin-bottom:16px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">${ad.body || ''}</div>
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; color:white; border:none; text-decoration:none; padding:8px 20px; border-radius:8px; font-size:0.85rem; font-weight:600; transition: transform 0.2s;">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
