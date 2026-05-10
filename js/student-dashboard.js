@@ -146,18 +146,18 @@ function renderStats() {
   const statusEl = document.getElementById('statStatus');
   statusEl.textContent = currentUser.status === 'active' ? 'Active' : currentUser.status;
   
-  const dueCard = document.getElementById('statDueCard');
+  const balanceCard = document.getElementById('statBalanceCard');
   const dueValue = currentUser.payment ? (currentUser.payment.due || 0) : 0;
   
   // Always show Balance Due card to avoid duplication with the top carousel
-  dueCard.innerHTML = `
+  balanceCard.innerHTML = `
     <div class="stat-icon gold">💳</div>
     <div class="stat-body">
       <div class="stat-label">Balance Due</div>
       <div class="stat-value" style="color: ${dueValue > 0 ? 'var(--danger)' : 'var(--success)'}">৳${dueValue.toLocaleString()}</div>
     </div>
   `;
-  dueCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
+  balanceCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
 
   // Schedule Logic
   const daysEl = document.getElementById('statClassDays');
