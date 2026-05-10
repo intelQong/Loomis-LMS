@@ -339,6 +339,7 @@ async function loadAdBanners() {
   try {
     const data = await apiFetch('/api/announcements?t=' + Date.now());
     const ads = data.announcements;
+    console.log('Ads loaded:', ads);
     const container = document.getElementById('adBanners');
     if (!ads || ads.length === 0) { container.style.display = 'none'; return; }
 
@@ -362,8 +363,10 @@ async function loadAdBanners() {
       return `
         <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:140px; align-items:stretch; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 0; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
           ${hasVideo ? `
-            <div style="flex: 1 1 280px; min-height:160px; background:#000;">
-              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none;" allow="autoplay; encrypted-media; fullscreen; picture-in-picture"></iframe>
+            <div style="flex: 1 1 280px; min-height:160px; background:#000; position:relative;">
+              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           ` : hasImg ? `
             <div style="flex: 0 0 auto; padding: 16px; display: flex; align-items: center; justify-content: center;">
