@@ -149,28 +149,15 @@ function renderStats() {
   const dueCard = document.getElementById('statDueCard');
   const dueValue = currentUser.payment ? (currentUser.payment.due || 0) : 0;
   
-  if (dueValue > 0) {
-    // Show Balance Due
-    dueCard.innerHTML = `
-      <div class="stat-icon gold">💳</div>
-      <div class="stat-body">
-        <div class="stat-label">Balance Due</div>
-        <div class="stat-value" style="color:var(--danger)">৳${dueValue.toLocaleString()}</div>
-      </div>
-    `;
-    dueCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
-  } else {
-    // Show Latest Broadcast preview
-    dueCard.innerHTML = `
-      <div class="stat-icon pink">📢</div>
-      <div class="stat-body">
-        <div class="stat-label">Latest Broadcast</div>
-        <div class="stat-value" style="font-size:0.9rem; font-weight:600; color:var(--indigo-700); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;" id="statLastBroadcast">Loading...</div>
-      </div>
-    `;
-    dueCard.onclick = () => showSection('notifications', document.getElementById('nav-notif'));
-    fetchLatestBroadcastForStat();
-  }
+  // Show Balance Due (consistent)
+  dueCard.innerHTML = `
+    <div class="stat-icon gold">💳</div>
+    <div class="stat-body">
+      <div class="stat-label">Balance Due</div>
+      <div class="stat-value" style="color: ${dueValue > 0 ? 'var(--danger)' : 'var(--success)'}">৳${dueValue.toLocaleString()}</div>
+    </div>
+  `;
+  dueCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
 
   // Schedule Logic
   const daysEl = document.getElementById('statClassDays');
