@@ -270,20 +270,21 @@ async function loadAdBanners() {
       const imgUrl = ad.image_url || ad.imageUrl || '';
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)';
+      const finalBg = imgUrl ? '#ffffff' : bgGradient;
+      const textColor = imgUrl ? 'var(--gray-800)' : 'white';
       
       return `
-        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'}; background:${bgGradient}; border-radius:var(--radius-lg); color:white; overflow:hidden; min-height:180px; align-items:center; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 10px;">
+        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; min-height:180px; align-items:center; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 12px; border: ${imgUrl ? '1px solid var(--gray-100)' : 'none'};">
           ${imgUrl ? `
-            <div style="flex: 0 0 auto; padding: 10px; display: flex; align-items: center; justify-content: center;">
-              <img src="${imgUrl}" style="max-width:240px; max-height:160px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="${ad.title}" onerror="this.style.display='none'">
+            <div style="flex: 0 0 auto; padding: 8px; display: flex; align-items: center; justify-content: center;">
+              <img src="${imgUrl}" style="max-width:280px; max-height:180px; object-fit:contain; border-radius:10px;" alt="${ad.title}" onerror="this.style.display='none'">
             </div>
           ` : ''}
           <div style="flex:1; min-width:260px; padding:20px 30px; text-align: ${imgUrl ? 'left' : 'center'}; position:relative; z-index:1">
-            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:0.1; pointer-events:none">✨</div>
-            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.1)">${ad.title}</div>
+            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:${imgUrl ? '0.05' : '0.1'}; pointer-events:none">✨</div>
+            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; color: ${imgUrl ? 'var(--indigo-700)' : 'white'}">${ad.title}</div>
             ${ad.body ? `<div style="font-size:0.95rem; opacity:0.9; line-height:1.5; margin-bottom:12px; max-width: 450px; ${imgUrl ? '' : 'margin: 0 auto;'}">${ad.body}</div>` : ''}
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600; backdrop-filter:blur(10px)">${linkText} →</a>` : ''}
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; background:${imgUrl ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; border:none; color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600;">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
