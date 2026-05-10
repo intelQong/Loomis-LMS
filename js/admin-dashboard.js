@@ -186,8 +186,10 @@ function renderPendingList() {
           </div>
         </div>
         <div class="action-btns" style="margin-top: auto; padding-top: 8px; border-top: 1px solid var(--gray-200); display: flex; gap: 8px;">
-          <button class="btn-xs btn-xs-approve" style="flex:1" onclick="approveStudent('${s.id}')">Approve</button>
-          <button class="btn-xs btn-xs-suspend" style="flex:1" onclick="suspendStudent('${s.id}')">Reject</button>
+          ${canManageStudents() ? `
+            <button class="btn-xs btn-xs-approve" style="flex:1" onclick="approveStudent('${s.id}')">Approve</button>
+            <button class="btn-xs btn-xs-suspend" style="flex:1" onclick="suspendStudent('${s.id}')">Reject</button>
+          ` : '<span style="font-size:0.8rem;color:var(--gray-400);text-align:center;width:100%">Admin only</span>'}
         </div>
       </div>
     `;
@@ -255,9 +257,14 @@ async function approveStudent(id) {
   if (!canManageStudents()) return;
   const student = allStudents.find(s => s.id === id);
   if (!student) return;
-  await saveStudentPayload(id, { ...student, status: 'active' });
-  await loadStudents();
-  showToast('Student approved ✓', 'success');
+  try {
+    await saveStudentPayload(id, { ...student, status: 'active' });
+    await loadStudents();
+    showToast('Student approved ✓', 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to approve: ' + e.message, 'error');
+  }
 }
 
 async function suspendStudent(id) {
@@ -265,9 +272,14 @@ async function suspendStudent(id) {
   if (!confirm('Suspend/reject this student?')) return;
   const student = allStudents.find(s => s.id === id);
   if (!student) return;
-  await saveStudentPayload(id, { ...student, status: 'suspended' });
-  await loadStudents();
-  showToast('Student suspended', 'info');
+  try {
+    await saveStudentPayload(id, { ...student, status: 'suspended' });
+    await loadStudents();
+    showToast('Student suspended', 'info');
+  } catch (e) {
+    console.error(e);
+    showToast('Failed to suspend: ' + e.message, 'error');
+  }
 }
 
 function saveStudentPayload(id, student) {

@@ -194,26 +194,52 @@ async function updateStudent({ request, env }, user, studentId) {
   const totalPaid = numberOrZero(body.totalPaid);
   const previousPaid = numberOrZero(existing.total_paid);
 
-  await env.DB.prepare(`
-    UPDATE users
-    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ? AND role = 'student'
-  `).bind(
-    required(body.firstName, 'First name'),
-    required(body.lastName, 'Last name'),
-    body.phone || '',
-    required(body.course, 'Course'),
-    required(body.status, 'Status'),
-    totalPaid,
-    numberOrZero(body.totalDue),
-    body.studentId || '',
-    body.assignedFacultyId || '',
-    body.nextPaymentDate || '',
-    body.enrolledDate || existing.enrolled_date,
-    body.classDays || '',
-    body.classTime || '',
-    studentId
-  ).run();
+  try {
+    await env.DB.prepare(`
+      UPDATE users
+      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? AND role = 'student'
+    `).bind(
+      required(body.firstName, 'First name'),
+      required(body.lastName, 'Last name'),
+      body.phone || '',
+      required(body.course, 'Course'),
+      required(body.status, 'Status'),
+      totalPaid,
+      numberOrZero(body.totalDue),
+      body.studentId || '',
+      body.assignedFacultyId || '',
+      body.nextPaymentDate || '',
+      body.enrolledDate || existing.enrolled_date,
+      body.classDays || '',
+      body.classTime || '',
+      studentId
+    ).run();
+  } catch (e) {
+    if (e.message.includes('no such column')) {
+      // Fallback: update without class_days/class_time if migration not applied yet
+      await env.DB.prepare(`
+        UPDATE users
+        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ? AND role = 'student'
+      `).bind(
+        required(body.firstName, 'First name'),
+        required(body.lastName, 'Last name'),
+        body.phone || '',
+        required(body.course, 'Course'),
+        required(body.status, 'Status'),
+        totalPaid,
+        numberOrZero(body.totalDue),
+        body.studentId || '',
+        body.assignedFacultyId || '',
+        body.nextPaymentDate || '',
+        body.enrolledDate || existing.enrolled_date,
+        studentId
+      ).run();
+    } else {
+      throw e;
+    }
+  }
 
   const paymentDelta = totalPaid - previousPaid;
   if (paymentDelta > 0) {
@@ -302,6 +328,23 @@ async function listPayments({ env }, user, requestedUserId) {
 }
 
 async function listInstallments({ env }, user, requestedUserId) {
+  // If admin/faculty and no specific userId, return all (filtered for faculty)
+  if (!requestedUserId) {
+    if (user.role === 'admin') {
+      const { results } = await env.DB.prepare('SELECT * FROM installments ORDER BY due_date ASC').all();
+      return json({ installments: results.map(serializeInstallment) });
+    }
+    if (user.role === 'faculty') {
+      const { results } = await env.DB.prepare(`
+        SELECT installments.* FROM installments
+        JOIN users ON users.id = installments.user_id
+        WHERE users.assigned_faculty_id = ?
+        ORDER BY installments.due_date ASC
+      `).bind(user.id).all();
+      return json({ installments: results.map(serializeInstallment) });
+    }
+  }
+
   const userId = requestedUserId || user.id;
   if (user.role === 'student' && userId !== user.id) throw httpError('Not allowed.', 403);
   if (user.role === 'faculty') {
