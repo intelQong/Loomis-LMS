@@ -270,15 +270,20 @@ async function loadAdBanners() {
       const imgUrl = ad.image_url || ad.imageUrl || '';
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg,#3730A3,#6366F1)';
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)';
+      
       return `
-        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'};background:${bgGradient};border-radius:var(--radius-lg);color:white;overflow:hidden;min-height:130px;flex-wrap:wrap;position:relative;transition:opacity 0.4s ease;">
-          ${imgUrl ? `<img src="${imgUrl}" style="width:200px;max-height:160px;object-fit:cover;flex-shrink:0;" alt="${ad.title}" onerror="this.style.display='none'">` : ''}
-          <div style="flex:1;min-width:200px;padding:22px 24px;position:relative;z-index:1">
-            <div style="position:absolute;top:-16px;right:8px;font-size:4rem;opacity:0.07;pointer-events:none">📢</div>
-            <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
-            ${ad.body ? `<div style="font-size:0.875rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.22);color:white;text-decoration:none;padding:7px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px)">${linkText} →</a>` : ''}
+        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'}; background:${bgGradient}; border-radius:var(--radius-lg); color:white; overflow:hidden; min-height:180px; align-items:center; justify-content:center; flex-direction:row; flex-wrap:wrap; position:relative; transition:opacity 0.4s ease; padding: 10px;">
+          ${imgUrl ? `
+            <div style="flex: 0 0 auto; padding: 10px; display: flex; align-items: center; justify-content: center;">
+              <img src="${imgUrl}" style="max-width:240px; max-height:160px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="${ad.title}" onerror="this.style.display='none'">
+            </div>
+          ` : ''}
+          <div style="flex:1; min-width:260px; padding:20px 30px; text-align: ${imgUrl ? 'left' : 'center'}; position:relative; z-index:1">
+            <div style="position:absolute; top:10px; right:20px; font-size:4rem; opacity:0.1; pointer-events:none">✨</div>
+            <div style="font-weight:800; font-size:1.4rem; margin-bottom:8px; line-height:1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.1)">${ad.title}</div>
+            ${ad.body ? `<div style="font-size:0.95rem; opacity:0.9; line-height:1.5; margin-bottom:12px; max-width: 450px; ${imgUrl ? '' : 'margin: 0 auto;'}">${ad.body}</div>` : ''}
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4); color:white; text-decoration:none; padding:8px 22px; border-radius:8px; font-size:0.9rem; font-weight:600; backdrop-filter:blur(10px)">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
