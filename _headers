@@ -1,0 +1,20 @@
+# Cloudflare Pages — Cache-Control Headers
+
+# HTML pages: always revalidate, never serve stale
+/*.html
+  Cache-Control: no-cache, must-revalidate
+
+# Root index
+/
+  Cache-Control: no-cache, must-revalidate
+
+# JS and CSS: safe to cache with versioning by SW
+/js/*
+  Cache-Control: public, max-age=86400
+
+/styles/*
+  Cache-Control: public, max-age=86400
+
+# Assets (logo etc): long-lived
+/assets/*
+  Cache-Control: public, max-age=604800

@@ -48,6 +48,10 @@ export async function onRequest(context) {
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
 
+    if (path[0] === 'installments' && method === 'GET') return listInstallments(context, user, url.searchParams.get('userId'));
+    if (path[0] === 'installments' && method === 'POST') return saveInstallments(context, user);
+
+
     return error('Not found', 404);
   } catch (e) {
     return error(e.message || 'Server error', e.status || 500);
@@ -182,7 +186,7 @@ async function updateStudent({ request, env }, user, studentId) {
 
   await env.DB.prepare(`
     UPDATE users
-    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, updated_at = CURRENT_TIMESTAMP
+    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND role = 'student'
   `).bind(
     required(body.firstName, 'First name'),
@@ -194,6 +198,7 @@ async function updateStudent({ request, env }, user, studentId) {
     numberOrZero(body.totalDue),
     body.studentId || '',
     body.assignedFacultyId || '',
+    body.nextPaymentDate || '',
     studentId
   ).run();
 
@@ -256,9 +261,10 @@ async function createNotification({ request, env }, user) {
   }
 
   await env.DB.prepare(`
-    INSERT INTO notifications (id, title, body, target_type, target_user_id, target_faculty_id, sent_by, sender_role)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(crypto.randomUUID(), title, message, targetType, targetUserId, targetFacultyId, user.id, user.role).run();
+    INSERT INTO notifications (id, title, body, target_type, target_user_id, target_faculty_id, sent_by, sender_role, image_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(crypto.randomUUID(), title, message, targetType, targetUserId, targetFacultyId, user.id, user.role, body.imageUrl || '').run();
+
 
   return json({ ok: true }, 201);
 }
@@ -281,6 +287,50 @@ async function listPayments({ env }, user, requestedUserId) {
   const { results } = await env.DB.prepare('SELECT * FROM payments WHERE user_id = ? ORDER BY date DESC').bind(userId).all();
   return json({ payments: results.map(serializePayment) });
 }
+
+async function listInstallments({ env }, user, requestedUserId) {
+  const userId = requestedUserId || user.id;
+  if (user.role === 'student' && userId !== user.id) throw httpError('Not allowed.', 403);
+  if (user.role === 'faculty') {
+    const student = await env.DB.prepare("SELECT assigned_faculty_id FROM users WHERE id = ? AND role = 'student'").bind(userId).first();
+    if (!student || student.assigned_faculty_id !== user.id) throw httpError('Not allowed.', 403);
+  }
+  const { results } = await env.DB.prepare('SELECT * FROM installments WHERE user_id = ? ORDER BY due_date ASC').bind(userId).all();
+  return json({ installments: results.map(serializeInstallment) });
+}
+
+async function saveInstallments({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const userId = required(body.userId, 'User ID');
+  const installments = body.installments || []; // Array of { id, amount, due_date, description, status }
+
+  // We'll do a simple sync: delete all and re-insert, or update existing.
+  // For simplicity, let's delete all installments for this user and insert the new ones.
+  // This is easier for "editing the whole plan".
+  
+  await env.DB.prepare('DELETE FROM installments WHERE user_id = ?').bind(userId).run();
+
+  if (installments.length > 0) {
+    const stmts = installments.map(inst => {
+      return env.DB.prepare(`
+        INSERT INTO installments (id, user_id, amount, due_date, description, status)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(
+        inst.id || crypto.randomUUID(),
+        userId,
+        numberOrZero(inst.amount),
+        inst.dueDate || inst.due_date || '',
+        inst.description || '',
+        inst.status || 'pending'
+      );
+    });
+    await env.DB.batch(stmts);
+  }
+
+  return json({ ok: true });
+}
+
 
 async function requireUser({ request, env }) {
   const sessionId = getCookie(request, 'aims_session');
@@ -311,6 +361,7 @@ function serializeUser(row) {
     status: row.status,
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
+    nextPaymentDate: row.next_payment_date || '',
     enrolledDate: row.enrolled_date,
     createdAt: row.created_at
   };
@@ -326,8 +377,10 @@ function serializeNotification(row) {
     targetFacultyId: row.target_faculty_id || '',
     sentBy: row.sent_by,
     senderRole: row.sender_role,
+    imageUrl: row.image_url || '',
     createdAt: row.created_at
   };
+
 }
 
 function serializePayment(row) {
@@ -339,6 +392,18 @@ function serializePayment(row) {
     date: row.date
   };
 }
+
+function serializeInstallment(row) {
+  return {
+    id: row.id,
+    amount: row.amount || 0,
+    dueDate: row.due_date,
+    description: row.description || '',
+    status: row.status || 'pending',
+    createdAt: row.created_at
+  };
+}
+
 
 // ============================================================
 // Announcements
