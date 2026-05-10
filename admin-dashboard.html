@@ -164,6 +164,8 @@
                 <th>Student</th>
                 <th>Course</th>
                 <th>Status</th>
+                <th>Enrolled Date</th>
+                <th>Course Expiry</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -469,6 +471,10 @@
       <label>Assigned Faculty UID <span class="optional">(optional)</span></label>
       <input type="text" id="editFacultyId" placeholder="Faculty user document ID">
     </div>
+    <div class="field">
+      <label>Enrolled Date</label>
+      <input type="date" id="editEnrolledDate">
+    </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveStudentEdit()">Save Changes</button>
@@ -516,6 +522,7 @@
     <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars"></div>
     <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text" id="addStudentId" placeholder="AIMS-XXXX"></div>
     <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text" id="addFacultyId" placeholder="Faculty user document ID"></div>
+    <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="addStudent()">Create Account</button>

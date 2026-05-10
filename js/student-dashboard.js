@@ -95,18 +95,40 @@ function renderCourse() {
     container.innerHTML = '<div class="card" style="color:var(--gray-400);text-align:center;padding:48px">No course assigned yet.</div>';
     return;
   }
+
+  // Enrollment and Expiry calc
+  const enrollDate = currentUser.enrolledDate ? new Date(currentUser.enrolledDate) : null;
+  let enrollStr = '—';
+  let expiryStr = '—';
+  if (enrollDate && !isNaN(enrollDate)) {
+    enrollStr = formatDate(enrollDate);
+    const expiryDate = new Date(enrollDate);
+    expiryDate.setMonth(expiryDate.getMonth() + 6);
+    expiryStr = formatDate(expiryDate);
+  }
+
   container.innerHTML = `
     <div class="course-card">
       <div class="course-header">
         <div class="course-name">${course.icon} ${course.name}</div>
-        <div class="course-meta">
+        <div class="course-meta" style="flex-wrap:wrap">
           <span>⏱ ${course.duration}</span>
-          <span>⏳ Validity: 6 Months</span>
           <span>📅 ${course.sessions}</span>
           <span>💰 ৳${course.totalFee.toLocaleString()} total</span>
         </div>
       </div>
       <div class="course-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--gray-100)">
+          <div style="background:var(--gray-50);padding:12px;border-radius:var(--radius-sm)">
+            <div style="font-size:0.75rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">📅 Enrollment Date</div>
+            <div style="font-weight:600;color:var(--gray-800)">${enrollStr}</div>
+          </div>
+          <div style="background:var(--teal-light);padding:12px;border-radius:var(--radius-sm)">
+            <div style="font-size:0.75rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">⌛ Access Expiry</div>
+            <div style="font-weight:700;color:var(--teal-dark)">${expiryStr}</div>
+          </div>
+        </div>
+
         <div style="font-size:0.95rem;font-weight:600;color:var(--gray-700);margin-bottom:4px">What's included in your course:</div>
         <div class="features-grid">
           ${course.features.map(f => `
@@ -124,6 +146,7 @@ function renderCourse() {
     </div>
   `;
 }
+
 
 function renderPayments() {
   const course = COURSES[currentUser.course];

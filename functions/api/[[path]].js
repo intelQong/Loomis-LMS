@@ -156,8 +156,8 @@ async function createStudent({ request, env }, user) {
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
-    INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?)
+    INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?, ?)
   `).bind(
     id,
     firstName,
@@ -169,7 +169,8 @@ async function createStudent({ request, env }, user) {
     body.assignedFacultyId || '',
     passwordHash,
     salt,
-    COURSES[course].totalFee
+    COURSES[course].totalFee,
+    body.enrolledDate || new Date().toISOString()
   ).run();
 
   return json({ user: { id, firstName, lastName, email } }, 201);
@@ -186,7 +187,7 @@ async function updateStudent({ request, env }, user, studentId) {
 
   await env.DB.prepare(`
     UPDATE users
-    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, updated_at = CURRENT_TIMESTAMP
+    SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ? AND role = 'student'
   `).bind(
     required(body.firstName, 'First name'),
@@ -199,6 +200,7 @@ async function updateStudent({ request, env }, user, studentId) {
     body.studentId || '',
     body.assignedFacultyId || '',
     body.nextPaymentDate || '',
+    body.enrolledDate || existing.enrolled_date,
     studentId
   ).run();
 
