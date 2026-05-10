@@ -368,10 +368,12 @@ async function loadAdBanners() {
         <div class="ad-slide" data-index="${i}" data-has-video="${hasVideo}" style="display:${i === 0 ? 'flex' : 'none'}; background:${finalBg}; border-radius:var(--radius-lg); color:${textColor}; overflow:hidden; height:200px; align-items:stretch; justify-content:flex-start; flex-direction:row; position:relative; transition:opacity 0.4s ease; border: ${(hasImg || hasVideo) ? '1px solid var(--gray-100)' : 'none'};">
           ${hasVideo ? `
             <div style="flex: 0 0 45%; min-width: 200px; background:#000; position:relative; overflow:hidden;">
-              <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
-                allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
-                allowfullscreen
-                referrerpolicy="no-referrer-when-downgrade"></iframe>
+              ${videoUrl.startsWith('<') ? videoUrl : `
+                <iframe src="${videoUrl}" style="width:100%; height:100%; border:none; position:absolute; top:0; left:0;" 
+                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+                  allowfullscreen
+                  referrerpolicy="no-referrer-when-downgrade"></iframe>
+              `}
             </div>
           ` : hasImg ? `
             <div style="flex: 0 0 35%; min-width: 150px; background: #f8fafc; border-right: 1px solid var(--gray-100);">
@@ -416,26 +418,33 @@ function getEmbedUrl(url) {
   if (!url) return '';
   let finalUrl = url.trim();
   
+  // Support raw iframe embed code
+  if (finalUrl.startsWith('<') && finalUrl.includes('iframe')) {
+    // Basic cleanup: ensure width/height are 100% for our container
+    return finalUrl.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"');
+  }
+
   try {
     // YouTube long URLs (watch?v=...)
     if (finalUrl.includes('youtube.com/watch?v=')) {
       const urlObj = new URL(finalUrl);
       const videoId = urlObj.searchParams.get('v');
-      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
     } 
     // YouTube short URLs (youtu.be/...)
     else if (finalUrl.includes('youtu.be/')) {
       const videoId = finalUrl.split('/').pop().split('?')[0];
-      if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
     }
     // Vimeo URLs
     else if (finalUrl.includes('vimeo.com/') && !finalUrl.includes('player.vimeo.com')) {
       const videoId = finalUrl.split('/').pop().split('?')[0];
       if (videoId) return `https://player.vimeo.com/video/${videoId}`;
     }
-    // Already an embed URL
-    if (finalUrl.includes('youtube.com/embed/') || finalUrl.includes('player.vimeo.com/video/')) {
-      return finalUrl;
+    // Already an embed URL (detected as URL)
+    if (finalUrl.includes('youtube.com/embed/') || finalUrl.includes('youtube-nocookie.com/embed/') || finalUrl.includes('player.vimeo.com/video/')) {
+      // Upgrade youtube.com to youtube-nocookie.com
+      return finalUrl.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
     }
     
     // Safety check: block internal links from being loaded as video iframes
