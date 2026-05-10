@@ -341,7 +341,7 @@ async function addStudent() {
 // ============================================================
 async function loadNotifications() {
   try {
-    const data = await apiFetch('/api/notifications');
+    const data = await apiFetch('/api/notifications?t=' + Date.now());
     renderNotifTable(data.notifications);
   } catch (err) {
     console.error(err);
@@ -675,7 +675,7 @@ function showSection(name, btn) {
   const titles = {
     'overview': 'Overview',
     'students': 'Students',
-    'notifications': 'Notifications',
+    'broadcasts': 'Broadcasts',
     'payments': 'Payments',
     'announcements': 'Announcements',
     'portals': 'Portals'
@@ -711,7 +711,7 @@ function showToast(msg, type = 'info') {
 // ============================================================
 async function loadAnnouncements() {
   try {
-    const data = await apiFetch('/api/announcements');
+    const data = await apiFetch('/api/announcements?t=' + Date.now());
     renderAnnouncementsList(data.announcements);
   } catch (e) {
     console.error(e);

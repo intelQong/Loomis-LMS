@@ -257,7 +257,7 @@ let _adSlides = [];
 
 async function loadAdBanners() {
   try {
-    const data = await apiFetch('/api/announcements');
+    const data = await apiFetch('/api/announcements?t=' + Date.now());
     const ads = data.announcements;
     const container = document.getElementById('adBanners');
     if (!ads || ads.length === 0) { container.style.display = 'none'; return; }
@@ -334,7 +334,7 @@ async function listenNotifications() {
   if (notifUnsubscribe) notifUnsubscribe();
 
   try {
-    const data = await apiFetch('/api/notifications');
+    const data = await apiFetch('/api/notifications?t=' + Date.now());
     const notifs = data.notifications;
     renderNotifications(notifs);
 
@@ -344,8 +344,11 @@ async function listenNotifications() {
       document.getElementById('latestNotif').innerHTML = `
         <div style="font-weight:500;color:var(--gray-800);margin-bottom:6px">${latest.title}</div>
         <div style="font-size:0.875rem;color:var(--gray-600);line-height:1.6">${latest.body}</div>
+        ${latest.imageUrl ? `<img src="${latest.imageUrl}" style="max-width:100%;border-radius:8px;margin-top:10px;margin-bottom:4px;display:block">` : ''}
         <div style="font-size:0.75rem;color:var(--gray-400);margin-top:8px">${formatDate(latest.createdAt)}</div>
       `;
+    } else {
+      document.getElementById('latestNotif').innerHTML = 'No recent broadcasts.';
     }
   } catch (e) {
     renderNotifications([]);
@@ -370,8 +373,8 @@ function renderNotifications(notifs) {
   }
 
   if (notifs.length === 0) {
-    list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
-    if(pageList) pageList.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:32px">No notifications yet.</td></tr>';
+    list.innerHTML = '<div class="notif-empty">No broadcasts yet</div>';
+    if(pageList) pageList.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:32px">No broadcasts yet.</td></tr>';
     return;
   }
 
@@ -432,7 +435,7 @@ function showSection(name, btn) {
     'overview': 'Overview',
     'my-course': 'My Course',
     'payments': 'Payments',
-    'notifications': 'Notifications',
+    'notifications': 'Broadcasts',
     'portals': 'Portals',
     'profile': 'My Profile'
   };
