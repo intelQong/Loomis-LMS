@@ -140,39 +140,7 @@ function renderGreeting() {
 }
 
 function renderStats() {
-  const course = COURSES[currentUser.course];
-  document.getElementById('statCourseName').textContent = course ? course.name : 'Not Assigned';
-  
-  const statusEl = document.getElementById('statStatus');
-  statusEl.textContent = currentUser.status === 'active' ? 'Active' : currentUser.status;
-  
-  const balanceCard = document.getElementById('statBalanceCard');
-  const dueValue = currentUser.payment ? (currentUser.payment.due || 0) : 0;
-  
-  // Always show Balance Due card to avoid duplication with the top carousel
-  balanceCard.innerHTML = `
-    <div class="stat-icon gold">💳</div>
-    <div class="stat-body">
-      <div class="stat-label">Balance Due</div>
-      <div class="stat-value" style="color: ${dueValue > 0 ? 'var(--danger)' : 'var(--success)'}">৳${dueValue.toLocaleString()}</div>
-    </div>
-  `;
-  balanceCard.onclick = () => showSection('payments', document.getElementById('nav-payments'));
-
-  // Schedule Logic
-  const daysEl = document.getElementById('statClassDays');
-  const timeEl = document.getElementById('statClassTime');
-  
-  if (currentUser.classDays) {
-    daysEl.textContent = currentUser.classDays;
-    timeEl.textContent = currentUser.classTime || 'TBA';
-  } else if (course && course.defaultSchedule) {
-    daysEl.textContent = course.defaultSchedule.days;
-    timeEl.textContent = course.defaultSchedule.time || 'TBA';
-  } else {
-    daysEl.textContent = 'Not set';
-    timeEl.textContent = '—';
-  }
+  // Stats cards removed from UI
 }
 
 async function fetchLatestBroadcastForStat() {
