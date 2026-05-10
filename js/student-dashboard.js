@@ -461,18 +461,7 @@ async function listenNotifications() {
     const notifs = data.notifications;
     renderNotifications(notifs);
 
-    // Latest for overview
-    if (notifs.length > 0) {
-      const latest = notifs[0];
-      document.getElementById('latestNotif').innerHTML = `
-        <div style="font-weight:500;color:var(--gray-800);margin-bottom:6px">${latest.title}</div>
-        <div style="font-size:0.875rem;color:var(--gray-600);line-height:1.6">${latest.body}</div>
-        ${latest.imageUrl ? `<img src="${latest.imageUrl}" style="max-width:100%;border-radius:8px;margin-top:10px;margin-bottom:4px;display:block">` : ''}
-        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:8px">${formatDate(latest.createdAt)}</div>
-      `;
-    } else {
-      document.getElementById('latestNotif').innerHTML = 'No recent broadcasts.';
-    }
+    // Notifications are now handled via renderNotifications and the dynamic stat card
   } catch (e) {
     renderNotifications([]);
   }
