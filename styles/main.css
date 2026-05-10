@@ -1,18 +1,20 @@
 /* ============================================================
    AIMS LMS — Design System
-   Brand: Teal #1D6B7A | Gold #BF8C4C
+   Brand: Indigo #4338CA | Amber #D97706
    ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --teal: #1D6B7A;
-  --teal-dark: #155260;
-  --teal-light: #e8f4f6;
-  --teal-mid: #2a8a9d;
-  --gold: #BF8C4C;
-  --gold-light: #f9f0e3;
-  --gold-dark: #9e7038;
+  /* Primary — Deep Indigo */
+  --teal: #4338CA;
+  --teal-dark: #3730A3;
+  --teal-light: #EEF2FF;
+  --teal-mid: #6366F1;
+  /* Accent — Warm Amber */
+  --gold: #D97706;
+  --gold-light: #FFFBEB;
+  --gold-dark: #B45309;
   --white: #ffffff;
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -27,15 +29,15 @@
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
-  --info: #3b82f6;
+  --info: #6366F1;
   --font-sans: 'DM Sans', sans-serif;
   --font-serif: 'DM Serif Display', serif;
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow: 0 4px 16px rgba(0,0,0,0.1);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --shadow: 0 4px 16px rgba(67,56,202,0.1);
+  --shadow-lg: 0 8px 32px rgba(67,56,202,0.14);
   --transition: 0.2s ease;
 }
 
@@ -285,7 +287,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
 .field select:focus,
 .field textarea:focus {
   border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(29,107,122,0.08);
+  box-shadow: 0 0 0 3px rgba(67,56,202,0.1);
 }
 .field textarea { resize: vertical; min-height: 100px; }
 .field .optional { color: var(--gray-400); font-weight: 400; font-size: 0.8em; }

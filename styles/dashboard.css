@@ -238,7 +238,7 @@
   overflow: hidden;
 }
 .course-header {
-  background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+  background: linear-gradient(135deg, #3730A3 0%, #4338CA 60%, #6366F1 100%);
   padding: 24px;
   color: white;
 }
@@ -426,14 +426,14 @@
 }
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--teal) 0%, var(--teal-mid) 100%);
+  background: linear-gradient(90deg, #4338CA 0%, #6366F1 100%);
   border-radius: 4px;
   transition: width 0.5s ease;
 }
 
 /* Greeting banner */
 .greeting-banner {
-  background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+  background: linear-gradient(135deg, #3730A3 0%, #4338CA 60%, #6366F1 100%);
   border-radius: var(--radius-lg);
   padding: 24px 28px;
   color: white;
