@@ -61,6 +61,58 @@ function initDashboard() {
   renderProfile();
   listenNotifications();
   loadAdBanners();
+  initTheme();
+}
+
+// ============================================================
+// Theme Management
+// ============================================================
+const THEMES = {
+  teal: {
+    primary: '#4338CA',
+    dark: '#3730A3',
+    light: '#EEF2FF',
+    mid: '#6366F1',
+    shadow: 'rgba(67,56,202,0.12)'
+  },
+  coral: {
+    primary: '#FF7F50',
+    dark: '#E35D44',
+    light: '#FFF1EE',
+    mid: '#FF9F7D',
+    shadow: 'rgba(255,127,80,0.12)'
+  },
+  emerald: {
+    primary: '#10B981',
+    dark: '#065F46',
+    light: '#ECFDF5',
+    mid: '#34D399',
+    shadow: 'rgba(16,185,129,0.12)'
+  }
+};
+
+function initTheme() {
+  const saved = localStorage.getItem('aims-theme') || 'teal';
+  applyTheme(saved);
+}
+
+function applyTheme(name) {
+  const theme = THEMES[name] || THEMES.teal;
+  const root = document.documentElement;
+  root.style.setProperty('--teal', theme.primary);
+  root.style.setProperty('--teal-dark', theme.dark);
+  root.style.setProperty('--teal-light', theme.light);
+  root.style.setProperty('--teal-mid', theme.mid);
+  root.style.setProperty('--shadow', `0 4px 16px ${theme.shadow}`);
+  root.style.setProperty('--shadow-lg', `0 8px 32px ${theme.shadow.replace('0.12', '0.18')}`);
+  
+  // Update sidebar gradient if needed (dashboard.css uses var(--teal-dark))
+  localStorage.setItem('aims-theme', name);
+  
+  // Update UI selection state if palette exists
+  document.querySelectorAll('.theme-opt').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.theme === name);
+  });
 }
 
 function renderSidebarUser() {
