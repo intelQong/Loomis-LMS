@@ -56,6 +56,7 @@ function configureDashboardForRole() {
   document.getElementById('totalStudentsLabel').textContent = isFaculty() ? 'Assigned Students' : 'Total Students';
   document.getElementById('pendingCard').classList.toggle('hidden', isFaculty());
   document.getElementById('revenueCard').classList.toggle('hidden', isFaculty());
+  document.getElementById('dueCollectionCard').classList.toggle('hidden', isFaculty());
   document.getElementById('pendingQuickView').classList.toggle('hidden', isFaculty());
   document.getElementById('studentsSectionTitle').textContent = isFaculty() ? 'Assigned Students' : 'Students';
   document.getElementById('notificationsSectionTitle').textContent = isFaculty() ? 'Send Broadcast' : 'Broadcasts';
@@ -85,10 +86,22 @@ function handleFileSelect(input, urlId, previewId) {
 // ============================================================
 // Students
 // ============================================================
+let allInstallments = [];
+
 async function loadStudents() {
   try {
     const data = await apiFetch('/api/students');
     allStudents = data.students;
+    
+    // Also fetch all installments for financial insights
+    try {
+      const instData = await apiFetch('/api/installments');
+      allInstallments = instData.installments || [];
+    } catch (e) {
+      console.warn('Could not load all installments for stats', e);
+      allInstallments = [];
+    }
+
     renderOverviewStats();
     renderPendingList();
     renderStudentsTable(allStudents);
@@ -101,19 +114,57 @@ async function loadStudents() {
 }
 
 function renderOverviewStats() {
+  const period = document.getElementById('statPeriod') ? document.getElementById('statPeriod').value : 'month';
+  const now = new Date();
+  
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0,0,0,0);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const filterFn = (dateStr) => {
+    if (period === 'all') return true;
+    const d = new Date(dateStr);
+    if (period === 'today') return d >= startOfDay;
+    if (period === 'week') return d >= startOfWeek;
+    if (period === 'month') return d >= startOfMonth;
+    return true;
+  };
+
+  // 1. Basic counts
   const total = allStudents.length;
   const pending = allStudents.filter(s => s.status === 'pending').length;
   const active = allStudents.filter(s => s.status === 'active').length;
-  const revenue = allStudents.reduce((acc, s) => acc + (s.totalPaid || 0), 0);
 
   document.getElementById('ov-total').textContent = total;
   document.getElementById('ov-pending').textContent = pending;
-  document.getElementById('ov-active').textContent = active;
-  document.getElementById('ov-revenue').textContent = `৳${revenue.toLocaleString()}`;
+
+  // 2. Financials from installments
+  // Total Collected for period = paid installments with dueDate in period
+  const revenue = allInstallments
+    .filter(i => i.status === 'paid' && filterFn(i.dueDate))
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+
+  // Due Collection for period = pending/overdue installments with dueDate in period
+  const dueCollection = allInstallments
+    .filter(i => i.status !== 'paid' && filterFn(i.dueDate))
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+
+  // Fallback for "All Time" Revenue: if allInstallments is empty, use totalPaid from student records
+  const displayedRevenue = (period === 'all' && revenue === 0) 
+    ? allStudents.reduce((acc, s) => acc + (s.totalPaid || 0), 0)
+    : revenue;
+
+  document.getElementById('ov-revenue').textContent = `৳${displayedRevenue.toLocaleString()}`;
+  const dueEl = document.getElementById('ov-due-collection');
+  if (dueEl) dueEl.textContent = `৳${dueCollection.toLocaleString()}`;
 
   const badge = document.getElementById('pendingBadge');
-  if (pending > 0) { badge.style.display = ''; badge.textContent = pending; }
-  else { badge.style.display = 'none'; }
+  if (badge) {
+    if (pending > 0) { badge.style.display = ''; badge.textContent = pending; }
+    else { badge.style.display = 'none'; }
+  }
 }
 
 function renderPendingList() {
