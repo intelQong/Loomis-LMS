@@ -18,7 +18,8 @@ const COURSES = {
       { icon: '💻', label: '25 CD Mock Tests' },
       { icon: '🗣️', label: '6 Months Language Lounge Access' },
       { icon: '🎬', label: '6 Months Movie Club Access' }
-    ]
+    ],
+    defaultSchedule: { days: 'Sat, Mon, Wed', time: 'TBA' }
   },
   'ielts-fast-track': {
     name: 'IELTS Fast Track',
@@ -109,7 +110,8 @@ const COURSES = {
     features: [
       { icon: '🗣️', label: '6 Months Language Lounge Access' },
       { icon: '🎬', label: '6 Months Movie Club Access' }
-    ]
+    ],
+    defaultSchedule: { days: '3 days a week', sessions: 24, time: 'TBA' }
   },
   'business-english': {
     name: 'Business English for Professionals',
@@ -140,12 +142,13 @@ const COURSES = {
     icon: '📖',
     category: 'Spoken English',
     duration: '1 Month',
-    sessions: '12 classes',
+    sessions: '13 classes',
     totalFee: 2500,
     features: [
       { icon: '🗣️', label: '2 Months Language Lounge Access' },
       { icon: '🎬', label: '2 Months Movie Club Access' }
-    ]
+    ],
+    defaultSchedule: { days: 'TBA', sessions: 13, time: 'TBA' }
   }
 };
 
