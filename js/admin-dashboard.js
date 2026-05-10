@@ -58,8 +58,29 @@ function configureDashboardForRole() {
   document.getElementById('revenueCard').classList.toggle('hidden', isFaculty());
   document.getElementById('pendingQuickView').classList.toggle('hidden', isFaculty());
   document.getElementById('studentsSectionTitle').textContent = isFaculty() ? 'Assigned Students' : 'Students';
-  document.getElementById('notificationsSectionTitle').textContent = isFaculty() ? 'Notify Assigned Students' : 'Notifications';
+  document.getElementById('notificationsSectionTitle').textContent = isFaculty() ? 'Send Broadcast' : 'Broadcasts';
 }
+
+function handleFileSelect(input, urlId, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const fileNameSpan = document.getElementById(input.id + 'Name');
+  if (fileNameSpan) fileNameSpan.textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    document.getElementById(urlId).value = base64;
+    const preview = document.getElementById(previewId);
+    if (preview) {
+      preview.style.display = 'block';
+      preview.querySelector('img').src = base64;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 
 // ============================================================
 // Students
@@ -194,6 +215,7 @@ function saveStudentPayload(id, student) {
       status: student.status,
       totalPaid: student.totalPaid || 0,
       totalDue: student.totalDue || 0,
+      nextPaymentDate: student.nextPaymentDate || '',
       studentId: student.studentId || '',
       assignedFacultyId: student.assignedFacultyId || ''
     })
@@ -314,9 +336,10 @@ async function loadNotifications() {
     renderNotifTable(data.notifications);
   } catch (err) {
     console.error(err);
-    showToast('Unable to load notifications', 'error');
+    showToast('Unable to load broadcasts', 'error');
   }
 }
+
 
 function renderNotifTable(notifs) {
   const tbody = document.getElementById('notifTable');
@@ -346,12 +369,19 @@ function renderNotifTable(notifs) {
 function openNotifModal() {
   document.getElementById('notifTitle').value = '';
   document.getElementById('notifBody').value = '';
+  document.getElementById('notifImageUrl').value = '';
+  document.getElementById('notifImageFile').value = '';
+  document.getElementById('notifImageFileName').textContent = 'No image chosen';
+  document.getElementById('notifImagePreview').style.display = 'none';
+
+
   setupNotificationTargets();
   document.getElementById('notifTarget').value = isFaculty() ? 'assigned' : 'all';
   document.getElementById('studentSelectField').classList.add('hidden');
   document.getElementById('notifModalErr').classList.add('hidden');
   openModal('notifModal');
 }
+
 
 function toggleStudentSelect() {
   const target = document.getElementById('notifTarget').value;
@@ -398,8 +428,10 @@ async function sendNotification() {
     title, body,
     targetType: target,
     sentBy: adminUser.id,
-    senderRole: adminRole
+    senderRole: adminRole,
+    imageUrl: document.getElementById('notifImageUrl').value
   };
+
 
   if (target === 'assigned') {
     notifData.targetFacultyId = adminUser.id;
@@ -436,12 +468,14 @@ async function sendNotification() {
   }
 }
 
+
 async function deleteNotif(id) {
-  if (!confirm('Delete this notification?')) return;
+  if (!confirm('Delete this broadcast?')) return;
   await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' });
   await loadNotifications();
-  showToast('Notification deleted', 'info');
+  showToast('Broadcast deleted', 'info');
 }
+
 
 // ============================================================
 // Payments
@@ -449,7 +483,7 @@ async function deleteNotif(id) {
 function renderPayTable(students) {
   const tbody = document.getElementById('payTable');
   if (students.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">No students.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">No students.</td></tr>';
     return;
   }
   tbody.innerHTML = students.map(s => {
@@ -465,6 +499,7 @@ function renderPayTable(students) {
         <td>৳${totalFee.toLocaleString()}</td>
         <td style="color:var(--success);font-weight:500">৳${(s.totalPaid || 0).toLocaleString()}</td>
         <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'};font-weight:500">৳${(s.totalDue || 0).toLocaleString()}</td>
+        <td style="color:var(--gray-600);font-size:0.9rem">${s.nextPaymentDate ? formatDate(s.nextPaymentDate) : '—'}</td>
         <td>
           ${canManageStudents() ? `<button class="btn-xs btn-xs-pay" onclick="openPaymentModal('${s.id}')">Update Payment</button>` : '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>'}
         </td>
@@ -495,9 +530,67 @@ function openPaymentModal(id) {
   
   document.getElementById('paymentPaid').value = s.totalPaid || 0;
   document.getElementById('paymentDue').value = s.totalDue || 0;
+  document.getElementById('paymentNextDate').value = s.nextPaymentDate ? s.nextPaymentDate.split('T')[0] : '';
   document.getElementById('paymentErr').classList.add('hidden');
   
+  // Load installments
+  loadInstallmentsEditor(id);
+  
   openModal('paymentModal');
+}
+
+async function loadInstallmentsEditor(userId) {
+  const container = document.getElementById('installmentContainer');
+  const empty = document.getElementById('instEmpty');
+  container.innerHTML = '';
+  empty.style.display = 'block';
+
+  try {
+    const data = await apiFetch(`/api/installments?userId=${userId}`);
+    if (data.installments && data.installments.length > 0) {
+      empty.style.display = 'none';
+      data.installments.forEach(inst => addInstallmentRow(inst));
+    }
+  } catch (e) {
+    console.error('Failed to load installments:', e);
+  }
+}
+
+function addInstallmentRow(data = {}) {
+  const container = document.getElementById('installmentContainer');
+  const empty = document.getElementById('instEmpty');
+  empty.style.display = 'none';
+
+  const row = document.createElement('div');
+  row.className = 'installment-row';
+  row.style.display = 'flex';
+  row.style.gap = '8px';
+  row.style.alignItems = 'center';
+  row.style.background = 'var(--gray-50)';
+  row.style.padding = '8px';
+  row.style.borderRadius = 'var(--radius-sm)';
+  row.style.border = '1px solid var(--gray-100)';
+
+  const dateValue = data.dueDate ? data.dueDate.split('T')[0] : '';
+  const status = data.status || 'pending';
+
+  row.innerHTML = `
+    <input type="date" class="inst-date" value="${dateValue}" style="flex:1.2;padding:6px;font-size:0.85rem">
+    <input type="number" class="inst-amount" value="${data.amount || ''}" placeholder="Amount" style="flex:1;padding:6px;font-size:0.85rem">
+    <select class="inst-status" style="flex:1;padding:6px;font-size:0.85rem">
+      <option value="pending" ${status === 'pending' ? 'selected' : ''}>Pending</option>
+      <option value="paid" ${status === 'paid' ? 'selected' : ''}>Paid</option>
+      <option value="overdue" ${status === 'overdue' ? 'selected' : ''}>Overdue</option>
+    </select>
+    <button type="button" class="btn-xs btn-xs-suspend" onclick="this.parentElement.remove(); checkInstEmpty()" style="padding:6px 10px">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function checkInstEmpty() {
+  const container = document.getElementById('installmentContainer');
+  const empty = document.getElementById('instEmpty');
+  if (container.children.length === 0) empty.style.display = 'block';
 }
 
 async function savePayment() {
@@ -510,21 +603,42 @@ async function savePayment() {
     
     const paid = parseFloat(document.getElementById('paymentPaid').value) || 0;
     const due = parseFloat(document.getElementById('paymentDue').value) || 0;
+    const nextDate = document.getElementById('paymentNextDate').value || '';
 
+    // Collect installments
+    const installments = [];
+    document.querySelectorAll('#installmentContainer .installment-row').forEach(row => {
+      const dueDate = row.querySelector('.inst-date').value;
+      const amount = parseFloat(row.querySelector('.inst-amount').value) || 0;
+      const status = row.querySelector('.inst-status').value;
+      if (dueDate && amount) {
+        installments.push({ dueDate, amount, status });
+      }
+    });
+
+    // Save student data
     await saveStudentPayload(id, {
       ...existing,
       totalPaid: paid,
-      totalDue: due
+      totalDue: due,
+      nextPaymentDate: nextDate
+    });
+
+    // Save installments
+    await apiFetch('/api/installments', {
+      method: 'POST',
+      body: JSON.stringify({ userId: id, installments })
     });
 
     closeModal('paymentModal');
     await loadStudents();
-    showToast('Payment updated ✓', 'success');
+    showToast('Payment and Installment Plan updated ✓', 'success');
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
   }
 }
+
 
 // ============================================================
 // Portals
@@ -633,9 +747,14 @@ function openAnnouncementModal() {
   document.getElementById('adLinkUrl').value = '';
   document.getElementById('adLinkText').value = 'Learn More';
   document.getElementById('adGradient').selectedIndex = 0;
+  document.getElementById('adImageFile').value = '';
+  document.getElementById('adImageFileName').textContent = 'No file chosen';
+  document.getElementById('adImagePreview').style.display = 'none';
   document.getElementById('adErr').classList.add('hidden');
   openModal('announcementModal');
 }
+
+
 
 async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
@@ -719,9 +838,11 @@ async function loadMaintenanceStatus() {
     const statusEl = document.getElementById('maintenanceStatus');
     if (toggle) {
       toggle.checked = data.enabled;
+      updateToggleUI(data.enabled);
       statusEl.textContent = data.enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
       statusEl.style.color = data.enabled ? 'var(--danger)' : 'var(--success)';
     }
+
   } catch (e) {
     console.error('Maintenance status:', e);
   }
@@ -738,13 +859,26 @@ async function toggleMaintenanceMode(enabled) {
     });
     statusEl.textContent = enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
     statusEl.style.color = enabled ? 'var(--danger)' : 'var(--success)';
+    updateToggleUI(enabled);
     showToast(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', enabled ? 'error' : 'success');
+
   } catch (e) {
     statusEl.textContent = '❌ Error: ' + e.message;
     statusEl.style.color = 'var(--danger)';
     document.getElementById('maintenanceToggle').checked = !enabled;
+    updateToggleUI(!enabled);
   }
 }
+
+function updateToggleUI(enabled) {
+  const track = document.getElementById('maintenanceTrack');
+  const slider = document.getElementById('maintenanceSlider');
+  if (track && slider) {
+    track.style.background = enabled ? 'var(--danger)' : 'var(--gray-300)';
+    slider.style.left = enabled ? '30px' : '4px';
+  }
+}
+
 
 // ============================================================
 // Password Reset (Admin)

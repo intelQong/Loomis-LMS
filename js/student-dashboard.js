@@ -101,6 +101,7 @@ function renderCourse() {
         <div class="course-name">${course.icon} ${course.name}</div>
         <div class="course-meta">
           <span>⏱ ${course.duration}</span>
+          <span>⏳ Validity: 6 Months</span>
           <span>📅 ${course.sessions}</span>
           <span>💰 ৳${course.totalFee.toLocaleString()} total</span>
         </div>
@@ -134,11 +135,11 @@ function renderPayments() {
   document.getElementById('pay-paid').textContent = `৳${paid.toLocaleString()}`;
   document.getElementById('pay-due').textContent = `৳${due.toLocaleString()}`;
 
-  // Payment history from Cloudflare D1 (optional — admin adds entries)
+  // Payment history
   apiFetch('/api/payments')
     .then(data => {
       const tbody = document.getElementById('paymentHistory');
-      if (!data.payments.length) return;
+      if (!data.payments || !data.payments.length) return;
       tbody.innerHTML = data.payments.map(p => `
         <tr>
           <td>${formatDate(p.date)}</td>
@@ -148,7 +149,37 @@ function renderPayments() {
         </tr>
       `).join('');
     }).catch(() => {});
+
+  // NEW: Installment Plan
+  apiFetch('/api/installments')
+    .then(data => {
+      const card = document.getElementById('installmentCard');
+      const container = document.getElementById('installmentTimeline');
+      if (!data.installments || !data.installments.length) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+      container.innerHTML = data.installments.map(inst => {
+        const date = formatDate(inst.dueDate);
+        const status = inst.status || 'pending';
+        return `
+          <div class="installment-item ${status}">
+            <div class="installment-dot"></div>
+            <div class="installment-content">
+              <div class="installment-info">
+                <div class="installment-date">${date}</div>
+                <div class="installment-desc">${inst.description || 'Scheduled Instalment'}</div>
+                <div><span class="installment-status-badge status-${status}">${status}</span></div>
+              </div>
+              <div class="installment-amount">৳${inst.amount.toLocaleString()}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }).catch(() => {});
 }
+
 
 function renderPortals() {
   const grid = document.getElementById('portalsGrid');
@@ -169,12 +200,23 @@ function renderProfile() {
   document.getElementById('profileEmail').textContent = currentUser.email;
 
   const course = COURSES[currentUser.course];
+
+  let validityStr = '—';
+  if (currentUser.enrolledDate) {
+    const start = new Date(currentUser.enrolledDate);
+    if (!Number.isNaN(start.getTime())) {
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + 6);
+      validityStr = `${formatDate(start)} to ${formatDate(end)}`;
+    }
+  }
+
   const fields = [
     { label: 'Student ID', value: currentUser.studentId || '—' },
     { label: 'Phone', value: currentUser.phone || '—' },
     { label: 'Course', value: course ? course.name : '—' },
     { label: 'Status', value: currentUser.status || '—' },
-    { label: 'Enrolled', value: formatDate(currentUser.enrolledDate) }
+    { label: 'Course Validity', value: validityStr }
   ];
 
   document.getElementById('profileFields').innerHTML = fields.map(f => `
@@ -270,11 +312,13 @@ function renderNotifications(notifs) {
     const date = formatDate(n.createdAt);
     return `
       <div class="notif-item ${isUnread ? 'unread' : ''}" onclick="markRead('${n.id}')">
+        ${n.imageUrl ? `<img src="${n.imageUrl}" style="width:100%;height:100px;object-fit:cover;border-radius:6px;margin-bottom:10px">` : ''}
         <div class="notif-item-title">${n.title}</div>
         <div class="notif-item-body">${n.body}</div>
         <div class="notif-item-time">${date}</div>
       </div>
     `;
+
   }).join('');
 
   if (pageList) {
@@ -283,9 +327,16 @@ function renderNotifications(notifs) {
       const date = formatDate(n.createdAt);
       return `
         <tr style="cursor:pointer; ${isUnread ? 'background:var(--gray-50);font-weight:500;' : ''}" onclick="markRead('${n.id}')">
-          <td>${n.title} ${isUnread ? '<span class="nav-badge" style="display:inline-block;margin-left:8px">New</span>' : ''}</td>
-          <td style="color:var(--gray-600)">${n.body}</td>
+          <td>
+            ${isUnread ? '<span class="nav-badge" style="display:inline-block;margin-right:8px">New</span>' : ''}
+            ${n.title}
+          </td>
+          <td style="color:var(--gray-600)">
+            ${n.imageUrl ? `<img src="${n.imageUrl}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:10px;vertical-align:middle">` : ''}
+            ${n.body}
+          </td>
           <td style="color:var(--gray-400)">${date}</td>
+
         </tr>
       `;
     }).join('');

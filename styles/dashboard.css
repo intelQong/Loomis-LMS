@@ -447,3 +447,103 @@
 .greeting-text h2 { font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 4px; }
 .greeting-text p { font-size: 0.9rem; color: rgba(255,255,255,0.75); }
 .greeting-emoji { font-size: 3rem; }
+
+/* Installment Timeline */
+.installment-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 10px 0;
+}
+.installment-item {
+  display: flex;
+  gap: 20px;
+  position: relative;
+  padding-bottom: 30px;
+}
+.installment-item:last-child {
+  padding-bottom: 0;
+}
+.installment-item::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 24px;
+  bottom: 0;
+  width: 2px;
+  background: var(--gray-200);
+}
+.installment-item:last-child::before {
+  display: none;
+}
+.installment-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--gray-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  flex-shrink: 0;
+  font-size: 10px;
+}
+.installment-item.paid .installment-dot {
+  border-color: var(--success);
+  background: var(--success);
+  color: white;
+}
+.installment-item.paid .installment-dot::after {
+  content: '✓';
+  font-weight: bold;
+}
+.installment-item.pending .installment-dot {
+  border-color: var(--teal);
+}
+.installment-item.overdue .installment-dot {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: white;
+}
+.installment-item.overdue .installment-dot::after {
+  content: '!';
+  font-weight: bold;
+}
+
+.installment-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.installment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.installment-date {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+.installment-desc {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+.installment-amount {
+  font-weight: 600;
+  color: var(--gray-800);
+  font-size: 1rem;
+}
+.installment-status-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.status-pending { background: var(--gray-100); color: var(--gray-600); }
+.status-paid { background: #d1fae5; color: #065f46; }
+.status-overdue { background: #fee2e2; color: #991b1b; }
+
