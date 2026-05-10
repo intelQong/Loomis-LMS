@@ -227,7 +227,11 @@ function renderProfile() {
   `).join('');
 }
 
-// Ad Banners
+// Ad Banners — Slideshow
+let _adSlideIndex = 0;
+let _adSlideTimer = null;
+let _adSlides = [];
+
 async function loadAdBanners() {
   try {
     const data = await apiFetch('/api/announcements');
@@ -235,31 +239,72 @@ async function loadAdBanners() {
     const container = document.getElementById('adBanners');
     if (!ads || ads.length === 0) { container.style.display = 'none'; return; }
 
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.gap = '12px';
+    _adSlides = ads;
+    container.style.display = 'block';
 
-    container.innerHTML = ads.map(ad => {
-      const imgUrl = ad.image_url || ad.imageUrl || 'https://images.unsplash.com/photo-1513258496099-48168024aec0?auto=format&fit=crop&w=400&q=80';
+    // Build slideshow HTML
+    const slidesHtml = ads.map((ad, i) => {
+      const imgUrl = ad.image_url || ad.imageUrl || '';
       const linkUrl = ad.link_url || ad.linkUrl;
       const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--teal)';
-
+      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg,#3730A3,#6366F1)';
       return `
-      <div class="announcement-card" style="background:${bgGradient};border-radius:var(--radius-lg);color:white;position:relative;overflow:hidden;display:flex;flex-wrap:wrap">
-        <img src="${imgUrl}" style="width:180px;min-height:120px;object-fit:cover;flex-shrink:0;background:rgba(0,0,0,0.1)" alt="${ad.title}">
-        <div style="flex:1;min-width:200px;padding:20px 24px;position:relative">
-          <div style="position:absolute;top:-20px;right:-10px;font-size:4rem;opacity:0.08;pointer-events:none">📢</div>
-          <div style="font-weight:600;font-size:1.05rem;margin-bottom:6px">${ad.title}</div>
-          ${ad.body ? `<div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
-          ${linkUrl ? `<a href="${linkUrl}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.2);color:white;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px);transition:background 0.2s" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">${linkText} →</a>` : ''}
-        </div>
-      </div>
-    `}).join('');
+        <div class="ad-slide" data-index="${i}" style="display:${i === 0 ? 'flex' : 'none'};background:${bgGradient};border-radius:var(--radius-lg);color:white;overflow:hidden;min-height:130px;flex-wrap:wrap;position:relative;transition:opacity 0.4s ease;">
+          ${imgUrl ? `<img src="${imgUrl}" style="width:200px;max-height:160px;object-fit:cover;flex-shrink:0;" alt="${ad.title}" onerror="this.style.display='none'">` : ''}
+          <div style="flex:1;min-width:200px;padding:22px 24px;position:relative;z-index:1">
+            <div style="position:absolute;top:-16px;right:8px;font-size:4rem;opacity:0.07;pointer-events:none">📢</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
+            ${ad.body ? `<div style="font-size:0.875rem;opacity:0.9;line-height:1.5">${ad.body}</div>` : ''}
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" style="display:inline-block;margin-top:12px;background:rgba(255,255,255,0.22);color:white;text-decoration:none;padding:7px 18px;border-radius:8px;font-size:0.85rem;font-weight:500;backdrop-filter:blur(4px)">${linkText} →</a>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+
+    // Dot indicators
+    const dotsHtml = ads.length > 1
+      ? `<div class="ad-dots">${ads.map((_, i) => `<span class="ad-dot ${i === 0 ? 'active' : ''}" onclick="goToAdSlide(${i})"></span>`).join('')}</div>`
+      : '';
+
+    // Arrows (only if >1)
+    const arrowsHtml = ads.length > 1
+      ? `<button class="ad-arrow ad-arrow-prev" onclick="prevAdSlide()">&#8249;</button>
+         <button class="ad-arrow ad-arrow-next" onclick="nextAdSlide()">&#8250;</button>`
+      : '';
+
+    container.innerHTML = `
+      <div class="ad-slideshow">
+        ${slidesHtml}
+        ${arrowsHtml}
+        ${dotsHtml}
+      </div>`;
+
+    if (ads.length > 1) startAdTimer();
   } catch (e) {
     console.error('Ad banners:', e);
   }
 }
+
+function startAdTimer() {
+  clearInterval(_adSlideTimer);
+  _adSlideTimer = setInterval(() => nextAdSlide(), 5000);
+}
+
+function goToAdSlide(index) {
+  const slides = document.querySelectorAll('.ad-slide');
+  const dots = document.querySelectorAll('.ad-dot');
+  if (!slides.length) return;
+  slides[_adSlideIndex].style.display = 'none';
+  dots[_adSlideIndex]?.classList.remove('active');
+  _adSlideIndex = (index + slides.length) % slides.length;
+  slides[_adSlideIndex].style.display = 'flex';
+  dots[_adSlideIndex]?.classList.add('active');
+  startAdTimer(); // reset timer on manual nav
+}
+
+function nextAdSlide() { goToAdSlide(_adSlideIndex + 1); }
+function prevAdSlide() { goToAdSlide(_adSlideIndex - 1); }
+
+
 
 // Real-time notifications listener
 async function listenNotifications() {
