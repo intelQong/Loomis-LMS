@@ -5,13 +5,13 @@
 /* Sidebar */
 .sidebar {
   width: 240px;
-  background: linear-gradient(180deg, var(--teal-dark) 0%, #a24332 100%);
+  background: var(--primary-dark);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   transition: transform 0.3s ease;
   z-index: 100;
-  box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
 }
 
 .sidebar-logo {
@@ -74,7 +74,7 @@
 .nav-item .nav-icon { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
 .nav-badge {
   margin-left: auto;
-  background: var(--gold);
+  background: var(--accent);
   color: white;
   font-size: 0.7rem;
   font-weight: 600;
@@ -189,9 +189,9 @@
 }
 
 .greeting-card {
-  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+  background: var(--primary);
   color: white;
-  padding: 32px;
+  padding: 36px 40px;
   border-radius: var(--radius-lg);
   margin-bottom: 24px;
   display: flex;
@@ -199,7 +199,8 @@
   align-items: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(255, 127, 80, 0.25);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .greeting-card::before {

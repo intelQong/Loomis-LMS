@@ -16,12 +16,12 @@
 }
 .btn-xs-approve { background: var(--success); color: white; border-color: var(--success); }
 .btn-xs-approve:hover { background: #059669; }
-.btn-xs-edit { background: transparent; color: var(--teal); border-color: var(--teal); }
-.btn-xs-edit:hover { background: var(--teal-light); }
+.btn-xs-edit { background: transparent; color: var(--primary); border-color: var(--primary); }
+.btn-xs-edit:hover { background: var(--primary-light); }
 .btn-xs-suspend { background: transparent; color: var(--danger); border-color: var(--danger); }
 .btn-xs-suspend:hover { background: #fee2e2; }
-.btn-xs-pay { background: var(--gold); color: white; border-color: var(--gold); }
-.btn-xs-pay:hover { background: var(--gold-dark); }
+.btn-xs-pay { background: var(--accent); color: white; border-color: var(--accent); }
+.btn-xs-pay:hover { background: var(--accent-dark); }
 .btn-xs-delete { background: transparent; color: var(--gray-400); border-color: var(--gray-200); }
 .btn-xs-delete:hover { color: var(--danger); border-color: var(--danger); }
 .btn-xs-notif { background: transparent; color: var(--danger); border-color: var(--danger); }

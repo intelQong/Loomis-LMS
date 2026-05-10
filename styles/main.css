@@ -6,30 +6,32 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Primary — True Teal */
-  --teal: #0D9488;
-  --teal-dark: #0F766E;
-  --teal-light: #F0FDFA;
-  --teal-mid: #2DD4BF;
-  /* Accent — Warm Amber/Gold */
-  --gold: #D97706;
-  --gold-light: #FFFBEB;
-  --gold-dark: #B45309;
+  /* Brand Colors from Logo */
+  --primary: #0c4a6e;      /* Deep Royal Navy */
+  --primary-dark: #075985;
+  --primary-light: #f0f9ff;
+  --primary-mid: #0284c7;
+  
+  --accent: #b45309;       /* Legacy Gold */
+  --accent-light: #fef3c7;
+  --accent-dark: #92400e;
+  
   --white: #ffffff;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
-  --info: #4338CA;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
   --font-sans: 'DM Sans', sans-serif;
   --font-serif: 'DM Serif Display', serif;
   --radius: 12px;
