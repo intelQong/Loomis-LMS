@@ -7,7 +7,7 @@
 // Bump CACHE_VERSION on every deployment to bust stale caches.
 // ============================================================
 
-const CACHE_VERSION = 'aims-lms-v14';
+const CACHE_VERSION = 'aims-lms-v16';
 
 // Static assets that are safe to cache (NOT html pages)
 const STATIC_ASSETS = [
@@ -20,7 +20,7 @@ const STATIC_ASSETS = [
   '/js/api-client.js',
   '/js/student-dashboard.js',
   '/js/admin-dashboard.js',
-  '/assets/aims-logo.png',
+  '/assets/aims-logo.jpeg',
   '/manifest.json'
 ];
 

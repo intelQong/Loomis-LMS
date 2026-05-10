@@ -69,6 +69,13 @@ function initDashboard() {
 // ============================================================
 const THEMES = {
   teal: {
+    primary: '#0D9488',
+    dark: '#0F766E',
+    light: '#F0FDFA',
+    mid: '#2DD4BF',
+    shadow: 'rgba(13,148,136,0.12)'
+  },
+  indigo: {
     primary: '#4338CA',
     dark: '#3730A3',
     light: '#EEF2FF',

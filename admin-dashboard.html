@@ -10,13 +10,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#FF7F50">
 <link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/assets/aims-logo.png">
+<link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=13">
-<link rel="stylesheet" href="styles/dashboard.css?v=13">
-<link rel="stylesheet" href="styles/admin.css?v=13">
+<link rel="stylesheet" href="styles/main.css?v=16">
+<link rel="stylesheet" href="styles/dashboard.css?v=16">
+<link rel="stylesheet" href="styles/admin.css?v=16">
 </head>
 <body class="dashboard-page">
 
@@ -25,7 +25,7 @@
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <img class="logo-img" src="assets/aims-logo.png" alt="AIMS English logo">
+    <img class="logo-img" src="assets/aims-logo.jpeg" alt="AIMS English logo">
     <span id="dashboardBrand">AIMS Admin</span>
   </div>
   <nav class="sidebar-nav">
@@ -671,12 +671,12 @@
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/app-data.js?v=12"></script>
-<script src="js/api-client.js?v=12"></script>
-<script src="js/admin-dashboard.js?v=12"></script>
+<script src="js/app-data.js?v=16"></script>
+<script src="js/api-client.js?v=16"></script>
+<script src="js/admin-dashboard.js?v=16"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js?v=12').then(reg => {
+    navigator.serviceWorker.register('/sw.js?v=16').then(reg => {
       reg.onupdatefound = () => {
         const installingWorker = reg.installing;
         installingWorker.onstatechange = () => {
