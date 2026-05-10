@@ -278,6 +278,7 @@ function saveStudentPayload(id, student) {
       status: student.status,
       totalPaid: student.totalPaid || 0,
       totalDue: student.totalDue || 0,
+      discount: student.discount || 0,
       nextPaymentDate: student.nextPaymentDate || '',
       studentId: student.studentId || '',
       assignedFacultyId: student.assignedFacultyId || '',
@@ -608,9 +609,12 @@ function openPaymentModal(id) {
   document.getElementById('paymentTotalFee').textContent = totalFee.toLocaleString();
   
   document.getElementById('paymentPaid').value = s.totalPaid || 0;
+  document.getElementById('paymentDiscount').value = s.discount || 0;
   document.getElementById('paymentDue').value = s.totalDue || 0;
   document.getElementById('paymentNextDate').value = s.nextPaymentDate ? s.nextPaymentDate.split('T')[0] : '';
   document.getElementById('paymentErr').classList.add('hidden');
+  
+  recalculateDue();
   
   // Load installments
   loadInstallmentsEditor(id);
@@ -672,6 +676,15 @@ function checkInstEmpty() {
   if (container.children.length === 0) empty.style.display = 'block';
 }
 
+function recalculateDue() {
+  const totalFee = parseFloat(document.getElementById('paymentTotalFee').textContent.replace(/,/g, '')) || 0;
+  const paid = parseFloat(document.getElementById('paymentPaid').value) || 0;
+  const discount = parseFloat(document.getElementById('paymentDiscount').value) || 0;
+  
+  const due = Math.max(0, totalFee - paid - discount);
+  document.getElementById('paymentDue').value = due;
+}
+
 async function savePayment() {
   if (!canManageStudents()) return;
   const id = document.getElementById('paymentStudentId').value;
@@ -699,6 +712,7 @@ async function savePayment() {
     await saveStudentPayload(id, {
       ...existing,
       totalPaid: paid,
+      discount: parseFloat(document.getElementById('paymentDiscount').value) || 0,
       totalDue: due,
       nextPaymentDate: nextDate
     });
