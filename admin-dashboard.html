@@ -82,7 +82,19 @@
   <div class="content-area">
 
     <!-- SECTION: Overview -->
-    <section class="page-section active" id="section-overview">
+      <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gray-800); margin: 0;">Financial Insights</h3>
+        <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--gray-100); box-shadow: var(--shadow-sm);">
+          <span style="font-size: 0.85rem; color: var(--gray-500); font-weight: 500;">Period:</span>
+          <select id="statPeriod" onchange="renderOverviewStats()" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 600; color: var(--teal-700); cursor: pointer; outline: none; padding-right: 8px;">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month" selected>This Month</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+      </div>
+
       <div class="stats-grid" id="adminStatsGrid">
         <div class="stat-card">
           <div class="stat-icon teal">👥</div>
@@ -98,18 +110,18 @@
             <div class="stat-label">Pending Approval</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon success">✅</div>
-          <div class="stat-body">
-            <div class="stat-value" id="ov-active">—</div>
-            <div class="stat-label">Active Students</div>
-          </div>
-        </div>
         <div class="stat-card" id="revenueCard">
-          <div class="stat-icon gold">💰</div>
+          <div class="stat-icon success">💰</div>
           <div class="stat-body">
             <div class="stat-value" id="ov-revenue">৳0</div>
             <div class="stat-label">Total Collected</div>
+          </div>
+        </div>
+        <div class="stat-card" id="dueCollectionCard">
+          <div class="stat-icon danger">📋</div>
+          <div class="stat-body">
+            <div class="stat-value" id="ov-due-collection">৳0</div>
+            <div class="stat-label">Due Collection</div>
           </div>
         </div>
       </div>
