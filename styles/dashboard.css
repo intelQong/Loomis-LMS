@@ -5,12 +5,13 @@
 /* Sidebar */
 .sidebar {
   width: 240px;
-  background: var(--teal-dark);
+  background: linear-gradient(180deg, var(--teal-dark) 0%, #a24332 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   transition: transform 0.3s ease;
   z-index: 100;
+  box-shadow: 4px 0 24px rgba(0,0,0,0.1);
 }
 
 .sidebar-logo {
@@ -188,7 +189,7 @@
 }
 
 .greeting-card {
-  background: linear-gradient(135deg, var(--indigo-600) 0%, var(--indigo-800) 100%);
+  background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
   color: white;
   padding: 32px;
   border-radius: var(--radius-lg);
@@ -198,7 +199,7 @@
   align-items: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 10px 30px rgba(255, 127, 80, 0.25);
 }
 
 .greeting-card::before {
@@ -273,7 +274,7 @@
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--indigo-100);
+  border-color: var(--teal-mid);
 }
 
 .stat-icon {
