@@ -1061,7 +1061,11 @@ function showSection(name, btn) {
     'broadcasts': 'Broadcasts',
     'payments': 'Payments',
     'announcements': 'Announcements',
-    'portals': 'Portals'
+    'admin-calendar': 'Academic Calendar',
+    'services': 'Other Services',
+    'site-tools': 'Site Tools',
+    'super-portal': 'Secure Portal',
+    'security': 'Security & Privacy'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   closeSidebar();
