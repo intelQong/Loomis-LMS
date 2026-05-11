@@ -1090,31 +1090,42 @@ function renderAnnouncementsList(ads) {
     return;
   }
   container.innerHTML = ads.map(ad => {
-    const imgUrl = ad.image_url || ad.imageUrl || '';
-    const videoUrl = ad.video_url || ad.videoUrl || '';
-    const linkUrl = ad.link_url || ad.linkUrl;
-    const linkText = ad.link_text || ad.linkText || 'Learn More';
-    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--primary)';
+    const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
+    const videoUrl = escapeHtml(ad.video_url || ad.videoUrl || '');
+    const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
+    const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
+    const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'var(--primary)');
     const createdAt = ad.created_at || ad.createdAt;
+    const title = escapeHtml(ad.title || 'Announcement');
+    const body = escapeHtml(ad.body || '');
+    const id = escapeHtml(ad.id || '');
     
     return `
-    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
        ${videoUrl ? `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>` : 
-         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${ad.title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
         <div style="flex:1;min-width:200px">
-          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
-          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
+          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
           ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Video: ${videoUrl}</div>` : ''}
           ${linkUrl ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${linkText} →</span></div>` : ''}
         </div>
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(createdAt)}</span>
-        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${ad.id}')">Delete</button>
+        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${id}')">Delete</button>
       </div>
     </div>
   `}).join('');
+}
+
+
+function safeAnnouncementBackground(value) {
+  const background = String(value || '').trim();
+  if (background === 'var(--primary)') return background;
+  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
+  return 'var(--primary)';
 }
 
 function openAnnouncementModal() {
