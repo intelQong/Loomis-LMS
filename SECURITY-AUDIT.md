@@ -15,7 +15,7 @@ Reviewed the Cloudflare Pages Function API, static dashboard clients, session ha
 | Brute-force attempts | Login, signup, and password-reset endpoints did not have application-level rate limiting. | Added D1-backed rate limits for login, signup, self password changes, and admin password resets. |
 | Cross-site form/API abuse | Cookie-authenticated unsafe requests could be attempted cross-site. | Added same-origin enforcement for `POST`, `PUT`, `PATCH`, and `DELETE` requests using `Origin` and `Sec-Fetch-Site` headers. |
 | Account enumeration | Login told users whether an email existed. | Login now returns a generic `Invalid email or password.` for bad credentials. |
-| Response/browser hardening | Security headers were incomplete. | Added `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, and a restrictive CSP in `_headers`, while preserving approved video iframe sources for the student dashboard. |
+| Response/browser hardening | Security headers were incomplete. | Added `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, and a restrictive CSP in `_headers`, while preserving HTTPS video iframe support for admin-created announcement embeds. |
 | Session exposure after password change | Password reset only invalidated student sessions for admin resets. | Self-service password change invalidates all other sessions for the same account while keeping the current session active. Admin student reset still invalidates all sessions for the student. |
 
 ## Cloudflare challenge recommendation

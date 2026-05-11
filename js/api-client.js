@@ -81,7 +81,8 @@ function normalizeVideoEmbedUrl(value) {
   }
 
   try {
-    const url = new URL(finalUrl, window.location.origin);
+    const url = new URL(finalUrl);
+    if (url.protocol !== 'https:') return '';
     const host = url.hostname.replace(/^www\./, '');
 
     if (host === 'youtube.com' && url.pathname === '/watch') {
@@ -103,14 +104,10 @@ function normalizeVideoEmbedUrl(value) {
       return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}` : '';
     }
 
-    if (host === 'player.vimeo.com' && url.pathname.startsWith('/video/')) {
-      return url.href;
-    }
+    return url.href;
   } catch {
     return '';
   }
-
-  return '';
 }
 
 async function getCurrentUserData() {
