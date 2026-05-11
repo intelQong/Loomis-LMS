@@ -475,7 +475,7 @@ async function loadAdBanners() {
       : '';
 
     container.innerHTML = `
-      <div class="ad-slideshow">
+      <div class="ad-slideshow" onmouseenter="pauseAdTimer()" onmouseleave="startAdTimer()">
         ${slidesHtml}
         ${arrowsHtml}
         ${dotsHtml}
@@ -501,9 +501,17 @@ function startAdTimer() {
   
   if (!_adSlides.length) return;
   const currentSlide = document.querySelector('.ad-slide[data-index="' + _adSlideIndex + '"]');
+  // Don't auto-advance if it's a video
   if (currentSlide && currentSlide.dataset.hasVideo === 'true') return;
 
-  _adSlideTimer = setInterval(function() { nextAdSlide(); }, 5000);
+  _adSlideTimer = setInterval(function() { nextAdSlide(); }, 6000); // Slower interval
+}
+
+function pauseAdTimer() {
+  if (_adSlideTimer) {
+    clearInterval(_adSlideTimer);
+    _adSlideTimer = null;
+  }
 }
 
 function nextAdSlide() {
@@ -700,6 +708,18 @@ function closeSidebar() {
 function toggleNotifPanel() {
   document.getElementById('notifPanel').classList.toggle('open');
 }
+
+function toggleMenu() {
+  document.getElementById('topMenuDropdown').classList.toggle('hidden');
+}
+
+// Close dropdowns on outside click
+window.addEventListener('click', (e) => {
+  if (!e.target.closest('.dropdown')) {
+    const dropdown = document.getElementById('topMenuDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+  }
+});
 
 
 function showToast(msg, type = 'info') {

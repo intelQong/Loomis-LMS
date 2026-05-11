@@ -46,6 +46,9 @@
       <button class="nav-item" onclick="showSection('contact', this)">
         <span class="nav-icon">📞</span> Contact Us
       </button>
+      <button class="nav-item" onclick="showSection('calendar', this)">
+        <span class="nav-icon">📅</span> Academic Calendar
+      </button>
       <div class="nav-section-label">Account</div>
       <button class="nav-item" onclick="showSection('profile', this)">
         <span class="nav-icon">👤</span> My Profile
@@ -81,6 +84,26 @@
           📢
           <span class="notif-dot hidden" id="notifDot"></span>
         </button>
+        
+        <div class="dropdown">
+          <button class="notif-btn" onclick="toggleMenu()" title="More Options">⋮</button>
+          <div id="topMenuDropdown" class="dropdown-content hidden">
+            <button onclick="showSection('calendar'); toggleMenu();">
+              <span>📅</span> Academic Calendar
+            </button>
+            <button onclick="showSection('profile'); toggleMenu();">
+              <span>👤</span> My Profile
+            </button>
+            <button onclick="showSection('settings'); toggleMenu();">
+              <span>⚙️</span> Settings
+            </button>
+            <div style="border-top: 1px solid var(--gray-100); margin-top: 4px; padding-top: 4px;">
+              <button onclick="handleLogout()" style="color: var(--danger)">
+                <span>⏻</span> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
 
