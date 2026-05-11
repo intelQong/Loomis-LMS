@@ -48,8 +48,8 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
 
 /* Utilities */
 .hidden { display: none !important; }
-.text-teal { color: var(--teal); }
-.text-gold { color: var(--gold); }
+.text-primary { color: var(--primary); }
+.text-accent { color: var(--accent); }
 .text-muted { color: var(--gray-500); }
 .text-sm { font-size: 0.85rem; }
 .text-xs { font-size: 0.75rem; }
@@ -66,7 +66,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   gap: 8px;
   width: 100%;
   padding: 13px 24px;
-  background: var(--teal);
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
@@ -77,7 +77,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   cursor: pointer;
   transition: background var(--transition), transform var(--transition);
 }
-.btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-primary:active { transform: translateY(0); }
 
 .btn-secondary {
@@ -86,8 +86,8 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   gap: 6px;
   padding: 9px 18px;
   background: transparent;
-  color: var(--teal);
-  border: 1.5px solid var(--teal);
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -96,7 +96,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   cursor: pointer;
   transition: all var(--transition);
 }
-.btn-secondary:hover { background: var(--teal-light); }
+.btn-secondary:hover { background: var(--primary-light); }
 
 .btn-gold {
   display: inline-flex;
@@ -152,8 +152,8 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   font-size: 0.75rem;
   font-weight: 500;
 }
-.badge-teal { background: var(--teal-light); color: var(--teal); }
-.badge-gold { background: var(--gold-light); color: var(--gold-dark); }
+.badge-teal { background: var(--primary-light); color: var(--primary); }
+.badge-gold { background: var(--accent-light); color: var(--accent-dark); }
 .badge-success { background: #d1fae5; color: #065f46; }
 .badge-warning { background: #fef3c7; color: #92400e; }
 .badge-danger { background: #fee2e2; color: #991b1b; }
@@ -200,7 +200,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
 }
 .toast-success { background: #065f46; color: white; }
 .toast-error { background: #991b1b; color: white; }
-.toast-info { background: var(--teal); color: white; }
+.toast-info { background: var(--primary); color: white; }
 @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
 /* Loading spinner */
@@ -208,7 +208,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
   width: 32px;
   height: 32px;
   border: 3px solid var(--gray-200);
-  border-top-color: var(--teal);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -295,7 +295,7 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: var(--teal);
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(67,56,202,0.1);
 }
 .field textarea { resize: vertical; min-height: 100px; }

@@ -114,10 +114,10 @@ function initTheme() {
 function applyTheme(name) {
   const theme = THEMES[name] || THEMES.teal;
   const root = document.documentElement;
-  root.style.setProperty('--teal', theme.primary);
-  root.style.setProperty('--teal-dark', theme.dark);
-  root.style.setProperty('--teal-light', theme.light);
-  root.style.setProperty('--teal-mid', theme.mid);
+  root.style.setProperty('--primary', theme.primary);
+  root.style.setProperty('--primary-dark', theme.dark);
+  root.style.setProperty('--primary-light', theme.light);
+  root.style.setProperty('--primary-mid', theme.mid);
   root.style.setProperty('--shadow', `0 4px 16px ${theme.shadow}`);
   root.style.setProperty('--shadow-lg', `0 8px 32px ${theme.shadow.replace('0.12', '0.18')}`);
   
