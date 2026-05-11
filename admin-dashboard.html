@@ -14,9 +14,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=42">
-<link rel="stylesheet" href="styles/dashboard.css?v=42">
-<link rel="stylesheet" href="styles/admin.css?v=42">
+<link rel="stylesheet" href="styles/main.css?v=44">
+<link rel="stylesheet" href="styles/dashboard.css?v=44">
+<link rel="stylesheet" href="styles/admin.css?v=44">
 </head>
 <body class="dashboard-page">
 
@@ -104,19 +104,20 @@
         </div>
       </div>
 
-      <div class="stats-grid" id="adminStatsGrid">
-        <div class="greeting-content">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
-            <div>
-              <h2 id="greetName">Good morning, Admin!</h2>
-              <p>Here's what's happening today.</p>
-            </div>
-            <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
-              <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
-              <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
-            </div>
+      <div class="greeting-content">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+          <div>
+            <h2 id="greetName">Good morning, Admin!</h2>
+            <p>Here's what's happening today.</p>
+          </div>
+          <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
+            <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
+            <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
           </div>
         </div>
+      </div>
+
+      <div class="stats-grid" id="adminStatsGrid">
         <div class="stat-card">
           <div class="stat-icon teal">👥</div>
           <div class="stat-body">
@@ -319,29 +320,6 @@
       </div>
     </section>
 
-    <!-- SECTION: Calendar Management -->
-    <section class="page-section" id="section-admin-calendar">
-      <div class="section-header">
-        <div class="section-title">Calendar Management</div>
-        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add Event</button>
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Event Type</th>
-                <th>Title</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="calendarList">
-              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </section>
 
     <!-- SECTION: Secure Portal (Super Admin) -->
