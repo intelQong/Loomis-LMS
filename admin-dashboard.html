@@ -9,9 +9,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=55">
-<link rel="stylesheet" href="styles/dashboard.css?v=55">
-<link rel="stylesheet" href="styles/admin.css?v=55">
+<link rel="stylesheet" href="styles/main.css?v=56">
+<link rel="stylesheet" href="styles/dashboard.css?v=56">
+<link rel="stylesheet" href="styles/admin.css?v=56">
 </head>
 <body class="dashboard-page">
 
@@ -52,6 +52,9 @@
     <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
       <span class="nav-icon">⚙️</span> Site Tools
     </button>
+    <button class="nav-item" onclick="openChangePasswordModal()">
+      <span class="nav-icon">🔒</span> Security & Privacy
+    </button>
     
     <!-- Super Admin Only -->
     <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
@@ -78,23 +81,7 @@
       <span class="page-title" id="pageTitle">Overview</span>
     </div>
     <div class="top-bar-right">
-      <span class="badge badge-gold" id="topRoleBadge" style="margin-right: 8px;">Admin</span>
-      
-      <div class="dropdown">
-        <button class="notif-btn" onclick="toggleMenu()" title="More Options">⋮</button>
-        <div id="topMenuDropdown" class="dropdown-content hidden">
-          <div class="menu-section-label">Account Security</div>
-          <button onclick="openChangePasswordModal(); toggleMenu();">
-            <span>🔒</span> Security & Privacy
-          </button>
-          
-          <div style="border-top: 1px solid var(--gray-100); margin-top: 8px; padding-top: 4px;">
-            <button onclick="handleLogout()" style="color: var(--danger)">
-              <span>⏻</span> Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
+      <span class="badge badge-gold" id="topRoleBadge">Admin</span>
     </div>
   </header>
 

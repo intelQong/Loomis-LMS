@@ -1395,15 +1395,3 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
     if (e.target === this) this.classList.add('hidden');
   });
 });
-function toggleMenu() {
-  const dropdown = document.getElementById('topMenuDropdown');
-  if (dropdown) dropdown.classList.toggle('hidden');
-}
-
-// Close dropdowns on outside click
-window.addEventListener('click', (e) => {
-  if (!e.target.closest('.dropdown')) {
-    const dropdown = document.getElementById('topMenuDropdown');
-    if (dropdown) dropdown.classList.add('hidden');
-  }
-});

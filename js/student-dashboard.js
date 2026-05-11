@@ -708,19 +708,6 @@ function toggleNotifPanel() {
   document.getElementById('notifPanel').classList.toggle('open');
 }
 
-function toggleMenu() {
-  document.getElementById('topMenuDropdown').classList.toggle('hidden');
-}
-
-// Close dropdowns on outside click
-window.addEventListener('click', (e) => {
-  if (!e.target.closest('.dropdown')) {
-    const dropdown = document.getElementById('topMenuDropdown');
-    if (dropdown) dropdown.classList.add('hidden');
-  }
-});
-
-
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
