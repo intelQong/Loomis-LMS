@@ -119,11 +119,11 @@ async function login({ request, env }) {
   if (await hashPassword(password, user.password_salt) !== user.password_hash) {
     throw httpError('Invalid password. Please try again.', 401);
   }
-  if (user.status === 'pending' && email !== 'admin@example.com') throw httpError('Your account is pending admin approval.', 403);
+  if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact AIMS admin.', 403);
 
   // Super Admin Promotion
-  if (email === 'admin@example.com' && (user.role !== 'admin' || user.status !== 'active')) {
+  if (email === SUPER_ADMIN_EMAIL && (user.role !== 'admin' || user.status !== 'active')) {
     await env.DB.prepare("UPDATE users SET role = 'admin', status = 'active' WHERE id = ?").bind(user.id).run();
     user.role = 'admin';
     user.status = 'active';
@@ -430,6 +430,7 @@ function serializeUser(row) {
     assignedFacultyId: row.assigned_faculty_id || '',
     role: row.role,
     status: row.status,
+    isSuperAdmin: row.email === SUPER_ADMIN_EMAIL,
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
     nextPaymentDate: row.next_payment_date || '',
