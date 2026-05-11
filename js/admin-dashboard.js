@@ -33,6 +33,9 @@ function initAdmin() {
   loadAnnouncements();
   loadServices();
   loadMaintenanceStatus();
+  loadCalendar();
+  startLiveClock();
+  checkSuperAdmin();
 }
 
 function isFaculty() {
@@ -82,6 +85,82 @@ function handleFileSelect(input, urlId, previewId) {
   reader.readAsDataURL(file);
 }
 
+
+// ============================================================
+// Academic Calendar Management
+// ============================================================
+async function loadCalendar() {
+  try {
+    const data = await apiFetch('/api/calendar?t=' + Date.now());
+    const tbody = document.getElementById('adminCalendarList');
+    if (!tbody) return;
+    
+    if (data.calendar.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No entries yet.</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.calendar.map(c => `
+      <tr>
+        <td style="font-weight:600">${formatDate(c.date)}</td>
+        <td><span class="badge badge-${c.type}">${c.type}</span></td>
+        <td style="font-weight:500">${c.title}</td>
+        <td>
+          <button class="btn-xs btn-xs-suspend" onclick="deleteCalendarEntry('${c.id}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function openCalendarModal() {
+  document.getElementById('calTitle').value = '';
+  document.getElementById('calDate').value = '';
+  document.getElementById('calType').value = 'event';
+  document.getElementById('calDesc').value = '';
+  document.getElementById('calErr').classList.add('hidden');
+  openModal('calendarModal');
+}
+
+async function createCalendarEntry() {
+  const title = document.getElementById('calTitle').value.trim();
+  const date = document.getElementById('calDate').value;
+  const type = document.getElementById('calType').value;
+  const desc = document.getElementById('calDesc').value.trim();
+  const errEl = document.getElementById('calErr');
+  
+  if (!title || !date) {
+    errEl.textContent = 'Title and Date are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  try {
+    await apiFetch('/api/calendar', {
+      method: 'POST',
+      body: JSON.stringify({ title, date, type, desc })
+    });
+    closeModal('calendarModal');
+    loadCalendar();
+    showToast('Calendar entry added ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function deleteCalendarEntry(id) {
+  if (!confirm('Delete this calendar entry?')) return;
+  try {
+    await apiFetch(`/api/calendar/${id}`, { method: 'DELETE' });
+    loadCalendar();
+    showToast('Entry deleted', 'info');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
 
 // ============================================================
 // Students
@@ -834,8 +913,75 @@ async function deleteService(id) {
 }
 
 // ============================================================
-// UI Helpers
+// Super Admin & Audit Logs
 // ============================================================
+const SUPER_ADMIN_EMAIL = 'admin@example.com';
+
+function checkSuperAdmin() {
+  if (currentUser.email === SUPER_ADMIN_EMAIL) {
+    document.getElementById('navSuperPortal').classList.remove('hidden');
+    loadSuperUsers();
+    loadAuditLogs();
+  }
+}
+
+async function loadSuperUsers() {
+  try {
+    const data = await apiFetch('/api/admin/users');
+    const tbody = document.getElementById('superUserList');
+    tbody.innerHTML = data.users.map(u => `
+      <tr>
+        <td style="font-weight:600">${u.firstName} ${u.lastName}</td>
+        <td style="color:var(--gray-500)">${u.email}</td>
+        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td>
+          <select onchange="updateUserRole('${u.id}', this.value)" style="padding:4px 8px; border-radius:4px; border:1px solid var(--gray-200); font-size:0.85rem">
+            <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+            <option value="faculty" ${u.role === 'faculty' ? 'selected' : ''}>Faculty</option>
+            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function updateUserRole(userId, newRole) {
+  if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) {
+    loadSuperUsers();
+    return;
+  }
+  try {
+    await apiFetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role: newRole })
+    });
+    showToast('User role updated ✓', 'success');
+    loadSuperUsers();
+    loadAuditLogs();
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+async function loadAuditLogs() {
+  try {
+    const data = await apiFetch('/api/admin/logs');
+    const tbody = document.getElementById('auditLogList');
+    tbody.innerHTML = data.logs.map(log => `
+      <tr>
+        <td style="font-size:0.8rem; color:var(--gray-500)">${new Date(log.created_at).toLocaleString()}</td>
+        <td style="font-weight:500">${log.admin_email}</td>
+        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action}</code></td>
+        <td style="font-size:0.85rem">${log.details}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+  }
+}
 function showSection(name, btn) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));

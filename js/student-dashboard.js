@@ -60,6 +60,7 @@ function initDashboard() {
   renderPayments();
   renderServices();
   renderProfile();
+  loadCalendar();
   listenNotifications();
   loadAdBanners();
   initTheme();
@@ -138,13 +139,43 @@ function renderSidebarUser() {
 
 function renderGreeting() {
   const hour = new Date().getHours();
-  let greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  let emoji = hour < 12 ? '☀️' : hour < 17 ? '📖' : '🌙';
-  const course = COURSES[currentUser.course];
+  let greet = 'Good morning';
+  let icon = '☀️';
+  if (hour >= 12 && hour < 17) { greet = 'Good afternoon'; icon = '🌤️'; }
+  else if (hour >= 17 && hour < 21) { greet = 'Good evening'; icon = '🌆'; }
+  else if (hour >= 21 || hour < 5) { greet = 'Hello'; icon = '🌙'; }
+
+  document.getElementById('greetName').textContent = `${greet}, ${currentUser.firstName}!`;
+  document.getElementById('greetIcon').textContent = icon;
   
-  document.getElementById('greetName').textContent = `${greeting}, ${currentUser.firstName}!`;
-  document.getElementById('greetCourse').textContent = course ? `Enrolled in ${course.name}` : 'Welcome to AIMS English';
-  document.getElementById('greetIcon').textContent = emoji;
+  const course = COURSES[currentUser.course];
+  document.getElementById('enrollStatus').textContent = `Enrolled in ${course?.name || currentUser.course}`;
+  
+  startLiveClock();
+}
+
+function startLiveClock() {
+  const clockEl = document.getElementById('liveClock');
+  const dateEl = document.getElementById('liveDate');
+  
+  function update() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+    dateEl.textContent = now.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+  
+  update();
+  setInterval(update, 1000);
 }
 
 function renderStats() {
@@ -289,16 +320,13 @@ function renderPayments() {
 async function renderServices() {
   const grid = document.getElementById('servicesGrid');
   if (!grid) return;
-  
   try {
     const data = await apiFetch('/api/services?t=' + Date.now());
     const services = data.services || [];
-    
     if (services.length === 0) {
       grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">No services available.</div>';
       return;
     }
-    
     grid.innerHTML = services.map(p => `
       <a class="portal-card" href="${p.url}" target="${p.url.startsWith('http') ? '_blank' : '_self'}">
         <div class="portal-icon">${p.icon.startsWith('http') ? `<img src="${p.icon}" style="width:40px;height:40px;object-fit:contain">` : p.icon}</div>
@@ -310,6 +338,32 @@ async function renderServices() {
   } catch (err) {
     console.error(err);
     grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Failed to load services.</div>';
+  }
+}
+
+function toggleDropdown() {
+  document.getElementById('dropdownContent').classList.toggle('hidden');
+}
+
+async function loadCalendar() {
+  const tbody = document.getElementById('calendarList');
+  if (!tbody) return;
+  try {
+    const data = await apiFetch('/api/calendar?t=' + Date.now());
+    if (data.calendar.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px">No events or holidays scheduled.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.calendar.map(c => `
+      <tr>
+        <td style="font-weight:600">${formatDate(c.date)}</td>
+        <td><span class="badge badge-${c.type}">${c.type}</span></td>
+        <td style="font-weight:500">${c.title}</td>
+        <td style="font-size:0.85rem; color:var(--gray-600)">${c.desc}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error(err);
   }
 }
 
@@ -614,6 +668,7 @@ function showSection(name, btn) {
     'payments': 'Payments',
     'notifications': 'Broadcasts',
     'services': 'Other Services',
+    'calendar': 'Academic Calendar',
     'profile': 'My Profile'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
