@@ -5,7 +5,7 @@
 // ============================================================
 // Course config — central definition
 // ============================================================
-const COURSES = {
+var COURSES = {
   'ielts-regular': {
     name: 'IELTS Regular (AC/GT)',
     icon: '🎓',
