@@ -441,10 +441,10 @@
 <div class="modal-backdrop hidden" id="announcementModal">
   <div class="modal">
     <div class="modal-header">
-      <h3>Create Announcement</h3>
-
+      <h3 id="adModalTitle">Create Announcement</h3>
       <button class="modal-close" onclick="closeModal('announcementModal')">✕</button>
     </div>
+    <input type="hidden" id="adId">
     <div class="field">
       <label>Title</label>
       <input type="text" id="adTitle" placeholder="e.g. 🎉 Eid Special Offer!">
@@ -498,7 +498,7 @@
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
       <button class="btn-secondary" onclick="closeModal('announcementModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createAnnouncement()">Publish</button>
+      <button class="btn-primary" id="adSubmitBtn" style="width:auto;padding:10px 24px" onclick="createAnnouncement()">Publish</button>
     </div>
     <div id="adErr" class="error-msg hidden"></div>
   </div>

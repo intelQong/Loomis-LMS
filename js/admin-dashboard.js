@@ -1136,7 +1136,10 @@ function renderAnnouncementsList(ads) {
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(createdAt)}</span>
-        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${id}')">Delete</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-xs btn-xs-edit" onclick="openEditAnnouncement('${id}')">Edit</button>
+          <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${id}')">Delete</button>
+        </div>
       </div>
     </div>
   `}).join('');
@@ -1151,6 +1154,13 @@ function safeAnnouncementBackground(value) {
 }
 
 function openAnnouncementModal() {
+  const adId = document.getElementById('adId');
+  if (adId) adId.value = '';
+  const title = document.getElementById('adModalTitle');
+  if (title) title.textContent = 'Create Announcement';
+  const btn = document.getElementById('adSubmitBtn');
+  if (btn) btn.textContent = 'Publish';
+  
   document.getElementById('adTitle').value = '';
   document.getElementById('adBody').value = '';
   document.getElementById('adImageUrl').value = '';
@@ -1167,7 +1177,48 @@ function openAnnouncementModal() {
 
 
 
+async function openEditAnnouncement(id) {
+  try {
+    const data = await apiFetch(`/api/announcements/${id}?t=` + Date.now());
+    const ad = data.announcement;
+    
+    document.getElementById('adId').value = ad.id;
+    document.getElementById('adModalTitle').textContent = 'Edit Announcement';
+    document.getElementById('adSubmitBtn').textContent = 'Update';
+    
+    document.getElementById('adTitle').value = ad.title || '';
+    document.getElementById('adBody').value = ad.body || '';
+    document.getElementById('adImageUrl').value = ad.imageUrl || ad.image_url || '';
+    document.getElementById('adVideoUrl').value = ad.videoUrl || ad.video_url || '';
+    document.getElementById('adLinkUrl').value = ad.linkUrl || ad.link_url || '';
+    document.getElementById('adLinkText').value = ad.linkText || ad.link_text || 'Learn More';
+    
+    const grad = ad.bgGradient || ad.bg_gradient || '';
+    const sel = document.getElementById('adGradient');
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === grad) {
+        sel.selectedIndex = i;
+        break;
+      }
+    }
+    
+    if (ad.imageUrl || ad.image_url) {
+      const preview = document.getElementById('adImagePreview');
+      preview.style.display = 'block';
+      preview.querySelector('img').src = safeMediaUrl(ad.imageUrl || ad.image_url);
+    } else {
+      document.getElementById('adImagePreview').style.display = 'none';
+    }
+    
+    document.getElementById('adErr').classList.add('hidden');
+    openModal('announcementModal');
+  } catch (e) {
+    showToast('Failed to load announcement: ' + e.message, 'error');
+  }
+}
+
 async function createAnnouncement() {
+  const adId = document.getElementById('adId').value;
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
   const imageUrl = document.getElementById('adImageUrl').value.trim();
@@ -1186,19 +1237,29 @@ async function createAnnouncement() {
   }
 
   if (rawVideoUrl && !videoUrl) {
-    errEl.textContent = 'Paste a valid HTTPS iframe embed code or embed URL. Put normal event/page links in the Button Link field.';
+    errEl.textContent = 'Paste a valid HTTPS iframe embed code or embed URL.';
     errEl.classList.remove('hidden');
     return;
   }
 
+  const adData = { title, body, imageUrl, videoUrl, linkUrl, linkText, bgGradient };
+
   try {
-    await apiFetch('/api/announcements', {
-      method: 'POST',
-      body: JSON.stringify({ title, body, imageUrl, videoUrl, linkUrl, linkText, bgGradient })
-    });
+    if (adId) {
+      await apiFetch(`/api/announcements/${adId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(adData)
+      });
+      showToast('Announcement updated ✓', 'success');
+    } else {
+      await apiFetch('/api/announcements', {
+        method: 'POST',
+        body: JSON.stringify(adData)
+      });
+      showToast('Announcement published ✓', 'success');
+    }
     closeModal('announcementModal');
     await loadAnnouncements();
-    showToast('Announcement published ✓', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
