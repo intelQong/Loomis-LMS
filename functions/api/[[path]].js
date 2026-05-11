@@ -149,8 +149,10 @@ async function me(context) {
   return json({ user: serializeUser(user) });
 }
 
-async function listStudents({ env }, user) {
+async function listStudents(context, user) {
+  const { env } = context;
   requireRole(user, ['admin', 'faculty']);
+  await ensureUserCompatibilityColumns(env);
   const stmt = user.role === 'faculty'
     ? env.DB.prepare("SELECT * FROM users WHERE role = 'student' AND assigned_faculty_id = ? ORDER BY created_at DESC").bind(user.id)
     : env.DB.prepare("SELECT * FROM users WHERE role = 'student' ORDER BY created_at DESC");
@@ -160,6 +162,7 @@ async function listStudents({ env }, user) {
 
 async function createStudent({ request, env }, user) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const firstName = required(body.firstName, 'First name');
   const lastName = required(body.lastName, 'Last name');
@@ -195,11 +198,14 @@ async function createStudent({ request, env }, user) {
     body.classTime || ''
   ).run();
 
+  await logAction(env, user, 'CREATE_STUDENT', `Created student ${email}`, id);
+
   return json({ user: { id, firstName, lastName, email } }, 201);
 }
 
 async function updateStudent({ request, env }, user, studentId) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const existing = await env.DB.prepare("SELECT * FROM users WHERE id = ? AND role = 'student'").bind(studentId).first();
   if (!existing) throw httpError('Student not found.', 404);
@@ -210,7 +216,7 @@ async function updateStudent({ request, env }, user, studentId) {
   try {
     await env.DB.prepare(`
       UPDATE users
-      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND role = 'student'
     `).bind(
       required(body.firstName, 'First name'),
@@ -220,6 +226,7 @@ async function updateStudent({ request, env }, user, studentId) {
       required(body.status, 'Status'),
       totalPaid,
       numberOrZero(body.totalDue),
+      numberOrZero(body.discount),
       body.studentId || '',
       body.assignedFacultyId || '',
       body.nextPaymentDate || '',
@@ -233,7 +240,7 @@ async function updateStudent({ request, env }, user, studentId) {
       // Fallback: update without class_days/class_time if migration not applied yet
       await env.DB.prepare(`
         UPDATE users
-        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND role = 'student'
       `).bind(
         required(body.firstName, 'First name'),
@@ -243,6 +250,7 @@ async function updateStudent({ request, env }, user, studentId) {
         required(body.status, 'Status'),
         totalPaid,
         numberOrZero(body.totalDue),
+        numberOrZero(body.discount),
         body.studentId || '',
         body.assignedFacultyId || '',
         body.nextPaymentDate || '',
@@ -261,7 +269,8 @@ async function updateStudent({ request, env }, user, studentId) {
       .run();
   }
 
-  await logAction(env, user, 'UPDATE_STUDENT', `Updated student ${existing.email}. Fields: ${Object.keys(body).join(', ')}`, studentId);
+  const updateDetails = describeStudentUpdate(existing, body);
+  await logAction(env, user, 'UPDATE_STUDENT', updateDetails, studentId);
 
   return json({ ok: true });
 }
@@ -403,6 +412,45 @@ async function saveInstallments({ request, env }, user) {
 }
 
 
+function describeStudentUpdate(existing, body) {
+  const fields = [
+    ['First name', 'first_name', normalizeComparable(body.firstName)],
+    ['Last name', 'last_name', normalizeComparable(body.lastName)],
+    ['Phone', 'phone', normalizeComparable(body.phone || '')],
+    ['Course', 'course', normalizeComparable(body.course)],
+    ['Status', 'status', normalizeComparable(body.status)],
+    ['Total paid', 'total_paid', normalizeComparable(numberOrZero(body.totalPaid))],
+    ['Total due', 'total_due', normalizeComparable(numberOrZero(body.totalDue))],
+    ['Discount', 'discount', normalizeComparable(numberOrZero(body.discount))],
+    ['Student ID', 'student_id', normalizeComparable(body.studentId || '')],
+    ['Assigned faculty', 'assigned_faculty_id', normalizeComparable(body.assignedFacultyId || '')],
+    ['Next payment date', 'next_payment_date', normalizeComparable(body.nextPaymentDate || '')],
+    ['Enrolled date', 'enrolled_date', normalizeComparable(body.enrolledDate || existing.enrolled_date || '')],
+    ['Class days', 'class_days', normalizeComparable(body.classDays || existing.class_days || '')],
+    ['Class time', 'class_time', normalizeComparable(body.classTime || existing.class_time || '')]
+  ];
+
+  const changes = fields
+    .map(([label, column, newValue]) => {
+      const oldValue = normalizeComparable(existing[column]);
+      if (oldValue === newValue) return null;
+      return `${label}: ${formatAuditValue(oldValue)} → ${formatAuditValue(newValue)}`;
+    })
+    .filter(Boolean);
+
+  if (changes.length === 0) return `Updated student ${existing.email}. No visible field changes.`;
+  return `Updated student ${existing.email}. Changes: ${changes.join('; ')}`;
+}
+
+function normalizeComparable(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function formatAuditValue(value) {
+  return value === '' ? 'blank' : value;
+}
+
 async function requireUser({ request, env }) {
   const sessionId = getCookie(request, 'aims_session');
   if (!sessionId) throw httpError('Not authenticated.', 401);
@@ -433,6 +481,7 @@ function serializeUser(row) {
     isSuperAdmin: row.email === SUPER_ADMIN_EMAIL,
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
+    discount: row.discount || 0,
     nextPaymentDate: row.next_payment_date || '',
     enrolledDate: row.enrolled_date,
     createdAt: row.created_at,
@@ -667,6 +716,7 @@ async function deleteService({ env }, user, id) {
 
 async function listAllUsers({ env }, user) {
   if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  await ensureUserCompatibilityColumns(env);
   const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   return json({ users: results.map(serializeUser) });
 }
@@ -698,6 +748,15 @@ async function ensureAuditLogsTable({ env }) {
     target_id TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
+
+  await ensureColumns(env, 'audit_logs', [
+    ['user_id', 'TEXT DEFAULT \'\''],
+    ['admin_email', 'TEXT DEFAULT \'\''],
+    ['action', 'TEXT DEFAULT \'UNKNOWN\''],
+    ['details', 'TEXT DEFAULT \'\''],
+    ['target_id', 'TEXT DEFAULT \'\''],
+    ['created_at', 'TEXT DEFAULT \'\'']
+  ]);
 }
 
 async function listAuditLogs(context, user) {
@@ -749,6 +808,41 @@ async function deleteCalendarEntry({ env }, user, id) {
   await env.DB.prepare('DELETE FROM academic_calendar WHERE id = ?').bind(id).run();
   await logAction(env, user, 'DELETE_CALENDAR', `Deleted calendar entry ID: ${id}`);
   return json({ ok: true });
+}
+
+
+async function ensureUserCompatibilityColumns(env) {
+  await ensureColumns(env, 'users', [
+    ['phone', "TEXT DEFAULT ''"],
+    ['course', "TEXT DEFAULT ''"],
+    ['student_id', "TEXT DEFAULT ''"],
+    ['assigned_faculty_id', "TEXT DEFAULT ''"],
+    ['status', "TEXT DEFAULT 'pending'"],
+    ['total_paid', 'INTEGER DEFAULT 0'],
+    ['total_due', 'INTEGER DEFAULT 0'],
+    ['discount', 'INTEGER DEFAULT 0'],
+    ['enrolled_date', "TEXT DEFAULT ''"],
+    ['created_at', "TEXT DEFAULT ''"],
+    ['updated_at', "TEXT DEFAULT ''"],
+    ['next_payment_date', "TEXT DEFAULT ''"],
+    ['class_days', "TEXT DEFAULT ''"],
+    ['class_time', "TEXT DEFAULT ''"]
+  ]);
+}
+
+async function ensureColumns(env, tableName, columns) {
+  const existing = await env.DB.prepare(`PRAGMA table_info(${tableName})`).all();
+  const existingNames = new Set((existing.results || []).map(column => column.name));
+
+  for (const [name, definition] of columns) {
+    if (existingNames.has(name)) continue;
+    try {
+      await env.DB.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${name} ${definition}`).run();
+      existingNames.add(name);
+    } catch (e) {
+      if (!String(e.message || '').toLowerCase().includes('duplicate column')) throw e;
+    }
+  }
 }
 
 async function logAction(env, admin, action, details, targetId = null) {
