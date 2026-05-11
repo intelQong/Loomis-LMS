@@ -583,7 +583,7 @@ async function createAnnouncement({ request, env }, user) {
   const linkText = body.linkText || 'Learn More';
   const imageUrl = body.imageUrl || '';
   const videoUrl = normalizeVideoEmbedUrl(body.videoUrl || '');
-  if (body.videoUrl && !videoUrl) throw httpError('Video URL must be an embeddable YouTube or Vimeo URL.', 400);
+  if (body.videoUrl && !videoUrl) throw httpError('Video URL must be a valid HTTPS embed URL or iframe code.', 400);
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
   const id = randomId().slice(0, 16);
   await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, video_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
@@ -611,6 +611,7 @@ function normalizeVideoEmbedUrl(value) {
 
   try {
     const url = new URL(finalUrl);
+    if (url.protocol !== 'https:') return '';
     const host = url.hostname.replace(/^www\./, '');
 
     if (host === 'youtube.com' && url.pathname === '/watch') {
@@ -632,14 +633,10 @@ function normalizeVideoEmbedUrl(value) {
       return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}` : '';
     }
 
-    if (host === 'player.vimeo.com' && url.pathname.startsWith('/video/')) {
-      return url.href;
-    }
-  } catch (e) {
+    return url.href;
+  } catch {
     return '';
   }
-
-  return '';
 }
 
 function requireRole(user, roles) {

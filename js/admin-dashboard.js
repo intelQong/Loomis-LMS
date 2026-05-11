@@ -1091,7 +1091,7 @@ function renderAnnouncementsList(ads) {
   }
   container.innerHTML = ads.map(ad => {
     const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
-    const videoUrl = escapeHtml(ad.video_url || ad.videoUrl || '');
+    const videoUrl = normalizeVideoEmbedUrl(ad.video_url || ad.videoUrl || '');
     const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
     const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
     const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'var(--primary)');
@@ -1103,12 +1103,12 @@ function renderAnnouncementsList(ads) {
     return `
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-       ${videoUrl ? `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>` : 
+       ${videoUrl ? `<div style="width:220px;height:124px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);overflow:hidden"><iframe src="${videoUrl}" title="Announcement video preview" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0"></iframe></div>` :
          (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
-          ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Video: ${videoUrl}</div>` : ''}
+          ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Embed: ${escapeHtml(videoUrl)}</div>` : ''}
           ${linkUrl ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${linkText} →</span></div>` : ''}
         </div>
       </div>
@@ -1164,7 +1164,7 @@ async function createAnnouncement() {
   }
 
   if (rawVideoUrl && !videoUrl) {
-    errEl.textContent = 'This video cannot be embedded. Use a YouTube or Vimeo video/embed URL, or place event/page links in the Button Link field.';
+    errEl.textContent = 'Paste a valid HTTPS iframe embed code or embed URL. Put normal event/page links in the Button Link field.';
     errEl.classList.remove('hidden');
     return;
   }
