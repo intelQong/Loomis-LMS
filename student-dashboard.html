@@ -8,7 +8,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
   <title>My Dashboard — AIMS English</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css?v=57">
   <link rel="stylesheet" href="styles/dashboard.css?v=57">
 </head>
@@ -70,7 +72,7 @@
         </div>
         <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
       </div>
-      </div>
+    </div>
     </div>
   </aside>
 
@@ -87,13 +89,13 @@
           📢
           <span class="notif-dot hidden" id="notifDot"></span>
         </button>
-        
-      <div class="top-bar-right">
-        <button class="notif-btn" onclick="toggleNotifPanel()" id="notifBtn" title="Broadcasts">
-          📢
-          <span class="notif-dot hidden" id="notifDot"></span>
-        </button>
-      </div>
+
+        <div class="top-bar-right">
+          <button class="notif-btn" onclick="toggleNotifPanel()" id="notifBtn" title="Broadcasts">
+            📢
+            <span class="notif-dot hidden" id="notifDot"></span>
+          </button>
+        </div>
     </header>
 
     <!-- Notification Panel -->
@@ -118,11 +120,15 @@
           <div class="greeting-card">
             <div class="greeting-text">
               <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-                <img src="assets/aims-logo.jpeg" style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
-                <span style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS English LMS</span>
+                <img src="assets/aims-logo.jpeg"
+                  style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
+                <span
+                  style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS
+                  English LMS</span>
               </div>
               <div class="greeting-content">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; width:100%">
+                <div
+                  style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; width:100%">
                   <div>
                     <h2 id="greetName" style="margin-bottom:4px">Good morning, Niloy!</h2>
                     <p id="enrollStatus" style="font-size:1.1rem; opacity:0.9">Enrolled in Spoken English</p>
@@ -150,11 +156,13 @@
           </div>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
             <div style="background:var(--gray-50); padding:12px; border-radius:12px;">
-              <div style="font-size:0.75rem; color:var(--gray-500); text-transform:uppercase; margin-bottom:4px;">Class Days</div>
+              <div style="font-size:0.75rem; color:var(--gray-500); text-transform:uppercase; margin-bottom:4px;">Class
+                Days</div>
               <div style="font-weight:600; color:var(--indigo-700);" id="statClassDays">Loading...</div>
             </div>
             <div style="background:var(--gray-50); padding:12px; border-radius:12px;">
-              <div style="font-size:0.75rem; color:var(--gray-500); text-transform:uppercase; margin-bottom:4px;">Class Time</div>
+              <div style="font-size:0.75rem; color:var(--gray-500); text-transform:uppercase; margin-bottom:4px;">Class
+                Time</div>
               <div style="font-weight:600; color:var(--indigo-700);" id="statClassTime">Loading...</div>
             </div>
           </div>
@@ -166,17 +174,24 @@
 
         <!-- Quick Actions -->
         <div style="margin-bottom: 32px;">
-          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--gray-800); display: flex; align-items: center; gap: 8px;">
+          <h3
+            style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--gray-800); display: flex; align-items: center; gap: 8px;">
             ⚡ Quick Actions
           </h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
-            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('my-course', document.getElementById('nav-course'))">
+            <button class="btn-secondary"
+              style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;"
+              onclick="showSection('my-course', document.getElementById('nav-course'))">
               📖 View Lessons
             </button>
-            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('payments', document.getElementById('nav-payments'))">
+            <button class="btn-secondary"
+              style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;"
+              onclick="showSection('payments', document.getElementById('nav-payments'))">
               💸 Pay Fees
             </button>
-            <button class="btn-secondary" style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;" onclick="showSection('notifications', document.getElementById('nav-notif'))">
+            <button class="btn-secondary"
+              style="background: white; color: var(--indigo-600); border: 1.5px solid var(--indigo-100); justify-content: center; padding: 12px;"
+              onclick="showSection('notifications', document.getElementById('nav-notif'))">
               📢 View Broadcasts
             </button>
           </div>
@@ -252,13 +267,16 @@
               </thead>
               <tbody id="paymentHistory">
                 <tr>
-                  <td colspan="4" style="text-align:center;color:var(--gray-400);padding:32px">No payment records yet.</td>
+                  <td colspan="4" style="text-align:center;color:var(--gray-400);padding:32px">No payment records yet.
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div style="margin-top:16px;padding:12px 0;border-top:1px solid var(--gray-100);font-size:0.85rem;color:var(--gray-500)">
-            💡 Payment records are updated by AIMS admin. Contact us at Lucy Square Level 3, Mehedibag, Chattogram for any queries.
+          <div
+            style="margin-top:16px;padding:12px 0;border-top:1px solid var(--gray-100);font-size:0.85rem;color:var(--gray-500)">
+            💡 Payment records are updated by AIMS admin. Contact us at Lucy Square Level 3, Mehedibag, Chattogram for
+            any queries.
           </div>
         </div>
       </section>
@@ -313,7 +331,9 @@
               </tr>
             </thead>
             <tbody id="calendarList">
-              <tr><td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td></tr>
+              <tr>
+                <td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -375,14 +395,19 @@
 
           <!-- Developer Info -->
           <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--gray-100);">
-            <div style="display: flex; align-items: center; gap: 16px; background: var(--gray-50); padding: 16px; border-radius: var(--radius);">
-              <div style="width: 48px; height: 48px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white;">
+            <div
+              style="display: flex; align-items: center; gap: 16px; background: var(--gray-50); padding: 16px; border-radius: var(--radius);">
+              <div
+                style="width: 48px; height: 48px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white;">
                 👨‍💻
               </div>
               <div>
-                <div style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">Application Developer</div>
+                <div
+                  style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+                  Application Developer</div>
                 <div style="font-weight: 700; color: var(--gray-800);">Md Mahmudul Hoque Khan</div>
-                <a href="https://www.linkedin.com/in/mahmudulhkhan" target="_blank" style="font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
+                <a href="https://www.linkedin.com/in/mahmudulhkhan" target="_blank"
+                  style="font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 4px;">
                   Connect on LinkedIn ↗
                 </a>
               </div>
@@ -410,12 +435,11 @@
           </div>
           <div id="profileFields"></div>
           <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="openChangePasswordModal()">Change Password</button>
             <button class="btn-danger" onclick="handleLogout()">Sign Out</button>
           </div>
         </div>
       </section>
- 
+
       <!-- SECTION: Security & Privacy -->
       <section class="page-section" id="section-security">
         <div class="section-header">
@@ -429,11 +453,11 @@
           <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="openChangePasswordModal()">
             Change My Password
           </button>
-          
+
           <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--gray-100)">
             <h4 style="margin-bottom:12px">Privacy & Data</h4>
             <p style="color:var(--gray-500); font-size:0.9rem; line-height:1.6">
-              Your personal data is encrypted and used only for educational purposes within AIMS English. 
+              Your personal data is encrypted and used only for educational purposes within AIMS English.
               We do not share your information with third-party advertisers.
             </p>
           </div>
@@ -447,33 +471,41 @@
         </div>
         <div class="card" style="max-width:600px">
           <h4 style="margin-bottom:16px">Theme Color</h4>
-          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:24px;">Personalize your dashboard with your favorite color.</p>
-          
+          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:24px;">Personalize your dashboard with your
+            favorite color.</p>
+
           <div class="theme-palette" style="display:flex; gap:16px; flex-wrap:wrap;">
-            <div class="theme-opt" data-theme="teal" onclick="applyTheme('teal')" style="cursor:pointer; text-align:center;">
-              <div style="width:60px; height:60px; border-radius:12px; background:#0D9488; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+            <div class="theme-opt" data-theme="teal" onclick="applyTheme('teal')"
+              style="cursor:pointer; text-align:center;">
+              <div
+                style="width:60px; height:60px; border-radius:12px; background:#0D9488; margin-bottom:8px; border:3px solid transparent;"
+                class="color-preview"></div>
               <span style="font-size:0.8rem; font-weight:600;">Teal</span>
             </div>
-            <div class="theme-opt" data-theme="indigo" onclick="applyTheme('indigo')" style="cursor:pointer; text-align:center;">
-              <div style="width:60px; height:60px; border-radius:12px; background:#4338CA; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+            <div class="theme-opt" data-theme="indigo" onclick="applyTheme('indigo')"
+              style="cursor:pointer; text-align:center;">
+              <div
+                style="width:60px; height:60px; border-radius:12px; background:#4338CA; margin-bottom:8px; border:3px solid transparent;"
+                class="color-preview"></div>
               <span style="font-size:0.8rem; font-weight:600;">Indigo</span>
             </div>
-            <div class="theme-opt" data-theme="coral" onclick="applyTheme('coral')" style="cursor:pointer; text-align:center;">
-              <div style="width:60px; height:60px; border-radius:12px; background:#FF7F50; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+            <div class="theme-opt" data-theme="coral" onclick="applyTheme('coral')"
+              style="cursor:pointer; text-align:center;">
+              <div
+                style="width:60px; height:60px; border-radius:12px; background:#FF7F50; margin-bottom:8px; border:3px solid transparent;"
+                class="color-preview"></div>
               <span style="font-size:0.8rem; font-weight:600;">Coral</span>
             </div>
-            <div class="theme-opt" data-theme="emerald" onclick="applyTheme('emerald')" style="cursor:pointer; text-align:center;">
-              <div style="width:60px; height:60px; border-radius:12px; background:#10B981; margin-bottom:8px; border:3px solid transparent;" class="color-preview"></div>
+            <div class="theme-opt" data-theme="emerald" onclick="applyTheme('emerald')"
+              style="cursor:pointer; text-align:center;">
+              <div
+                style="width:60px; height:60px; border-radius:12px; background:#10B981; margin-bottom:8px; border:3px solid transparent;"
+                class="color-preview"></div>
               <span style="font-size:0.8rem; font-weight:600;">Emerald</span>
             </div>
           </div>
         </div>
 
-        <div class="card" style="max-width:600px;margin-top:20px">
-          <h4 style="margin-bottom:8px">Account Security</h4>
-          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:18px;">Change your password anytime using your current password.</p>
-          <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="openChangePasswordModal()">Change Password</button>
-        </div>
       </section>
 
     </div><!-- /content-area -->
@@ -504,7 +536,8 @@
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
         <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
-        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update Password</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update
+          Password</button>
       </div>
       <div id="ownPasswordErr" class="error-msg hidden"></div>
     </div>
@@ -520,7 +553,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js?v=54', { updateViaCache: 'none' });
-      
+
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         // Disabled auto-reload to prevent loops. 
