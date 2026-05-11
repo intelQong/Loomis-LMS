@@ -51,6 +51,10 @@ export async function onRequest(context) {
     if (path[0] === 'installments' && method === 'GET') return listInstallments(context, user, url.searchParams.get('userId'));
     if (path[0] === 'installments' && method === 'POST') return saveInstallments(context, user);
 
+    if (path[0] === 'services' && method === 'GET') return listServices(context);
+    if (path[0] === 'services' && method === 'POST') return createService(context, user);
+    if (path[0] === 'services' && path[1] && method === 'DELETE') return deleteService(context, user, path[1]);
+
 
     return error('Not found', 404);
   } catch (e) {
@@ -596,6 +600,36 @@ function sessionCookie(sessionId, expiresAt, request) {
 
 function expiredSessionCookie() {
   return 'aims_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+}
+
+// ============================================================
+// Other Services (Portals)
+// ============================================================
+async function listServices({ env }) {
+  const { results } = await env.DB.prepare('SELECT * FROM other_services WHERE active = 1 ORDER BY created_at DESC').all();
+  return json({ services: results });
+}
+
+async function createService({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const name = required(body.name, 'Name');
+  const url = required(body.url, 'URL');
+  const desc = body.desc || '';
+  const icon = body.icon || '🌐';
+  
+  const id = crypto.randomUUID().slice(0, 8);
+  await env.DB.prepare('INSERT INTO other_services (id, name, desc, url, icon) VALUES (?, ?, ?, ?, ?)')
+    .bind(id, name, desc, url, icon)
+    .run();
+    
+  return json({ ok: true, id });
+}
+
+async function deleteService({ env }, user, id) {
+  requireRole(user, ['admin']);
+  await env.DB.prepare('DELETE FROM other_services WHERE id = ?').bind(id).run();
+  return json({ ok: true });
 }
 
 function json(data, status = 200, cookie = null) {
