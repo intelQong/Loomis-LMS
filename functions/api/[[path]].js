@@ -20,6 +20,7 @@ const RATE_LIMITS = {
   login: { max: 10, windowSeconds: 15 * 60 },
   signup: { max: 5, windowSeconds: 60 * 60 },
   passwordChange: { max: 5, windowSeconds: 15 * 60 },
+  forgotPassword: { max: 5, windowSeconds: 60 * 60 },
   adminPasswordReset: { max: 10, windowSeconds: 15 * 60 }
 };
 
@@ -35,6 +36,7 @@ export async function onRequest(context) {
 
     if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
     if (path[0] === 'auth' && path[1] === 'login' && method === 'POST') return login(context);
+    if (path[0] === 'auth' && path[1] === 'forgot-password' && method === 'POST') return forgotPassword(context);
     if (path[0] === 'auth' && path[1] === 'logout' && method === 'POST') return logout(context);
     if (path[0] === 'auth' && path[1] === 'me' && method === 'GET') return me(context);
 
@@ -118,6 +120,25 @@ async function signup({ request, env }) {
   ).run();
 
   return json({ ok: true });
+}
+
+
+async function forgotPassword({ request, env }) {
+  await assertRateLimit(env, `forgot-password:${clientIp(request)}`, RATE_LIMITS.forgotPassword);
+  const body = await readJson(request);
+  const email = normalizeEmail(required(body.email, 'Email'));
+  const user = await env.DB.prepare('SELECT id, email, role, status FROM users WHERE email = ?').bind(email).first();
+
+  if (user) {
+    await logSystemAction(
+      env,
+      'FORGOT_PASSWORD_REQUEST',
+      `Password reset requested for ${user.email} (${user.role}, ${user.status}). Admin should verify identity before resetting.`,
+      user.id
+    );
+  }
+
+  return json({ ok: true, message: 'If an account exists for this email, an admin has been notified to help reset the password.' });
 }
 
 async function login({ request, env }) {
@@ -561,7 +582,8 @@ async function createAnnouncement({ request, env }, user) {
   const linkUrl = body.linkUrl || '';
   const linkText = body.linkText || 'Learn More';
   const imageUrl = body.imageUrl || '';
-  const videoUrl = body.videoUrl || '';
+  const videoUrl = normalizeVideoEmbedUrl(body.videoUrl || '');
+  if (body.videoUrl && !videoUrl) throw httpError('Video URL must be an embeddable YouTube or Vimeo URL.', 400);
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
   const id = randomId().slice(0, 16);
   await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, video_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
@@ -575,6 +597,49 @@ async function deleteAnnouncement({ env }, user, id) {
   await env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
   await logAction(env, user, 'DELETE_ANNOUNCEMENT', `Deleted announcement ID: ${id}`);
   return json({ ok: true });
+}
+
+
+function normalizeVideoEmbedUrl(value) {
+  if (!value) return '';
+  let finalUrl = String(value).trim();
+
+  if (finalUrl.startsWith('<') && finalUrl.includes('iframe')) {
+    const srcMatch = finalUrl.match(/src=["']([^"']+)["']/i);
+    finalUrl = srcMatch ? srcMatch[1] : '';
+  }
+
+  try {
+    const url = new URL(finalUrl);
+    const host = url.hostname.replace(/^www\./, '');
+
+    if (host === 'youtube.com' && url.pathname === '/watch') {
+      const videoId = url.searchParams.get('v');
+      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
+    }
+
+    if (host === 'youtu.be') {
+      const videoId = url.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
+    }
+
+    if ((host === 'youtube.com' || host === 'youtube-nocookie.com') && url.pathname.startsWith('/embed/')) {
+      return url.href.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
+    }
+
+    if (host === 'vimeo.com') {
+      const videoId = url.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}` : '';
+    }
+
+    if (host === 'player.vimeo.com' && url.pathname.startsWith('/video/')) {
+      return url.href;
+    }
+  } catch (e) {
+    return '';
+  }
+
+  return '';
 }
 
 function requireRole(user, roles) {
@@ -989,6 +1054,18 @@ async function ensureColumns(env, tableName, columns) {
     } catch (e) {
       if (!String(e.message || '').toLowerCase().includes('duplicate column')) throw e;
     }
+  }
+}
+
+
+async function logSystemAction(env, action, details, targetId = null) {
+  try {
+    await ensureAuditLogsTable({ env });
+    await env.DB.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), 'system', 'System', action, details, targetId)
+      .run();
+  } catch (e) {
+    console.error('System logging failed:', e);
   }
 }
 

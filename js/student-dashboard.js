@@ -424,7 +424,7 @@ async function loadAdBanners() {
     const slidesHtml = ads.map((ad, i) => {
       const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
       const rawVideoUrl = ad.video_url || ad.videoUrl || '';
-      const videoUrl = getEmbedUrl(rawVideoUrl);
+      const videoUrl = normalizeVideoEmbedUrl(rawVideoUrl);
       const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
       const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
       const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)');
@@ -486,48 +486,6 @@ async function loadAdBanners() {
   } catch (e) {
     console.error('Ad banners:', e);
   }
-}
-
-function getEmbedUrl(url) {
-  if (!url) return '';
-  let finalUrl = String(url).trim();
-
-  if (finalUrl.startsWith('<') && finalUrl.includes('iframe')) {
-    const srcMatch = finalUrl.match(/src=["']([^"']+)["']/i);
-    finalUrl = srcMatch ? srcMatch[1] : '';
-  }
-
-  try {
-    const urlObj = new URL(finalUrl, window.location.origin);
-    const host = urlObj.hostname.replace(/^www\./, '');
-
-    if (host === 'youtube.com' && urlObj.pathname === '/watch') {
-      const videoId = urlObj.searchParams.get('v');
-      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
-    }
-
-    if (host === 'youtu.be') {
-      const videoId = urlObj.pathname.split('/').filter(Boolean)[0];
-      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
-    }
-
-    if (host === 'vimeo.com') {
-      const videoId = urlObj.pathname.split('/').filter(Boolean)[0];
-      return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}` : '';
-    }
-
-    if ((host === 'youtube.com' || host === 'youtube-nocookie.com') && urlObj.pathname.startsWith('/embed/')) {
-      return urlObj.href.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
-    }
-
-    if (host === 'player.vimeo.com' && urlObj.pathname.startsWith('/video/')) {
-      return urlObj.href;
-    }
-  } catch (e) {
-    console.error('Invalid Video URL:', finalUrl);
-  }
-
-  return '';
 }
 
 function safeAnnouncementBackground(value) {
