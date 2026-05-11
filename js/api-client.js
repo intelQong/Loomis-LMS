@@ -17,15 +17,57 @@ async function apiFetch(path, options = {}) {
   try {
     data = text ? JSON.parse(text) : null;
   } catch {
-    // Server returned non-JSON (e.g. Cloudflare error page)
-    if (!res.ok) throw new Error('Server error. Please try again or clear cache (Ctrl+Shift+R).');
+    data = null;
   }
 
   if (!res.ok) {
-    throw new Error(data?.error || `Request failed with status ${res.status}`);
+    throw new Error(data?.error || friendlyHttpError(path, res.status));
   }
 
   return data;
+}
+
+
+function friendlyHttpError(path, status) {
+  if (path.includes('/api/auth/login') && (status === 401 || status === 403)) {
+    return 'Invalid email or password.';
+  }
+  if (status === 401) return 'Please sign in again.';
+  if (status === 403) return 'You are not allowed to perform this action.';
+  if (status === 429) return 'Too many attempts. Please wait and try again.';
+  if (status >= 500) return 'Server error. Please try again in a moment.';
+  return `Request failed with status ${status}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeExternalUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(String(value), window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return '';
+    return url.href;
+  } catch {
+    return '';
+  }
+}
+
+function safeMediaUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(String(value), window.location.origin);
+    if (!['http:', 'https:', 'data:'].includes(url.protocol)) return '';
+    return url.href;
+  } catch {
+    return '';
+  }
 }
 
 async function getCurrentUserData() {
