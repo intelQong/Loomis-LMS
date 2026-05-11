@@ -109,8 +109,18 @@
                 <img src="assets/aims-logo.jpeg" style="width:40px; height:40px; border-radius:8px; background:white; padding:4px;" alt="Logo">
                 <span style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS English LMS</span>
               </div>
-              <h2 id="greetName">Good morning, Niloy!</h2>
-              <p id="greetCourse">Enrolled in Spoken English</p>
+              <div class="greeting-content">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+                  <div>
+                    <h2 id="greetName" style="margin-bottom:4px">Good morning, Niloy!</h2>
+                    <p id="enrollStatus" style="font-size:1.1rem; opacity:0.9">Enrolled in Spoken English</p>
+                  </div>
+                  <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
+                    <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
+                    <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="greeting-icon" id="greetIcon">☀️</div>
           </div>
@@ -275,7 +285,27 @@
         <div class="portals-grid" id="servicesGrid"></div>
       </section>
 
-      <!-- SECTION: Contact Us -->
+      <!-- SECTION: Academic Calendar -->
+      <section class="page-section" id="section-calendar">
+        <div class="section-header">
+          <div class="section-title">Academic Calendar & Holidays</div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Event / Holiday</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="calendarList">
+              <tr><td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       <section class="page-section" id="section-contact">
         <div class="section-header">
           <div class="section-title">Contact Us</div>

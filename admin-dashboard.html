@@ -48,11 +48,19 @@
     <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
       <span class="nav-icon">✨</span> Announcements
     </button>
+    <button class="nav-item" data-admin-only onclick="showSection('admin-calendar', this)">
+      <span class="nav-icon">📅</span> Academic Calendar
+    </button>
     <button class="nav-item" onclick="showSection('services', this)">
       <span class="nav-icon">🔗</span> Other Services
     </button>
     <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
       <span class="nav-icon">⚙️</span> Site Tools
+    </button>
+    
+    <!-- Super Admin Only -->
+    <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
+      <span class="nav-icon">🛡️</span> Secure Portal
     </button>
   </nav>
   <div class="sidebar-footer">
@@ -97,6 +105,18 @@
       </div>
 
       <div class="stats-grid" id="adminStatsGrid">
+        <div class="greeting-content">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+            <div>
+              <h2 id="greetName">Good morning, Admin!</h2>
+              <p>Here's what's happening today.</p>
+            </div>
+            <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
+              <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
+              <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
+            </div>
+          </div>
+        </div>
         <div class="stat-card">
           <div class="stat-icon teal">👥</div>
           <div class="stat-body">
@@ -263,7 +283,30 @@
       </div>
     </section>
 
-    <!-- SECTION: Other Services -->
+    <!-- SECTION: Academic Calendar Management -->
+    <section class="page-section" id="section-admin-calendar">
+      <div class="section-header">
+        <div class="section-title">Academic Calendar Management</div>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add Event/Holiday</button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Manage events, holidays, and exams for the student portal.</p>
+      
+      <div class="card" style="padding:0; overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Title</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="adminCalendarList">
+            <tr><td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <section class="page-section" id="section-services">
       <div class="section-header">
         <div class="section-title">Other Services</div>
@@ -273,6 +316,76 @@
       
       <div id="servicesManageList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
         <div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Loading services...</div>
+      </div>
+    </section>
+
+    <!-- SECTION: Calendar Management -->
+    <section class="page-section" id="section-admin-calendar">
+      <div class="section-header">
+        <div class="section-title">Calendar Management</div>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add Event</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Event Type</th>
+                <th>Title</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="calendarList">
+              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Secure Portal (Super Admin) -->
+    <section class="page-section" id="section-super-portal">
+      <div class="section-header">
+        <div class="section-title">Secure Portal — User Management</div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Restricted access for System Administrator. Manage roles and system permissions.</p>
+      
+      <div class="card" style="padding:0; overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Change Role</th>
+            </tr>
+          </thead>
+          <tbody id="superUserList">
+            <tr><td colspan="4" style="text-align:center;padding:32px">Loading all users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="section-header" style="margin-top:40px">
+        <div class="section-title">System Audit Logs</div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Permanent history of all administrative actions. This log cannot be edited or deleted.</p>
+      
+      <div class="card" style="padding:0; overflow:hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date & Time</th>
+              <th>Admin</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogList">
+            <tr><td colspan="4" style="text-align:center;padding:32px">Loading history...</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -713,6 +826,41 @@
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
     </div>
     <div id="paymentErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Add Calendar Entry -->
+<div class="modal-backdrop hidden" id="calendarModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Calendar Entry</h3>
+      <button class="modal-close" onclick="closeModal('calendarModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input type="text" id="calTitle" placeholder="e.g. Eid-ul-Fitr Holiday">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="calDate">
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <select id="calType">
+        <option value="event">Event</option>
+        <option value="holiday">Holiday</option>
+        <option value="exam">Exam</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="calDesc" placeholder="e.g. Campus will remain closed.">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('calendarModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createCalendarEntry()">Add Entry</button>
+    </div>
+    <div id="calErr" class="error-msg hidden"></div>
   </div>
 </div>
 

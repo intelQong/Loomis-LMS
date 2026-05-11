@@ -55,6 +55,14 @@ export async function onRequest(context) {
     if (path[0] === 'services' && method === 'POST') return createService(context, user);
     if (path[0] === 'services' && path[1] && method === 'DELETE') return deleteService(context, user, path[1]);
 
+    if (path[0] === 'admin' && path[1] === 'users' && method === 'GET') return listAllUsers(context, user);
+    if (path[0] === 'admin' && path[1] === 'users' && path[2] && method === 'PATCH') return updateUserRole(context, user, path[2]);
+    if (path[0] === 'admin' && path[1] === 'logs' && method === 'GET') return listAuditLogs(context, user);
+
+    if (path[0] === 'calendar' && method === 'GET') return listCalendar(context);
+    if (path[0] === 'calendar' && method === 'POST') return createCalendarEntry(context, user);
+    if (path[0] === 'calendar' && path[1] && method === 'DELETE') return deleteCalendarEntry(context, user, path[1]);
+
 
     return error('Not found', 404);
   } catch (e) {
@@ -251,6 +259,8 @@ async function updateStudent({ request, env }, user, studentId) {
       .bind(crypto.randomUUID(), studentId, paymentDelta, 'Admin update', 'Received')
       .run();
   }
+
+  await logAction(env, user, 'UPDATE_STUDENT', `Updated student ${existing.email}. Fields: ${Object.keys(body).join(', ')}`, studentId);
 
   return json({ ok: true });
 }
@@ -495,6 +505,7 @@ async function createAnnouncement({ request, env }, user) {
 async function deleteAnnouncement({ env }, user, id) {
   requireRole(user, ['admin']);
   await env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
+  await logAction(env, user, 'DELETE_ANNOUNCEMENT', `Deleted announcement ID: ${id}`);
   return json({ ok: true });
 }
 
@@ -550,6 +561,8 @@ async function resetStudentPassword({ request, env }, user, studentId) {
 
   // Invalidate all sessions for this student
   await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(studentId).run();
+
+  await logAction(env, user, 'RESET_PASSWORD', `Reset password for student ID: ${studentId}`, studentId);
 
   return json({ ok: true });
 }
@@ -629,7 +642,84 @@ async function createService({ request, env }, user) {
 async function deleteService({ env }, user, id) {
   requireRole(user, ['admin']);
   await env.DB.prepare('DELETE FROM other_services WHERE id = ?').bind(id).run();
+  await logAction(env, user, 'DELETE_SERVICE', `Deleted service ID: ${id}`);
   return json({ ok: true });
+}
+
+// ============================================================
+// Super Admin & Audit Logs
+// ============================================================
+const SUPER_ADMIN_EMAIL = 'mahmudulkhan.office@gmail.com';
+
+async function listAllUsers({ env }, user) {
+  if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
+  return json({ users: results.map(serializeUser) });
+}
+
+async function updateUserRole({ request, env }, user, targetUserId) {
+  if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  const body = await readJson(request);
+  const newRole = required(body.role, 'Role');
+  if (!['student', 'admin', 'faculty'].includes(newRole)) throw httpError('Invalid role.', 400);
+
+  const target = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(targetUserId).first();
+  if (!target) throw httpError('User not found.', 404);
+
+  await env.DB.prepare('UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+    .bind(newRole, targetUserId)
+    .run();
+
+  await logAction(env, user, 'UPDATE_USER_ROLE', `Changed role of ${target.email} from ${target.role} to ${newRole}`, targetUserId);
+  return json({ ok: true });
+}
+
+async function listAuditLogs({ env }, user) {
+  requireRole(user, ['admin']);
+  const { results } = await env.DB.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200').all();
+  return json({ logs: results });
+}
+
+// ============================================================
+// Academic Calendar
+// ============================================================
+async function listCalendar({ env }) {
+  const { results } = await env.DB.prepare('SELECT * FROM academic_calendar ORDER BY date ASC').all();
+  return json({ calendar: results });
+}
+
+async function createCalendarEntry({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const title = required(body.title, 'Title');
+  const date = required(body.date, 'Date');
+  const type = body.type || 'event';
+  const desc = body.desc || '';
+
+  const id = crypto.randomUUID().slice(0, 8);
+  await env.DB.prepare('INSERT INTO academic_calendar (id, title, date, type, desc) VALUES (?, ?, ?, ?, ?)')
+    .bind(id, title, date, type, desc)
+    .run();
+  
+  await logAction(env, user, 'CREATE_CALENDAR', `Added ${type}: ${title} on ${date}`);
+  return json({ ok: true, id });
+}
+
+async function deleteCalendarEntry({ env }, user, id) {
+  requireRole(user, ['admin']);
+  await env.DB.prepare('DELETE FROM academic_calendar WHERE id = ?').bind(id).run();
+  await logAction(env, user, 'DELETE_CALENDAR', `Deleted calendar entry ID: ${id}`);
+  return json({ ok: true });
+}
+
+async function logAction(db, admin, action, details, targetId = null) {
+  try {
+    await db.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), admin.id, admin.email, action, details, targetId)
+      .run();
+  } catch (e) {
+    console.error('Logging failed:', e);
+  }
 }
 
 function json(data, status = 200, cookie = null) {
