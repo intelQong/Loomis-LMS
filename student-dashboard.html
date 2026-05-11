@@ -9,8 +9,8 @@
   <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
   <title>My Dashboard — AIMS English</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=55">
-  <link rel="stylesheet" href="styles/dashboard.css?v=55">
+  <link rel="stylesheet" href="styles/main.css?v=56">
+  <link rel="stylesheet" href="styles/dashboard.css?v=56">
 </head>
 
 <body class="dashboard-page">
@@ -54,7 +54,10 @@
         <span class="nav-icon">👤</span> My Profile
       </button>
       <button class="nav-item" id="nav-settings" onclick="showSection('settings', this)">
-        <span class="nav-icon">⚙️</span> Settings
+        <span class="nav-icon">🎨</span> Appearance Settings
+      </button>
+      <button class="nav-item" onclick="openChangePasswordModal()">
+        <span class="nav-icon">🔒</span> Security & Privacy
       </button>
     </nav>
 
@@ -85,32 +88,11 @@
           <span class="notif-dot hidden" id="notifDot"></span>
         </button>
         
-        <div class="dropdown">
-          <button class="notif-btn" onclick="toggleMenu()" title="More Options">⋮</button>
-          <div id="topMenuDropdown" class="dropdown-content hidden">
-            <div class="menu-section-label">Navigation</div>
-            <button onclick="showSection('calendar'); toggleMenu();">
-              <span>📅</span> Academic Calendar
-            </button>
-            <button onclick="showSection('profile'); toggleMenu();">
-              <span>👤</span> My Profile
-            </button>
-            
-            <div class="menu-section-label">Account Security</div>
-            <button onclick="openChangePasswordModal(); toggleMenu();">
-              <span>🔒</span> Security & Privacy
-            </button>
-            <button onclick="showSection('settings'); toggleMenu();">
-              <span>🎨</span> Appearance Settings
-            </button>
-
-            <div style="border-top: 1px solid var(--gray-100); margin-top: 8px; padding-top: 4px;">
-              <button onclick="handleLogout()" style="color: var(--danger)">
-                <span>⏻</span> Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="top-bar-right">
+        <button class="notif-btn" onclick="toggleNotifPanel()" id="notifBtn" title="Broadcasts">
+          📢
+          <span class="notif-dot hidden" id="notifDot"></span>
+        </button>
       </div>
     </header>
 
