@@ -232,6 +232,11 @@
   opacity: 0.9;
 }
 
+.greeting-card .greeting-text {
+  flex: 1;
+  min-width: 0;
+}
+
 .greeting-card .greeting-icon {
   font-size: 4.5rem;
   opacity: 0.25;
