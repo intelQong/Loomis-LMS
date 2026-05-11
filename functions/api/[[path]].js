@@ -149,8 +149,10 @@ async function me(context) {
   return json({ user: serializeUser(user) });
 }
 
-async function listStudents({ env }, user) {
+async function listStudents(context, user) {
+  const { env } = context;
   requireRole(user, ['admin', 'faculty']);
+  await ensureUserCompatibilityColumns(env);
   const stmt = user.role === 'faculty'
     ? env.DB.prepare("SELECT * FROM users WHERE role = 'student' AND assigned_faculty_id = ? ORDER BY created_at DESC").bind(user.id)
     : env.DB.prepare("SELECT * FROM users WHERE role = 'student' ORDER BY created_at DESC");
@@ -160,6 +162,7 @@ async function listStudents({ env }, user) {
 
 async function createStudent({ request, env }, user) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const firstName = required(body.firstName, 'First name');
   const lastName = required(body.lastName, 'Last name');
@@ -195,11 +198,14 @@ async function createStudent({ request, env }, user) {
     body.classTime || ''
   ).run();
 
+  await logAction(env, user, 'CREATE_STUDENT', `Created student ${email}`, id);
+
   return json({ user: { id, firstName, lastName, email } }, 201);
 }
 
 async function updateStudent({ request, env }, user, studentId) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const existing = await env.DB.prepare("SELECT * FROM users WHERE id = ? AND role = 'student'").bind(studentId).first();
   if (!existing) throw httpError('Student not found.', 404);
@@ -667,6 +673,7 @@ async function deleteService({ env }, user, id) {
 
 async function listAllUsers({ env }, user) {
   if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  await ensureUserCompatibilityColumns(env);
   const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   return json({ users: results.map(serializeUser) });
 }
@@ -698,6 +705,15 @@ async function ensureAuditLogsTable({ env }) {
     target_id TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
+
+  await ensureColumns(env, 'audit_logs', [
+    ['user_id', 'TEXT DEFAULT \'\''],
+    ['admin_email', 'TEXT DEFAULT \'\''],
+    ['action', 'TEXT DEFAULT \'UNKNOWN\''],
+    ['details', 'TEXT DEFAULT \'\''],
+    ['target_id', 'TEXT DEFAULT \'\''],
+    ['created_at', 'TEXT DEFAULT \'\'']
+  ]);
 }
 
 async function listAuditLogs(context, user) {
@@ -749,6 +765,40 @@ async function deleteCalendarEntry({ env }, user, id) {
   await env.DB.prepare('DELETE FROM academic_calendar WHERE id = ?').bind(id).run();
   await logAction(env, user, 'DELETE_CALENDAR', `Deleted calendar entry ID: ${id}`);
   return json({ ok: true });
+}
+
+
+async function ensureUserCompatibilityColumns(env) {
+  await ensureColumns(env, 'users', [
+    ['phone', "TEXT DEFAULT ''"],
+    ['course', "TEXT DEFAULT ''"],
+    ['student_id', "TEXT DEFAULT ''"],
+    ['assigned_faculty_id', "TEXT DEFAULT ''"],
+    ['status', "TEXT DEFAULT 'pending'"],
+    ['total_paid', 'INTEGER DEFAULT 0'],
+    ['total_due', 'INTEGER DEFAULT 0'],
+    ['enrolled_date', "TEXT DEFAULT ''"],
+    ['created_at', "TEXT DEFAULT ''"],
+    ['updated_at', "TEXT DEFAULT ''"],
+    ['next_payment_date', "TEXT DEFAULT ''"],
+    ['class_days', "TEXT DEFAULT ''"],
+    ['class_time', "TEXT DEFAULT ''"]
+  ]);
+}
+
+async function ensureColumns(env, tableName, columns) {
+  const existing = await env.DB.prepare(`PRAGMA table_info(${tableName})`).all();
+  const existingNames = new Set((existing.results || []).map(column => column.name));
+
+  for (const [name, definition] of columns) {
+    if (existingNames.has(name)) continue;
+    try {
+      await env.DB.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${name} ${definition}`).run();
+      existingNames.add(name);
+    } catch (e) {
+      if (!String(e.message || '').toLowerCase().includes('duplicate column')) throw e;
+    }
+  }
 }
 
 async function logAction(env, admin, action, details, targetId = null) {
