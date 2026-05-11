@@ -10,7 +10,7 @@ Reviewed the Cloudflare Pages Function API, static dashboard clients, session ha
 
 | Area | Risk | Mitigation in this change |
 | --- | --- | --- |
-| Self-service password reset | Students/admins could not change their own password while logged in. Admin-only student resets existed, but there was no current-password verification flow for the account owner. | Added authenticated `POST /api/auth/change-password`, requiring the current password, a new password of at least 8 characters, and confirmation in the UI. Other sessions for that user are revoked after the change. |
+| Self-service password reset | Students/admins could not change their own password while logged in, and the public forgot-password link had no working flow. | Added authenticated `POST /api/auth/change-password`, requiring the current password, a new password of at least 8 characters, and confirmation in the UI. Added a public forgot-password request modal/API that records an admin audit item without exposing whether the email exists. Other sessions for the user are revoked after an authenticated password change. |
 | Password storage | New and reset passwords were stored as a single SHA-256 hash with a salt, which is too fast for password storage. | New passwords now use PBKDF2-SHA-256 with 100,000 iterations. Legacy hashes still verify, then upgrade automatically on successful login. |
 | Brute-force attempts | Login, signup, and password-reset endpoints did not have application-level rate limiting. | Added D1-backed rate limits for login, signup, self password changes, and admin password resets. |
 | Cross-site form/API abuse | Cookie-authenticated unsafe requests could be attempted cross-site. | Added same-origin enforcement for `POST`, `PUT`, `PATCH`, and `DELETE` requests using `Origin` and `Sec-Fetch-Site` headers. |
@@ -32,4 +32,4 @@ The application now has server-side rate limiting, so CAPTCHA is not required fo
 
 - Rotate any known shared/default passwords after deploying this change.
 - Run D1 migrations consistently during deployment; runtime compatibility helpers reduce breakage but migrations should remain the source of truth.
-- Consider adding email-based forgot-password tokens if an email service is added later. Do not implement unauthenticated password reset without verified email ownership.
+- Consider adding email-based forgot-password tokens if an email service is added later. The current forgot-password flow records an admin action request but does not issue an unauthenticated reset link because email ownership is not verified automatically.

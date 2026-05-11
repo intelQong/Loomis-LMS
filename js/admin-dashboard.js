@@ -1149,7 +1149,8 @@ async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
   const imageUrl = document.getElementById('adImageUrl').value.trim();
-  const videoUrl = document.getElementById('adVideoUrl').value.trim();
+  const rawVideoUrl = document.getElementById('adVideoUrl').value.trim();
+  const videoUrl = rawVideoUrl ? normalizeVideoEmbedUrl(rawVideoUrl) : '';
   const linkUrl = document.getElementById('adLinkUrl').value.trim();
   const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
   const bgGradient = document.getElementById('adGradient').value;
@@ -1162,9 +1163,8 @@ async function createAnnouncement() {
     return;
   }
 
-  // Basic Video URL validation to prevent recursive site embedding
-  if (videoUrl && videoUrl.includes(window.location.hostname)) {
-    errEl.textContent = 'Cannot use internal site links as Video URLs. Please use a YouTube or Vimeo link.';
+  if (rawVideoUrl && !videoUrl) {
+    errEl.textContent = 'This video cannot be embedded. Use a YouTube or Vimeo video/embed URL, or place event/page links in the Button Link field.';
     errEl.classList.remove('hidden');
     return;
   }
