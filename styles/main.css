@@ -34,6 +34,16 @@
   --info: #0284c7;
   --font-sans: 'DM Sans', sans-serif;
   --font-serif: 'DM Serif Display', serif;
+  
+  /* Standard Color Shades */
+  --indigo-50: #eef2ff;
+  --indigo-100: #e0e7ff;
+  --indigo-600: #4f46e5;
+  --indigo-700: #4338ca;
+  
+  --emerald-500: #10b981;
+  --teal-600: #0d9488;
+  
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
@@ -86,6 +96,15 @@ body { font-family: var(--font-sans); color: var(--gray-800); background: var(--
 .dropdown-content button:hover {
   background: var(--primary-light);
   color: var(--primary-dark);
+}
+
+.menu-section-label {
+  padding: 8px 16px 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .icon-btn {
