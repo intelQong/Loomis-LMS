@@ -688,7 +688,9 @@ function showSection(name, btn) {
     'notifications': 'Broadcasts',
     'services': 'Other Services',
     'calendar': 'Academic Calendar',
-    'profile': 'My Profile'
+    'profile': 'My Profile',
+    'security': 'Security & Privacy',
+    'settings': 'Appearance Settings'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
   closeSidebar();

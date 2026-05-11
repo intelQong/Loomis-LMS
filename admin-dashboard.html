@@ -9,9 +9,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=56">
-<link rel="stylesheet" href="styles/dashboard.css?v=56">
-<link rel="stylesheet" href="styles/admin.css?v=56">
+<link rel="stylesheet" href="styles/main.css?v=57">
+<link rel="stylesheet" href="styles/dashboard.css?v=57">
+<link rel="stylesheet" href="styles/admin.css?v=57">
 </head>
 <body class="dashboard-page">
 
@@ -52,7 +52,7 @@
     <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
       <span class="nav-icon">⚙️</span> Site Tools
     </button>
-    <button class="nav-item" onclick="openChangePasswordModal()">
+    <button class="nav-item" onclick="showSection('security', this)">
       <span class="nav-icon">🔒</span> Security & Privacy
     </button>
     
@@ -406,6 +406,30 @@
           <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="forceFullReload()">
             🚀 Unregister SW &amp; Reload
           </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: Security & Privacy -->
+    <section class="page-section" id="section-security">
+      <div class="section-header">
+        <div class="section-title">Security & Privacy</div>
+      </div>
+      <div class="card" style="max-width:600px">
+        <h4 style="margin-bottom:12px">Administrative Security</h4>
+        <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:20px;">
+          As an administrator, your account access is critical. Ensure your password is secure and do not share your credentials.
+        </p>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="openChangePasswordModal()">
+          Change Admin Password
+        </button>
+        
+        <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--gray-100)">
+          <h4 style="margin-bottom:12px">Access Control</h4>
+          <p style="color:var(--gray-500); font-size:0.9rem; line-height:1.6">
+            All administrative actions are logged in the system audit trail for security compliance. 
+            Access is restricted based on your assigned role (Admin/Faculty).
+          </p>
         </div>
       </div>
     </section>
