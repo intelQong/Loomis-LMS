@@ -14,6 +14,46 @@ function togglePw(id) {
   input.type = input.type === 'password' ? 'text' : 'password';
 }
 
+function openForgotPasswordModal(event) {
+  if (event) event.preventDefault();
+  const loginEmail = document.getElementById('loginEmail').value.trim();
+  document.getElementById('forgotEmail').value = loginEmail;
+  const msgEl = document.getElementById('forgotPasswordMsg');
+  msgEl.className = 'error-msg hidden';
+  msgEl.textContent = '';
+  document.getElementById('forgotPasswordModal').classList.remove('hidden');
+}
+
+function closeForgotPasswordModal() {
+  document.getElementById('forgotPasswordModal').classList.add('hidden');
+}
+
+async function handleForgotPassword() {
+  const email = document.getElementById('forgotEmail').value.trim();
+  const msgEl = document.getElementById('forgotPasswordMsg');
+  msgEl.className = 'error-msg hidden';
+
+  if (!email) {
+    showError(msgEl, 'Please enter your account email.');
+    return;
+  }
+
+  try {
+    showLoading(true);
+    await apiFetch('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    showLoading(false);
+    msgEl.className = 'success-msg';
+    msgEl.textContent = '✅ Request sent. If this email is registered, AIMS admin will help reset your password after verification.';
+    msgEl.classList.remove('hidden');
+  } catch (e) {
+    showLoading(false);
+    showError(msgEl, e.message);
+  }
+}
+
 async function handleLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;

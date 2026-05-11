@@ -14,6 +14,15 @@ const COURSES = {
 
 const SESSION_DAYS = 1;
 const SUPER_ADMIN_EMAIL = 'admin@example.com';
+const PASSWORD_MIN_LENGTH = 8;
+const PBKDF2_ITERATIONS = 100000;
+const RATE_LIMITS = {
+  login: { max: 10, windowSeconds: 15 * 60 },
+  signup: { max: 5, windowSeconds: 60 * 60 },
+  passwordChange: { max: 5, windowSeconds: 15 * 60 },
+  forgotPassword: { max: 5, windowSeconds: 60 * 60 },
+  adminPasswordReset: { max: 10, windowSeconds: 15 * 60 }
+};
 
 export async function onRequest(context) {
   try {
@@ -23,13 +32,17 @@ export async function onRequest(context) {
     const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
 
     if (method === 'OPTIONS') return json(null, 204);
+    enforceSameOrigin(request, method);
 
     if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
     if (path[0] === 'auth' && path[1] === 'login' && method === 'POST') return login(context);
+    if (path[0] === 'auth' && path[1] === 'forgot-password' && method === 'POST') return forgotPassword(context);
     if (path[0] === 'auth' && path[1] === 'logout' && method === 'POST') return logout(context);
     if (path[0] === 'auth' && path[1] === 'me' && method === 'GET') return me(context);
 
     const user = await requireUser(context);
+
+    if (path[0] === 'auth' && path[1] === 'change-password' && method === 'POST') return changePassword(context, user);
 
     if (path[0] === 'students' && method === 'GET') return listStudents(context, user);
     if (path[0] === 'students' && path[1] && path[2] === 'reset-password' && method === 'POST') return resetStudentPassword(context, user, path[1]);
@@ -72,6 +85,7 @@ export async function onRequest(context) {
 }
 
 async function signup({ request, env }) {
+  await assertRateLimit(env, `signup:${clientIp(request)}`, RATE_LIMITS.signup);
   const body = await readJson(request);
   const firstName = required(body.firstName, 'First name');
   const lastName = required(body.lastName, 'Last name');
@@ -79,14 +93,13 @@ async function signup({ request, env }) {
   const password = required(body.password, 'Password');
   const course = required(body.course, 'Course');
 
-  if (password.length < 8) throw httpError('Password must be at least 8 characters.', 400);
+  validatePasswordStrength(password);
   if (!COURSES[course]) throw httpError('Invalid course.', 400);
 
   const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
   if (existing) throw httpError('An account with this email already exists.', 409);
 
-  const salt = randomId();
-  const passwordHash = await hashPassword(password, salt);
+  const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -109,18 +122,44 @@ async function signup({ request, env }) {
   return json({ ok: true });
 }
 
+
+async function forgotPassword({ request, env }) {
+  await assertRateLimit(env, `forgot-password:${clientIp(request)}`, RATE_LIMITS.forgotPassword);
+  const body = await readJson(request);
+  const email = normalizeEmail(required(body.email, 'Email'));
+  const user = await env.DB.prepare('SELECT id, email, role, status FROM users WHERE email = ?').bind(email).first();
+
+  if (user) {
+    await logSystemAction(
+      env,
+      'FORGOT_PASSWORD_REQUEST',
+      `Password reset requested for ${user.email} (${user.role}, ${user.status}). Admin should verify identity before resetting.`,
+      user.id
+    );
+  }
+
+  return json({ ok: true, message: 'If an account exists for this email, an admin has been notified to help reset the password.' });
+}
+
 async function login({ request, env }) {
   const body = await readJson(request);
   const email = normalizeEmail(required(body.email, 'Email'));
   const password = required(body.password, 'Password');
+  await assertRateLimit(env, `login:${clientIp(request)}:${email}`, RATE_LIMITS.login);
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
 
-  if (!user) throw httpError('No account found with this email. Please sign up first.', 401);
-  if (await hashPassword(password, user.password_salt) !== user.password_hash) {
-    throw httpError('Invalid password. Please try again.', 401);
+  if (!user || !(await verifyPassword(password, user))) {
+    throw httpError('Invalid email or password.', 401);
   }
   if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact AIMS admin.', 403);
+
+  if (!String(user.password_hash || '').startsWith('pbkdf2$')) {
+    const { salt, hash } = await createPasswordHash(password);
+    await env.DB.prepare('UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?')
+      .bind(hash, salt, new Date().toISOString(), user.id)
+      .run();
+  }
 
   // Super Admin Promotion
   if (email === SUPER_ADMIN_EMAIL && (user.role !== 'admin' || user.status !== 'active')) {
@@ -149,8 +188,10 @@ async function me(context) {
   return json({ user: serializeUser(user) });
 }
 
-async function listStudents({ env }, user) {
+async function listStudents(context, user) {
+  const { env } = context;
   requireRole(user, ['admin', 'faculty']);
+  await ensureUserCompatibilityColumns(env);
   const stmt = user.role === 'faculty'
     ? env.DB.prepare("SELECT * FROM users WHERE role = 'student' AND assigned_faculty_id = ? ORDER BY created_at DESC").bind(user.id)
     : env.DB.prepare("SELECT * FROM users WHERE role = 'student' ORDER BY created_at DESC");
@@ -160,6 +201,7 @@ async function listStudents({ env }, user) {
 
 async function createStudent({ request, env }, user) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const firstName = required(body.firstName, 'First name');
   const lastName = required(body.lastName, 'Last name');
@@ -167,11 +209,10 @@ async function createStudent({ request, env }, user) {
   const password = required(body.password, 'Password');
   const course = required(body.course, 'Course');
 
-  if (password.length < 8) throw httpError('Password must be at least 8 characters.', 400);
+  validatePasswordStrength(password);
   if (!COURSES[course]) throw httpError('Invalid course.', 400);
 
-  const salt = randomId();
-  const passwordHash = await hashPassword(password, salt);
+  const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -195,11 +236,14 @@ async function createStudent({ request, env }, user) {
     body.classTime || ''
   ).run();
 
+  await logAction(env, user, 'CREATE_STUDENT', `Created student ${email}`, id);
+
   return json({ user: { id, firstName, lastName, email } }, 201);
 }
 
 async function updateStudent({ request, env }, user, studentId) {
   requireRole(user, ['admin']);
+  await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const existing = await env.DB.prepare("SELECT * FROM users WHERE id = ? AND role = 'student'").bind(studentId).first();
   if (!existing) throw httpError('Student not found.', 404);
@@ -210,7 +254,7 @@ async function updateStudent({ request, env }, user, studentId) {
   try {
     await env.DB.prepare(`
       UPDATE users
-      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND role = 'student'
     `).bind(
       required(body.firstName, 'First name'),
@@ -220,6 +264,7 @@ async function updateStudent({ request, env }, user, studentId) {
       required(body.status, 'Status'),
       totalPaid,
       numberOrZero(body.totalDue),
+      numberOrZero(body.discount),
       body.studentId || '',
       body.assignedFacultyId || '',
       body.nextPaymentDate || '',
@@ -233,7 +278,7 @@ async function updateStudent({ request, env }, user, studentId) {
       // Fallback: update without class_days/class_time if migration not applied yet
       await env.DB.prepare(`
         UPDATE users
-        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND role = 'student'
       `).bind(
         required(body.firstName, 'First name'),
@@ -243,6 +288,7 @@ async function updateStudent({ request, env }, user, studentId) {
         required(body.status, 'Status'),
         totalPaid,
         numberOrZero(body.totalDue),
+        numberOrZero(body.discount),
         body.studentId || '',
         body.assignedFacultyId || '',
         body.nextPaymentDate || '',
@@ -261,7 +307,8 @@ async function updateStudent({ request, env }, user, studentId) {
       .run();
   }
 
-  await logAction(env, user, 'UPDATE_STUDENT', `Updated student ${existing.email}. Fields: ${Object.keys(body).join(', ')}`, studentId);
+  const updateDetails = describeStudentUpdate(existing, body);
+  await logAction(env, user, 'UPDATE_STUDENT', updateDetails, studentId);
 
   return json({ ok: true });
 }
@@ -403,6 +450,45 @@ async function saveInstallments({ request, env }, user) {
 }
 
 
+function describeStudentUpdate(existing, body) {
+  const fields = [
+    ['First name', 'first_name', normalizeComparable(body.firstName)],
+    ['Last name', 'last_name', normalizeComparable(body.lastName)],
+    ['Phone', 'phone', normalizeComparable(body.phone || '')],
+    ['Course', 'course', normalizeComparable(body.course)],
+    ['Status', 'status', normalizeComparable(body.status)],
+    ['Total paid', 'total_paid', normalizeComparable(numberOrZero(body.totalPaid))],
+    ['Total due', 'total_due', normalizeComparable(numberOrZero(body.totalDue))],
+    ['Discount', 'discount', normalizeComparable(numberOrZero(body.discount))],
+    ['Student ID', 'student_id', normalizeComparable(body.studentId || '')],
+    ['Assigned faculty', 'assigned_faculty_id', normalizeComparable(body.assignedFacultyId || '')],
+    ['Next payment date', 'next_payment_date', normalizeComparable(body.nextPaymentDate || '')],
+    ['Enrolled date', 'enrolled_date', normalizeComparable(body.enrolledDate || existing.enrolled_date || '')],
+    ['Class days', 'class_days', normalizeComparable(body.classDays || existing.class_days || '')],
+    ['Class time', 'class_time', normalizeComparable(body.classTime || existing.class_time || '')]
+  ];
+
+  const changes = fields
+    .map(([label, column, newValue]) => {
+      const oldValue = normalizeComparable(existing[column]);
+      if (oldValue === newValue) return null;
+      return `${label}: ${formatAuditValue(oldValue)} → ${formatAuditValue(newValue)}`;
+    })
+    .filter(Boolean);
+
+  if (changes.length === 0) return `Updated student ${existing.email}. No visible field changes.`;
+  return `Updated student ${existing.email}. Changes: ${changes.join('; ')}`;
+}
+
+function normalizeComparable(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function formatAuditValue(value) {
+  return value === '' ? 'blank' : value;
+}
+
 async function requireUser({ request, env }) {
   const sessionId = getCookie(request, 'aims_session');
   if (!sessionId) throw httpError('Not authenticated.', 401);
@@ -433,6 +519,7 @@ function serializeUser(row) {
     isSuperAdmin: row.email === SUPER_ADMIN_EMAIL,
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
+    discount: row.discount || 0,
     nextPaymentDate: row.next_payment_date || '',
     enrolledDate: row.enrolled_date,
     createdAt: row.created_at,
@@ -495,7 +582,8 @@ async function createAnnouncement({ request, env }, user) {
   const linkUrl = body.linkUrl || '';
   const linkText = body.linkText || 'Learn More';
   const imageUrl = body.imageUrl || '';
-  const videoUrl = body.videoUrl || '';
+  const videoUrl = normalizeVideoEmbedUrl(body.videoUrl || '');
+  if (body.videoUrl && !videoUrl) throw httpError('Video URL must be a valid HTTPS embed URL or iframe code.', 400);
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
   const id = randomId().slice(0, 16);
   await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, video_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
@@ -509,6 +597,46 @@ async function deleteAnnouncement({ env }, user, id) {
   await env.DB.prepare('DELETE FROM announcements WHERE id = ?').bind(id).run();
   await logAction(env, user, 'DELETE_ANNOUNCEMENT', `Deleted announcement ID: ${id}`);
   return json({ ok: true });
+}
+
+
+function normalizeVideoEmbedUrl(value) {
+  if (!value) return '';
+  let finalUrl = String(value).trim();
+
+  if (finalUrl.startsWith('<') && finalUrl.includes('iframe')) {
+    const srcMatch = finalUrl.match(/src=["']([^"']+)["']/i);
+    finalUrl = srcMatch ? srcMatch[1] : '';
+  }
+
+  try {
+    const url = new URL(finalUrl);
+    if (url.protocol !== 'https:') return '';
+    const host = url.hostname.replace(/^www\./, '');
+
+    if (host === 'youtube.com' && url.pathname === '/watch') {
+      const videoId = url.searchParams.get('v');
+      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
+    }
+
+    if (host === 'youtu.be') {
+      const videoId = url.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : '';
+    }
+
+    if ((host === 'youtube.com' || host === 'youtube-nocookie.com') && url.pathname.startsWith('/embed/')) {
+      return url.href.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
+    }
+
+    if (host === 'vimeo.com') {
+      const videoId = url.pathname.split('/').filter(Boolean)[0];
+      return videoId ? `https://player.vimeo.com/video/${encodeURIComponent(videoId)}` : '';
+    }
+
+    return url.href;
+  } catch {
+    return '';
+  }
 }
 
 function requireRole(user, roles) {
@@ -546,17 +674,45 @@ async function setMaintenanceMode(context, user) {
 // ============================================================
 // Password Reset
 // ============================================================
+
+async function changePassword({ request, env }, user) {
+  await assertRateLimit(env, `change-password:${clientIp(request)}:${user.id}`, RATE_LIMITS.passwordChange);
+  const body = await readJson(request);
+  const currentPassword = required(body.currentPassword, 'Current password');
+  const newPassword = required(body.newPassword, 'New password');
+  validatePasswordStrength(newPassword);
+
+  const freshUser = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+  if (!freshUser || !(await verifyPassword(currentPassword, freshUser))) {
+    throw httpError('Current password is incorrect.', 403);
+  }
+  if (currentPassword === newPassword) throw httpError('New password must be different from current password.', 400);
+
+  const { salt, hash } = await createPasswordHash(newPassword);
+  await env.DB.prepare('UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?')
+    .bind(hash, salt, new Date().toISOString(), user.id)
+    .run();
+
+  const currentSessionId = getCookie(request, 'aims_session');
+  await env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND id != ?')
+    .bind(user.id, currentSessionId)
+    .run();
+
+  await logAction(env, user, 'CHANGE_PASSWORD', `Changed own password for ${user.email}`, user.id);
+  return json({ ok: true });
+}
+
 async function resetStudentPassword({ request, env }, user, studentId) {
   requireRole(user, ['admin']);
+  await assertRateLimit(env, `admin-reset:${clientIp(request)}:${user.id}`, RATE_LIMITS.adminPasswordReset);
   const body = await readJson(request);
   const newPassword = required(body.newPassword, 'New password');
-  if (newPassword.length < 6) throw httpError('Password must be at least 6 characters.', 400);
+  validatePasswordStrength(newPassword);
 
   const student = await env.DB.prepare('SELECT id FROM users WHERE id = ? AND role = ?').bind(studentId, 'student').first();
   if (!student) throw httpError('Student not found.', 404);
 
-  const salt = randomId().slice(0, 32);
-  const hash = await hashPassword(newPassword, salt);
+  const { salt, hash } = await createPasswordHash(newPassword);
   await env.DB.prepare('UPDATE users SET password_hash = ?, password_salt = ?, updated_at = ? WHERE id = ?')
     .bind(hash, salt, new Date().toISOString(), studentId)
     .run();
@@ -567,6 +723,66 @@ async function resetStudentPassword({ request, env }, user, studentId) {
   await logAction(env, user, 'RESET_PASSWORD', `Reset password for student ID: ${studentId}`, studentId);
 
   return json({ ok: true });
+}
+
+
+function validatePasswordStrength(password) {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw httpError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`, 400);
+  }
+}
+
+function enforceSameOrigin(request, method) {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return;
+  const secFetchSite = request.headers.get('Sec-Fetch-Site');
+  if (secFetchSite && ['cross-site', 'none'].includes(secFetchSite)) {
+    throw httpError('Cross-site request blocked.', 403);
+  }
+
+  const origin = request.headers.get('Origin');
+  if (!origin) return;
+  try {
+    if (new URL(origin).origin !== new URL(request.url).origin) {
+      throw httpError('Cross-site request blocked.', 403);
+    }
+  } catch (e) {
+    if (e.status) throw e;
+    throw httpError('Cross-site request blocked.', 403);
+  }
+}
+
+function clientIp(request) {
+  return request.headers.get('CF-Connecting-IP')
+    || (request.headers.get('X-Forwarded-For') || '').split(',')[0].trim()
+    || 'unknown';
+}
+
+async function ensureRateLimitsTable(env) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS rate_limits (
+    key TEXT PRIMARY KEY,
+    count INTEGER NOT NULL DEFAULT 0,
+    reset_at INTEGER NOT NULL
+  )`).run();
+}
+
+async function assertRateLimit(env, key, limit) {
+  await ensureRateLimitsTable(env);
+  const now = Date.now();
+  const resetAt = now + (limit.windowSeconds * 1000);
+  const row = await env.DB.prepare('SELECT count, reset_at FROM rate_limits WHERE key = ?').bind(key).first();
+
+  if (!row || Number(row.reset_at) <= now) {
+    await env.DB.prepare('INSERT INTO rate_limits (key, count, reset_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = 1, reset_at = excluded.reset_at')
+      .bind(key, resetAt)
+      .run();
+    return;
+  }
+
+  if (Number(row.count) >= limit.max) {
+    throw httpError('Too many attempts. Please wait and try again.', 429);
+  }
+
+  await env.DB.prepare('UPDATE rate_limits SET count = count + 1 WHERE key = ?').bind(key).run();
 }
 
 function required(value, label) {
@@ -591,16 +807,58 @@ async function readJson(request) {
   }
 }
 
-async function hashPassword(password, salt) {
+async function createPasswordHash(password) {
+  const salt = randomId().slice(0, 32);
+  const hash = await pbkdf2Hash(password, salt, PBKDF2_ITERATIONS);
+  return { salt, hash: `pbkdf2$${PBKDF2_ITERATIONS}$${hash}` };
+}
+
+async function verifyPassword(password, user) {
+  const storedHash = String(user.password_hash || '');
+  const salt = String(user.password_salt || '');
+  if (storedHash.startsWith('pbkdf2$')) {
+    const [, iterationText, expectedHash] = storedHash.split('$');
+    const iterations = Number(iterationText);
+    if (!Number.isFinite(iterations) || !expectedHash) return false;
+    return timingSafeEqual(await pbkdf2Hash(password, salt, iterations), expectedHash);
+  }
+
+  return timingSafeEqual(await legacyHashPassword(password, salt), storedHash);
+}
+
+async function pbkdf2Hash(password, salt, iterations) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations },
+    key,
+    256
+  );
+  return bytesToHex(new Uint8Array(bits));
+}
+
+async function legacyHashPassword(password, salt) {
   const data = new TextEncoder().encode(`${salt}:${password}`);
   const hash = await crypto.subtle.digest('SHA-256', data);
-  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
+  return bytesToHex(new Uint8Array(hash));
 }
+
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function bytesToHex(bytes) {
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 
 function randomId() {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+  return bytesToHex(bytes);
 }
 
 function getCookie(request, name) {
@@ -667,6 +925,7 @@ async function deleteService({ env }, user, id) {
 
 async function listAllUsers({ env }, user) {
   if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  await ensureUserCompatibilityColumns(env);
   const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   return json({ users: results.map(serializeUser) });
 }
@@ -698,6 +957,15 @@ async function ensureAuditLogsTable({ env }) {
     target_id TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
   )`).run();
+
+  await ensureColumns(env, 'audit_logs', [
+    ['user_id', 'TEXT DEFAULT \'\''],
+    ['admin_email', 'TEXT DEFAULT \'\''],
+    ['action', 'TEXT DEFAULT \'UNKNOWN\''],
+    ['details', 'TEXT DEFAULT \'\''],
+    ['target_id', 'TEXT DEFAULT \'\''],
+    ['created_at', 'TEXT DEFAULT \'\'']
+  ]);
 }
 
 async function listAuditLogs(context, user) {
@@ -751,6 +1019,53 @@ async function deleteCalendarEntry({ env }, user, id) {
   return json({ ok: true });
 }
 
+
+async function ensureUserCompatibilityColumns(env) {
+  await ensureColumns(env, 'users', [
+    ['phone', "TEXT DEFAULT ''"],
+    ['course', "TEXT DEFAULT ''"],
+    ['student_id', "TEXT DEFAULT ''"],
+    ['assigned_faculty_id', "TEXT DEFAULT ''"],
+    ['status', "TEXT DEFAULT 'pending'"],
+    ['total_paid', 'INTEGER DEFAULT 0'],
+    ['total_due', 'INTEGER DEFAULT 0'],
+    ['discount', 'INTEGER DEFAULT 0'],
+    ['enrolled_date', "TEXT DEFAULT ''"],
+    ['created_at', "TEXT DEFAULT ''"],
+    ['updated_at', "TEXT DEFAULT ''"],
+    ['next_payment_date', "TEXT DEFAULT ''"],
+    ['class_days', "TEXT DEFAULT ''"],
+    ['class_time', "TEXT DEFAULT ''"]
+  ]);
+}
+
+async function ensureColumns(env, tableName, columns) {
+  const existing = await env.DB.prepare(`PRAGMA table_info(${tableName})`).all();
+  const existingNames = new Set((existing.results || []).map(column => column.name));
+
+  for (const [name, definition] of columns) {
+    if (existingNames.has(name)) continue;
+    try {
+      await env.DB.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${name} ${definition}`).run();
+      existingNames.add(name);
+    } catch (e) {
+      if (!String(e.message || '').toLowerCase().includes('duplicate column')) throw e;
+    }
+  }
+}
+
+
+async function logSystemAction(env, action, details, targetId = null) {
+  try {
+    await ensureAuditLogsTable({ env });
+    await env.DB.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(crypto.randomUUID(), 'system', 'System', action, details, targetId)
+      .run();
+  } catch (e) {
+    console.error('System logging failed:', e);
+  }
+}
+
 async function logAction(env, admin, action, details, targetId = null) {
   try {
     await ensureAuditLogsTable({ env });
@@ -765,7 +1080,10 @@ async function logAction(env, admin, action, details, targetId = null) {
 function json(data, status = 200, cookie = null) {
   const headers = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
   };
   if (cookie) headers['Set-Cookie'] = cookie;
   return new Response(data === null ? null : JSON.stringify(data), { status, headers });
