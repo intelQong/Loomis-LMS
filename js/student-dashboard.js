@@ -455,7 +455,6 @@ async function loadAdBanners() {
             <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none">✨</div>
           `}
           <div class="ad-content">
-            <div class="ad-content-kicker">AIMS Announcement</div>
             <div class="ad-content-title">${title}</div>
             <div class="ad-content-body">${body}</div>
             ${linkUrl ? `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="ad-link">${linkText} →</a>` : ''}
