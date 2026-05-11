@@ -148,8 +148,8 @@ function renderGreeting() {
   document.getElementById('greetName').textContent = `${greet}, ${currentUser.firstName}!`;
   document.getElementById('greetIcon').textContent = icon;
   
-  const course = COURSES[currentUser.course];
-  document.getElementById('enrollStatus').textContent = `Enrolled in ${course?.name || currentUser.course}`;
+  const courseNames = getCourseNames(currentUser);
+  document.getElementById('enrollStatus').textContent = `Enrolled in ${courseNames}`;
   
   startLiveClock();
 }
@@ -199,9 +199,9 @@ async function fetchLatestBroadcastForStat() {
 }
 
 function renderCourse() {
-  const course = COURSES[currentUser.course];
+  const courses = getCourseList(currentUser);
   const container = document.getElementById('courseContent');
-  if (!course) {
+  if (courses.length === 0) {
     container.innerHTML = '<div class="card" style="color:var(--gray-400);text-align:center;padding:48px">No course assigned yet.</div>';
     return;
   }
@@ -217,8 +217,8 @@ function renderCourse() {
     expiryStr = formatDate(expiryDate);
   }
 
-  container.innerHTML = `
-    <div class="course-card">
+  container.innerHTML = courses.map(course => `
+    <div class="course-card" style="margin-bottom:18px">
       <div class="course-header">
         <div class="course-name">${course.icon} ${course.name}</div>
         <div class="course-meta" style="flex-wrap:wrap">
@@ -254,15 +254,14 @@ function renderCourse() {
         </div>
       </div>
     </div>
-  `;
+  `).join('');
 }
 
 
 function renderPayments() {
-  const course = COURSES[currentUser.course];
   const paid = currentUser.totalPaid || 0;
   const due = currentUser.totalDue || 0;
-  const totalFee = course ? course.totalFee : 0;
+  const totalFee = getCourseTotalFee(currentUser);
 
   document.getElementById('pay-totalFee').textContent = `৳${totalFee.toLocaleString()}`;
   document.getElementById('pay-paid').textContent = `৳${paid.toLocaleString()}`;
@@ -372,7 +371,7 @@ function renderProfile() {
   document.getElementById('profileName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
   document.getElementById('profileEmail').textContent = currentUser.email;
 
-  const course = COURSES[currentUser.course];
+  const courseNames = getCourseNames(currentUser);
 
   let validityStr = '—';
   if (currentUser.enrolledDate) {
@@ -387,7 +386,7 @@ function renderProfile() {
   const fields = [
     { label: 'Student ID', value: currentUser.studentId || '—' },
     { label: 'Phone', value: currentUser.phone || '—' },
-    { label: 'Course', value: course ? course.name : '—' },
+    { label: 'Courses', value: courseNames },
     { label: 'Status', value: currentUser.status || '—' },
     { label: 'Course Validity', value: validityStr }
   ];

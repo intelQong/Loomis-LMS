@@ -92,9 +92,14 @@ async function signup({ request, env }) {
   const email = normalizeEmail(required(body.email, 'Email'));
   const password = required(body.password, 'Password');
   const course = required(body.course, 'Course');
+  const courseIds = normalizeCourseIds(body.courses || course);
 
   validatePasswordStrength(password);
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+  if (!COURSES[course] || courseIds.length === 0) throw httpError('Invalid course.', 400);
+=======
   if (!COURSES[course]) throw httpError('Invalid course.', 400);
+>>>>>>> main
 
   const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
   if (existing) throw httpError('An account with this email already exists.', 409);
@@ -208,29 +213,35 @@ async function createStudent({ request, env }, user) {
   const email = normalizeEmail(required(body.email, 'Email'));
   const password = required(body.password, 'Password');
   const course = required(body.course, 'Course');
+  const courseIds = normalizeCourseIds(body.courses || course);
 
   validatePasswordStrength(password);
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+  if (!COURSES[course] || courseIds.length === 0) throw httpError('Invalid course.', 400);
+=======
   if (!COURSES[course]) throw httpError('Invalid course.', 400);
+>>>>>>> main
 
   const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
-    INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date, class_days, class_time)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?, ?, ?, ?)
+    INSERT INTO users (id, first_name, last_name, email, phone, course, courses, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date, class_days, class_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'student', 'active', ?, ?, ?, ?, ?, ?)
   `).bind(
     id,
     firstName,
     lastName,
     email,
     body.phone || '',
-    course,
+    courseIds[0],
+    JSON.stringify(courseIds),
     finalStudentId,
     body.assignedFacultyId || '',
     passwordHash,
     salt,
-    COURSES[course].totalFee,
+    totalCourseFee(courseIds),
     body.enrolledDate || new Date().toISOString(),
     body.classDays || '',
     body.classTime || ''
@@ -248,19 +259,27 @@ async function updateStudent({ request, env }, user, studentId) {
   const existing = await env.DB.prepare("SELECT * FROM users WHERE id = ? AND role = 'student'").bind(studentId).first();
   if (!existing) throw httpError('Student not found.', 404);
 
+  const courseIds = normalizeCourseIds(body.courses || body.course);
+  if (courseIds.length === 0) throw httpError('Invalid course.', 400);
+
   const totalPaid = numberOrZero(body.totalPaid);
   const previousPaid = numberOrZero(existing.total_paid);
 
   try {
     await env.DB.prepare(`
       UPDATE users
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+      SET first_name = ?, last_name = ?, phone = ?, course = ?, courses = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+=======
       SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+>>>>>>> main
       WHERE id = ? AND role = 'student'
     `).bind(
       required(body.firstName, 'First name'),
       required(body.lastName, 'Last name'),
       body.phone || '',
-      required(body.course, 'Course'),
+      courseIds[0],
+      JSON.stringify(courseIds),
       required(body.status, 'Status'),
       totalPaid,
       numberOrZero(body.totalDue),
@@ -278,13 +297,18 @@ async function updateStudent({ request, env }, user, studentId) {
       // Fallback: update without class_days/class_time if migration not applied yet
       await env.DB.prepare(`
         UPDATE users
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+        SET first_name = ?, last_name = ?, phone = ?, course = ?, courses = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+=======
         SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+>>>>>>> main
         WHERE id = ? AND role = 'student'
       `).bind(
         required(body.firstName, 'First name'),
         required(body.lastName, 'Last name'),
         body.phone || '',
-        required(body.course, 'Course'),
+        courseIds[0],
+        JSON.stringify(courseIds),
         required(body.status, 'Status'),
         totalPaid,
         numberOrZero(body.totalDue),
@@ -450,12 +474,42 @@ async function saveInstallments({ request, env }, user) {
 }
 
 
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+
+function normalizeCourseIds(value) {
+  const raw = Array.isArray(value) ? value : (typeof value === 'string' && value.trim().startsWith('[') ? parseCourseIds(value) : String(value || '').split(','));
+  return [...new Set(raw.map(id => String(id).trim()).filter(id => COURSES[id]))];
+}
+
+function parseCourseIds(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return normalizeCourseIds(value);
+  const text = String(value).trim();
+  if (!text) return [];
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return normalizeCourseIds(parsed);
+  } catch (e) { /* fall through */ }
+  return normalizeCourseIds(text);
+}
+
+function totalCourseFee(courseIds) {
+  return normalizeCourseIds(courseIds).reduce((sum, id) => sum + (COURSES[id]?.totalFee || 0), 0);
+}
+
+=======
+>>>>>>> main
 function describeStudentUpdate(existing, body) {
   const fields = [
     ['First name', 'first_name', normalizeComparable(body.firstName)],
     ['Last name', 'last_name', normalizeComparable(body.lastName)],
     ['Phone', 'phone', normalizeComparable(body.phone || '')],
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+    ['Primary course', 'course', normalizeComparable((normalizeCourseIds(body.courses || body.course)[0] || ''))],
+    ['Courses', 'courses', normalizeComparable(JSON.stringify(normalizeCourseIds(body.courses || body.course)))],
+=======
     ['Course', 'course', normalizeComparable(body.course)],
+>>>>>>> main
     ['Status', 'status', normalizeComparable(body.status)],
     ['Total paid', 'total_paid', normalizeComparable(numberOrZero(body.totalPaid))],
     ['Total due', 'total_due', normalizeComparable(numberOrZero(body.totalDue))],
@@ -512,6 +566,7 @@ function serializeUser(row) {
     email: row.email,
     phone: row.phone || '',
     course: row.course || '',
+    courses: parseCourseIds(row.courses || row.course),
     studentId: row.student_id || '',
     assignedFacultyId: row.assigned_faculty_id || '',
     role: row.role,
@@ -848,12 +903,21 @@ function timingSafeEqual(a, b) {
   let diff = 0;
   for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
 }
 
 function bytesToHex(bytes) {
   return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+=======
+}
+
+function bytesToHex(bytes) {
+  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+>>>>>>> main
 
 function randomId() {
   const bytes = new Uint8Array(32);
@@ -1024,6 +1088,10 @@ async function ensureUserCompatibilityColumns(env) {
   await ensureColumns(env, 'users', [
     ['phone', "TEXT DEFAULT ''"],
     ['course', "TEXT DEFAULT ''"],
+<<<<<<< codex/fix-system-audit-failure-for-students-dixs9b
+    ['courses', "TEXT DEFAULT ''"],
+=======
+>>>>>>> main
     ['student_id', "TEXT DEFAULT ''"],
     ['assigned_faculty_id', "TEXT DEFAULT ''"],
     ['status', "TEXT DEFAULT 'pending'"],

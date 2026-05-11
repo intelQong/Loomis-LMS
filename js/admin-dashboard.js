@@ -282,6 +282,19 @@ function renderOverviewStats() {
   }
 }
 
+
+function getSelectedCourseIds(selectId) {
+  const select = document.getElementById(selectId);
+  return Array.from(select.selectedOptions).map(option => option.value).filter(id => COURSES[id]);
+}
+
+function setSelectedCourseIds(selectId, courseIds) {
+  const selected = new Set(courseIds);
+  document.querySelectorAll(`#${selectId} option`).forEach(option => {
+    option.selected = selected.has(option.value);
+  });
+}
+
 function renderPendingList() {
   const pending = allStudents.filter(s => s.status === 'pending');
   const container = document.getElementById('pendingList');
@@ -290,13 +303,13 @@ function renderPendingList() {
     return;
   }
   container.innerHTML = pending.map(s => {
-    const course = COURSES[s.course];
+    const courseNames = getCourseNames(s);
     return `
       <div class="pending-item" style="border: 1px solid var(--gray-100); padding: 12px; border-radius: 10px; background: var(--gray-50); display: flex; flex-direction: column; gap: 8px;">
         <div class="pending-info" style="margin:0">
           <div class="pending-name" style="font-size: 0.95rem; font-weight: 600;">${s.firstName} ${s.lastName}</div>
           <div class="pending-meta" style="font-size: 0.8rem; line-height: 1.4;">
-            ${course ? course.name : s.course}<br>
+            ${courseNames}<br>
             <span style="color:var(--gray-400)">${s.phone || s.email}</span>
           </div>
         </div>
@@ -318,7 +331,7 @@ function renderStudentsTable(students) {
     return;
   }
   tbody.innerHTML = students.map(s => {
-    const course = COURSES[s.course];
+    const courseNames = getCourseNames(s);
     const statusClass = s.status === 'active' ? 'badge-success' : s.status === 'pending' ? 'badge-warning' : 'badge-danger';
     
     // Enrollment and Expiry calc
@@ -336,7 +349,7 @@ function renderStudentsTable(students) {
           <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
           <div style="font-size:0.8rem;color:var(--gray-400)">${s.email}</div>
         </td>
-        <td>${course ? course.name : s.course || '—'}</td>
+        <td>${courseNames}</td>
         <td><span class="badge ${statusClass}">${s.status || 'pending'}</span></td>
         <td>${s.enrolledDate ? formatDate(s.enrolledDate) : '—'}</td>
         <td style="font-weight:500;color:var(--teal)">${expiryStr}</td>
@@ -362,7 +375,7 @@ function filterStudents() {
   const filtered = allStudents.filter(s => {
     const name = `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase();
     return (!q || name.includes(q)) &&
-           (!course || s.course === course) &&
+           (!course || getCourseIds(s).includes(course)) &&
            (!status || s.status === status);
   });
   renderStudentsTable(filtered);
@@ -405,6 +418,7 @@ function saveStudentPayload(id, student) {
       lastName: student.lastName,
       phone: student.phone || '',
       course: student.course,
+      courses: student.courses || (student.course ? [student.course] : []),
       status: student.status,
       totalPaid: student.totalPaid || 0,
       totalDue: student.totalDue || 0,
@@ -430,7 +444,7 @@ function openEditStudent(id) {
   document.getElementById('editFirst').value = s.firstName || '';
   document.getElementById('editLast').value = s.lastName || '';
   document.getElementById('editPhone').value = s.phone || '';
-  document.getElementById('editCourse').value = s.course || '';
+  setSelectedCourseIds('editCourse', getCourseIds(s));
   document.getElementById('editStatus').value = s.status || 'pending';
   document.getElementById('editStudentIdField').value = s.studentId || '';
   document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
@@ -446,7 +460,8 @@ async function saveStudentEdit() {
   const id = document.getElementById('editStudentId').value;
   const errEl = document.getElementById('editStudentErr');
   try {
-    const course = document.getElementById('editCourse').value;
+    const courses = getSelectedCourseIds('editCourse');
+    const course = courses[0] || '';
     const existing = allStudents.find(x => x.id === id);
     const paid = existing ? (existing.totalPaid || 0) : 0;
     const due = existing ? (existing.totalDue || 0) : 0;
@@ -456,6 +471,7 @@ async function saveStudentEdit() {
       lastName: document.getElementById('editLast').value.trim(),
       phone: document.getElementById('editPhone').value.trim(),
       course,
+      courses,
       status: document.getElementById('editStatus').value,
       totalPaid: paid,
       totalDue: due,
@@ -486,6 +502,7 @@ function openAddStudentModal() {
     if (el) el.value = '';
   });
   // Default selections
+  setSelectedCourseIds('addCourse', []);
   document.getElementById('addClassDays').value = 'Sat, Mon, Wed';
   document.getElementById('addClassTime').value = '4:00 PM';
   // Default to today
@@ -499,7 +516,8 @@ async function addStudent() {
   const last = document.getElementById('addLast').value.trim();
   const email = document.getElementById('addEmail').value.trim();
   const phone = document.getElementById('addPhone').value.trim();
-  const course = document.getElementById('addCourse').value;
+  const courses = getSelectedCourseIds('addCourse');
+  const course = courses[0] || '';
   const password = document.getElementById('addPassword').value;
   const studentId = document.getElementById('addStudentId').value.trim();
   const assignedFacultyId = document.getElementById('addFacultyId').value.trim();
@@ -521,7 +539,8 @@ async function addStudent() {
         lastName: last, 
         email, 
         phone, 
-        course, 
+        course,
+        courses, 
         password, 
         studentId, 
         assignedFacultyId, 
@@ -700,15 +719,15 @@ function renderPayTable(students) {
     return;
   }
   tbody.innerHTML = students.map(s => {
-    const course = COURSES[s.course];
-    const totalFee = course ? course.totalFee : 0;
+    const totalFee = getCourseTotalFee(s);
+    const courseNames = getCourseNames(s);
     return `
       <tr>
         <td>
           <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
           <div style="font-size:0.8rem;color:var(--gray-400)">${s.studentId || s.email}</div>
         </td>
-        <td>${course ? course.name : '—'}</td>
+        <td>${courseNames}</td>
         <td>৳${totalFee.toLocaleString()}</td>
         <td style="color:var(--success);font-weight:500">৳${(s.totalPaid || 0).toLocaleString()}</td>
         <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'};font-weight:500">৳${(s.totalDue || 0).toLocaleString()}</td>
@@ -732,9 +751,8 @@ function openPaymentModal(id) {
   const s = allStudents.find(x => x.id === id);
   if (!s) return;
   
-  const course = COURSES[s.course];
-  const totalFee = course ? course.totalFee : 0;
-  const courseName = course ? course.name : s.course || '—';
+  const totalFee = getCourseTotalFee(s);
+  const courseName = getCourseNames(s);
   
   document.getElementById('paymentStudentId').value = id;
   document.getElementById('paymentStudentName').textContent = `${s.firstName} ${s.lastName}`;
