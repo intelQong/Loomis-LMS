@@ -14,9 +14,9 @@
 <title>Admin — AIMS English LMS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=49">
-<link rel="stylesheet" href="styles/dashboard.css?v=49">
-<link rel="stylesheet" href="styles/admin.css?v=49">
+<link rel="stylesheet" href="styles/main.css?v=55">
+<link rel="stylesheet" href="styles/dashboard.css?v=55">
+<link rel="stylesheet" href="styles/admin.css?v=55">
 </head>
 <body class="dashboard-page">
 
@@ -83,6 +83,7 @@
       <span class="page-title" id="pageTitle">Overview</span>
     </div>
     <div class="top-bar-right">
+      <button class="btn-secondary" style="width:auto;padding:8px 14px;font-size:0.85rem" onclick="openChangePasswordModal()">Change Password</button>
       <span class="badge badge-gold" id="topRoleBadge">Admin</span>
     </div>
   </header>
@@ -287,12 +288,111 @@
     <!-- SECTION: Academic Calendar Management -->
     <section class="page-section" id="section-admin-calendar">
       <div class="section-header">
-        <div class="section-title">Academic Calendar Management</div>
+        <div>
+          <div class="section-title">Academic Calendar Management</div>
+          <p style="font-size:0.85rem;color:var(--gray-500);margin-top:6px">View monthly events and holidays, then update class schedules for a group of students.</p>
+        </div>
         <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add Event/Holiday</button>
       </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Manage events, holidays, and exams for the student portal.</p>
-      
-      <div class="card" style="padding:0; overflow:hidden">
+
+      <div class="calendar-admin-layout">
+        <div class="card calendar-view-card">
+          <div class="calendar-toolbar">
+            <button class="btn-secondary" type="button" onclick="changeCalendarMonth(-1)">‹ Prev</button>
+            <div>
+              <div id="calendarMonthLabel" class="calendar-month-label">Loading...</div>
+              <div class="calendar-month-subtitle">Holidays and academic events for the selected month</div>
+            </div>
+            <button class="btn-secondary" type="button" onclick="changeCalendarMonth(1)">Next ›</button>
+          </div>
+          <div class="calendar-grid calendar-weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div id="academicCalendarGrid" class="calendar-grid calendar-days">
+            <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--gray-400)">Loading calendar...</div>
+          </div>
+        </div>
+
+        <div class="calendar-side-panel">
+          <div class="card month-holidays-card">
+            <div class="mini-card-title">Holidays This Month</div>
+            <div id="monthHolidayList" class="month-holiday-list">Loading holidays...</div>
+          </div>
+
+          <div class="card group-schedule-card">
+            <div class="mini-card-title">Update Group Class Schedule</div>
+            <p style="font-size:0.8rem;color:var(--gray-500);margin-bottom:14px">Choose a course/status group and apply new class days or class time to all matching students.</p>
+            <div class="field">
+              <label>Course Group</label>
+              <select id="bulkScheduleCourse" onchange="updateBulkSchedulePreview()">
+                <option value="">All courses</option>
+                <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+                <option value="ielts-fast-track">IELTS Fast Track</option>
+                <option value="ielts-platinum">IELTS Platinum</option>
+                <option value="ielts-online">IELTS Live/Online</option>
+                <option value="ielts-skill-focus">IELTS Skill Focus</option>
+                <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+                <option value="pte-academic">PTE Academic</option>
+                <option value="spoken-english">Spoken English</option>
+                <option value="business-english">Business English for Professionals</option>
+                <option value="spoken-english-online">Spoken English (Online)</option>
+                <option value="foundation-english">Foundation English & Phonetics</option>
+              </select>
+            </div>
+            <div class="field-row-2">
+              <div class="field">
+                <label>Status</label>
+                <select id="bulkScheduleStatus" onchange="updateBulkSchedulePreview()">
+                  <option value="active">Active students</option>
+                  <option value="pending">Pending students</option>
+                  <option value="suspended">Suspended students</option>
+                  <option value="">All statuses</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Matching Students</label>
+                <input type="text" id="bulkScheduleCount" value="0 students" disabled>
+              </div>
+            </div>
+            <div class="field-row-2">
+              <div class="field">
+                <label>Class Days</label>
+                <select id="bulkClassDays">
+                  <option value="">Keep existing</option>
+                  <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
+                  <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
+                  <option value="Fri, Sat">Fri, Sat</option>
+                  <option value="Everyday">Everyday</option>
+                  <option value="Mon-Fri">Mon-Fri</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Class Time</label>
+                <select id="bulkClassTime">
+                  <option value="">Keep existing</option>
+                  <option value="8:00 AM">8:00 AM</option>
+                  <option value="9:00 AM">9:00 AM</option>
+                  <option value="10:00 AM">10:00 AM</option>
+                  <option value="11:00 AM">11:00 AM</option>
+                  <option value="12:00 PM">12:00 PM</option>
+                  <option value="1:00 PM">1:00 PM</option>
+                  <option value="2:00 PM">2:00 PM</option>
+                  <option value="3:00 PM">3:00 PM</option>
+                  <option value="4:00 PM">4:00 PM</option>
+                  <option value="5:00 PM">5:00 PM</option>
+                  <option value="6:00 PM">6:00 PM</option>
+                  <option value="7:00 PM">7:00 PM</option>
+                  <option value="8:00 PM">8:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn-primary" style="width:100%;padding:10px 20px" onclick="saveBulkSchedule()">Update Group Schedule</button>
+            <div id="bulkScheduleErr" class="error-msg hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0; overflow:hidden; margin-top:20px">
         <table class="data-table">
           <thead>
             <tr>
@@ -449,8 +549,8 @@
 
     <div class="field">
       <label>Video Embed URL <span class="optional">(optional)</span></label>
-      <input type="text" id="adVideoUrl" placeholder="e.g. https://www.youtube.com/embed/...">
-      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Use the 'Embed' URL from YouTube/Vimeo.</div>
+      <input type="text" id="adVideoUrl" placeholder="Paste any HTTPS iframe embed code or embed URL">
+      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Paste an HTTPS video iframe code or iframe src URL from any provider. Some sites still block embedding; put normal event/page links in the Button Link field.</div>
     </div>
 
     <div class="field-row-2">
@@ -553,8 +653,8 @@
       <input type="text" id="editPhone">
     </div>
     <div class="field">
-      <label>Course</label>
-      <select id="editCourse">
+      <label>Courses</label>
+      <select id="editCourse" multiple size="8">
         <optgroup label="IELTS">
           <option value="ielts-regular">IELTS Regular (AC/GT)</option>
           <option value="ielts-fast-track">IELTS Fast Track</option>
@@ -573,6 +673,7 @@
           <option value="foundation-english">Foundation English & Phonetics</option>
         </optgroup>
       </select>
+      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.</div>
     </div>
     <div class="field">
       <label>Status</label>
@@ -651,8 +752,8 @@
     <div class="field"><label>Email</label><input type="email" id="addEmail"></div>
     <div class="field"><label>Phone</label><input type="tel" id="addPhone"></div>
     <div class="field">
-      <label>Course</label>
-      <select id="addCourse">
+      <label>Courses</label>
+      <select id="addCourse" multiple size="8">
         <optgroup label="IELTS">
           <option value="ielts-regular">IELTS Regular (AC/GT)</option>
           <option value="ielts-fast-track">IELTS Fast Track</option>
@@ -671,6 +772,7 @@
           <option value="foundation-english">Foundation English & Phonetics</option>
         </optgroup>
       </select>
+      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.</div>
     </div>
     <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars"></div>
     <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text" id="addStudentId" placeholder="AIMS-XXXX"></div>
@@ -889,7 +991,7 @@
 
     <div class="field">
       <label>New Password</label>
-      <input type="password" id="resetPwNew" placeholder="Minimum 6 characters">
+      <input type="password" id="resetPwNew" placeholder="Minimum 8 characters">
     </div>
     <div class="field">
       <label>Confirm Password</label>
@@ -904,15 +1006,46 @@
   </div>
 </div>
 
+
+<!-- MODAL: Change Own Password -->
+<div class="modal-backdrop hidden" id="changePasswordModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Change Password</h3>
+      <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
+    </div>
+    <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
+      Enter your current password before setting a new one. Other active sessions on your account will be signed out.
+    </p>
+    <div class="field">
+      <label>Current Password</label>
+      <input type="password" id="ownCurrentPassword" autocomplete="current-password">
+    </div>
+    <div class="field">
+      <label>New Password</label>
+      <input type="password" id="ownNewPassword" placeholder="Minimum 8 characters" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Confirm New Password</label>
+      <input type="password" id="ownConfirmPassword" autocomplete="new-password">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update Password</button>
+    </div>
+    <div id="ownPasswordErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="js/app-data.js?v=42"></script>
-<script src="js/api-client.js?v=42"></script>
-<script src="js/admin-dashboard.js?v=42"></script>
+<script src="js/app-data.js?v=55"></script>
+<script src="js/api-client.js?v=55"></script>
+<script src="js/admin-dashboard.js?v=55"></script>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js?v=42', { updateViaCache: 'none' });
+    navigator.serviceWorker.register('/sw.js?v=55', { updateViaCache: 'none' });
     
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('New version ready.');
