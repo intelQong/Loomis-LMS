@@ -12,7 +12,7 @@ const COURSES = {
   'foundation-english': { totalFee: 2500 }
 };
 
-const SESSION_DAYS = 7;
+const SESSION_DAYS = 1;
 const SUPER_ADMIN_EMAIL = 'mahmudulkhan.office@gmail.com';
 
 export async function onRequest(context) {
