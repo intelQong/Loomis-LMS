@@ -216,7 +216,7 @@ async function updateStudent({ request, env }, user, studentId) {
   try {
     await env.DB.prepare(`
       UPDATE users
-      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+      SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? AND role = 'student'
     `).bind(
       required(body.firstName, 'First name'),
@@ -226,6 +226,7 @@ async function updateStudent({ request, env }, user, studentId) {
       required(body.status, 'Status'),
       totalPaid,
       numberOrZero(body.totalDue),
+      numberOrZero(body.discount),
       body.studentId || '',
       body.assignedFacultyId || '',
       body.nextPaymentDate || '',
@@ -239,7 +240,7 @@ async function updateStudent({ request, env }, user, studentId) {
       // Fallback: update without class_days/class_time if migration not applied yet
       await env.DB.prepare(`
         UPDATE users
-        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
+        SET first_name = ?, last_name = ?, phone = ?, course = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
         WHERE id = ? AND role = 'student'
       `).bind(
         required(body.firstName, 'First name'),
@@ -249,6 +250,7 @@ async function updateStudent({ request, env }, user, studentId) {
         required(body.status, 'Status'),
         totalPaid,
         numberOrZero(body.totalDue),
+        numberOrZero(body.discount),
         body.studentId || '',
         body.assignedFacultyId || '',
         body.nextPaymentDate || '',
@@ -267,7 +269,8 @@ async function updateStudent({ request, env }, user, studentId) {
       .run();
   }
 
-  await logAction(env, user, 'UPDATE_STUDENT', `Updated student ${existing.email}. Fields: ${Object.keys(body).join(', ')}`, studentId);
+  const updateDetails = describeStudentUpdate(existing, body);
+  await logAction(env, user, 'UPDATE_STUDENT', updateDetails, studentId);
 
   return json({ ok: true });
 }
@@ -409,6 +412,45 @@ async function saveInstallments({ request, env }, user) {
 }
 
 
+function describeStudentUpdate(existing, body) {
+  const fields = [
+    ['First name', 'first_name', normalizeComparable(body.firstName)],
+    ['Last name', 'last_name', normalizeComparable(body.lastName)],
+    ['Phone', 'phone', normalizeComparable(body.phone || '')],
+    ['Course', 'course', normalizeComparable(body.course)],
+    ['Status', 'status', normalizeComparable(body.status)],
+    ['Total paid', 'total_paid', normalizeComparable(numberOrZero(body.totalPaid))],
+    ['Total due', 'total_due', normalizeComparable(numberOrZero(body.totalDue))],
+    ['Discount', 'discount', normalizeComparable(numberOrZero(body.discount))],
+    ['Student ID', 'student_id', normalizeComparable(body.studentId || '')],
+    ['Assigned faculty', 'assigned_faculty_id', normalizeComparable(body.assignedFacultyId || '')],
+    ['Next payment date', 'next_payment_date', normalizeComparable(body.nextPaymentDate || '')],
+    ['Enrolled date', 'enrolled_date', normalizeComparable(body.enrolledDate || existing.enrolled_date || '')],
+    ['Class days', 'class_days', normalizeComparable(body.classDays || existing.class_days || '')],
+    ['Class time', 'class_time', normalizeComparable(body.classTime || existing.class_time || '')]
+  ];
+
+  const changes = fields
+    .map(([label, column, newValue]) => {
+      const oldValue = normalizeComparable(existing[column]);
+      if (oldValue === newValue) return null;
+      return `${label}: ${formatAuditValue(oldValue)} → ${formatAuditValue(newValue)}`;
+    })
+    .filter(Boolean);
+
+  if (changes.length === 0) return `Updated student ${existing.email}. No visible field changes.`;
+  return `Updated student ${existing.email}. Changes: ${changes.join('; ')}`;
+}
+
+function normalizeComparable(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
+
+function formatAuditValue(value) {
+  return value === '' ? 'blank' : value;
+}
+
 async function requireUser({ request, env }) {
   const sessionId = getCookie(request, 'aims_session');
   if (!sessionId) throw httpError('Not authenticated.', 401);
@@ -439,6 +481,7 @@ function serializeUser(row) {
     isSuperAdmin: row.email === SUPER_ADMIN_EMAIL,
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
+    discount: row.discount || 0,
     nextPaymentDate: row.next_payment_date || '',
     enrolledDate: row.enrolled_date,
     createdAt: row.created_at,
@@ -777,6 +820,7 @@ async function ensureUserCompatibilityColumns(env) {
     ['status', "TEXT DEFAULT 'pending'"],
     ['total_paid', 'INTEGER DEFAULT 0'],
     ['total_due', 'INTEGER DEFAULT 0'],
+    ['discount', 'INTEGER DEFAULT 0'],
     ['enrolled_date', "TEXT DEFAULT ''"],
     ['created_at', "TEXT DEFAULT ''"],
     ['updated_at', "TEXT DEFAULT ''"],
