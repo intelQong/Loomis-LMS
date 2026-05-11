@@ -98,7 +98,7 @@
 .user-avatar {
   width: 34px;
   height: 34px;
-  background: var(--gold);
+  background: var(--accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -275,7 +275,7 @@
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--teal-mid);
+  border-color: var(--primary-mid);
 }
 
 .stat-icon {
@@ -288,8 +288,8 @@
   font-size: 1.5rem;
   flex-shrink: 0;
 }
-.stat-icon.teal { background: var(--teal-light); }
-.stat-icon.gold { background: var(--gold-light); }
+.stat-icon.teal { background: var(--primary-light); }
+.stat-icon.gold { background: var(--accent-light); }
 .stat-icon.success { background: #d1fae5; }
 .stat-icon.danger { background: #fee2e2; }
 .stat-body {}
@@ -383,7 +383,7 @@
   transition: background var(--transition);
 }
 .notif-item:hover { background: var(--gray-50); }
-.notif-item.unread { border-left: 3px solid var(--teal); }
+.notif-item.unread { border-left: 3px solid var(--primary); }
 .notif-item-title { font-size: 0.875rem; font-weight: 500; color: var(--gray-800); margin-bottom: 4px; }
 .notif-item-body { font-size: 0.8rem; color: var(--gray-500); line-height: 1.5; }
 .notif-item-time { font-size: 0.75rem; color: var(--gray-400); margin-top: 6px; }
@@ -408,14 +408,14 @@
   cursor: pointer;
 }
 .portal-card:hover {
-  border-color: var(--teal);
+  border-color: var(--primary);
   box-shadow: var(--shadow);
   transform: translateY(-2px);
 }
 .portal-icon { font-size: 2rem; }
 .portal-name { font-size: 1rem; font-weight: 600; color: var(--gray-800); }
 .portal-desc { font-size: 0.85rem; color: var(--gray-500); line-height: 1.5; }
-.portal-arrow { color: var(--teal); font-size: 1.1rem; margin-top: auto; }
+.portal-arrow { color: var(--primary); font-size: 1.1rem; margin-top: auto; }
 
 /* Admin specific */
 .admin-toolbar {
@@ -434,7 +434,7 @@
   outline: none;
   min-width: 200px;
 }
-.search-input:focus { border-color: var(--teal); }
+.search-input:focus { border-color: var(--primary); }
 
 /* Mobile overlay sidebar */
 .sidebar-overlay {
@@ -556,7 +556,7 @@
   font-weight: bold;
 }
 .installment-item.pending .installment-dot {
-  border-color: var(--teal);
+  border-color: var(--primary);
 }
 .installment-item.overdue .installment-dot {
   border-color: var(--danger);
@@ -792,8 +792,8 @@
 
 /* Theme Palette */
 .theme-opt.active .color-preview {
-  border-color: var(--teal) !important;
-  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--teal);
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--primary);
 }
 .theme-opt:hover .color-preview {
   transform: scale(1.05);
