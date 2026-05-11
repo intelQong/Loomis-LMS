@@ -224,7 +224,7 @@ async function loadStudents() {
     populateNotifStudentSelect(allStudents);
   } catch (err) {
     console.error(err);
-    showToast('Unable to load students', 'error');
+    showToast(`Unable to load students: ${err.message}`, 'error');
   }
 }
 
@@ -1005,17 +1005,32 @@ async function loadAuditLogs() {
   try {
     const data = await apiFetch('/api/admin/logs');
     const tbody = document.getElementById('auditLogList');
+    if (!data.logs || data.logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No audit logs yet.</td></tr>';
+      return;
+    }
+
     tbody.innerHTML = data.logs.map(log => `
       <tr>
-        <td style="font-size:0.8rem; color:var(--gray-500)">${new Date(log.created_at).toLocaleString()}</td>
-        <td style="font-weight:500">${log.admin_email}</td>
-        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action}</code></td>
-        <td style="font-size:0.85rem">${log.details}</td>
+        <td style="font-size:0.8rem; color:var(--gray-500)">${formatAuditDate(log.created_at)}</td>
+        <td style="font-weight:500">${log.admin_email || 'System'}</td>
+        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action || 'UNKNOWN'}</code></td>
+        <td style="font-size:0.85rem">${log.details || '—'}</td>
       </tr>
     `).join('');
   } catch (err) {
     console.error(err);
+    const tbody = document.getElementById('auditLogList');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--red)">Unable to load audit logs: ${err.message}</td></tr>`;
+    }
   }
+}
+
+function formatAuditDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 function showSection(name, btn) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -1075,31 +1090,42 @@ function renderAnnouncementsList(ads) {
     return;
   }
   container.innerHTML = ads.map(ad => {
-    const imgUrl = ad.image_url || ad.imageUrl || '';
-    const videoUrl = ad.video_url || ad.videoUrl || '';
-    const linkUrl = ad.link_url || ad.linkUrl;
-    const linkText = ad.link_text || ad.linkText || 'Learn More';
-    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--primary)';
+    const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
+    const videoUrl = escapeHtml(ad.video_url || ad.videoUrl || '');
+    const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
+    const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
+    const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'var(--primary)');
     const createdAt = ad.created_at || ad.createdAt;
+    const title = escapeHtml(ad.title || 'Announcement');
+    const body = escapeHtml(ad.body || '');
+    const id = escapeHtml(ad.id || '');
     
     return `
-    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
        ${videoUrl ? `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>` : 
-         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${ad.title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
         <div style="flex:1;min-width:200px">
-          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
-          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
+          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
           ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Video: ${videoUrl}</div>` : ''}
           ${linkUrl ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${linkText} →</span></div>` : ''}
         </div>
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(createdAt)}</span>
-        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${ad.id}')">Delete</button>
+        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${id}')">Delete</button>
       </div>
     </div>
   `}).join('');
+}
+
+
+function safeAnnouncementBackground(value) {
+  const background = String(value || '').trim();
+  if (background === 'var(--primary)') return background;
+  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
+  return 'var(--primary)';
 }
 
 function openAnnouncementModal() {
@@ -1123,7 +1149,8 @@ async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
   const imageUrl = document.getElementById('adImageUrl').value.trim();
-  const videoUrl = document.getElementById('adVideoUrl').value.trim();
+  const rawVideoUrl = document.getElementById('adVideoUrl').value.trim();
+  const videoUrl = rawVideoUrl ? normalizeVideoEmbedUrl(rawVideoUrl) : '';
   const linkUrl = document.getElementById('adLinkUrl').value.trim();
   const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
   const bgGradient = document.getElementById('adGradient').value;
@@ -1136,9 +1163,8 @@ async function createAnnouncement() {
     return;
   }
 
-  // Basic Video URL validation to prevent recursive site embedding
-  if (videoUrl && videoUrl.includes(window.location.hostname)) {
-    errEl.textContent = 'Cannot use internal site links as Video URLs. Please use a YouTube or Vimeo link.';
+  if (rawVideoUrl && !videoUrl) {
+    errEl.textContent = 'This video cannot be embedded. Use a YouTube or Vimeo video/embed URL, or place event/page links in the Button Link field.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -1251,6 +1277,54 @@ function updateToggleUI(enabled) {
 }
 
 
+
+// ============================================================
+// Password Reset (Self-Service)
+// ============================================================
+function openChangePasswordModal() {
+  document.getElementById('ownCurrentPassword').value = '';
+  document.getElementById('ownNewPassword').value = '';
+  document.getElementById('ownConfirmPassword').value = '';
+  document.getElementById('ownPasswordErr').classList.add('hidden');
+  openModal('changePasswordModal');
+}
+
+async function saveOwnPassword() {
+  const currentPassword = document.getElementById('ownCurrentPassword').value;
+  const newPassword = document.getElementById('ownNewPassword').value;
+  const confirmPassword = document.getElementById('ownConfirmPassword').value;
+  const errEl = document.getElementById('ownPasswordErr');
+
+  errEl.classList.add('hidden');
+  if (!currentPassword) {
+    errEl.textContent = 'Current password is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!newPassword || newPassword.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    closeModal('changePasswordModal');
+    showToast('Password changed successfully ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 // ============================================================
 // Password Reset (Admin)
 // ============================================================
@@ -1272,8 +1346,8 @@ async function saveResetPassword() {
   const confirmPw = document.getElementById('resetPwConfirm').value;
   const errEl = document.getElementById('resetPwErr');
 
-  if (!newPw || newPw.length < 6) {
-    errEl.textContent = 'Password must be at least 6 characters.';
+  if (!newPw || newPw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
     errEl.classList.remove('hidden');
     return;
   }
