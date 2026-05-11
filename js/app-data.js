@@ -152,3 +152,25 @@ var COURSES = {
   }
 };
 
+
+function getCourseIds(userOrValue) {
+  const value = userOrValue && typeof userOrValue === 'object'
+    ? (userOrValue.courses && userOrValue.courses.length ? userOrValue.courses : userOrValue.course)
+    : userOrValue;
+  const raw = Array.isArray(value) ? value : String(value || '').split(',');
+  const ids = raw.map(id => String(id).trim()).filter(id => COURSES[id]);
+  return [...new Set(ids)];
+}
+
+function getCourseList(userOrValue) {
+  return getCourseIds(userOrValue).map(id => ({ id, ...COURSES[id] }));
+}
+
+function getCourseNames(userOrValue) {
+  const courses = getCourseList(userOrValue);
+  return courses.length ? courses.map(course => course.name).join(', ') : '—';
+}
+
+function getCourseTotalFee(userOrValue) {
+  return getCourseList(userOrValue).reduce((sum, course) => sum + (course.totalFee || 0), 0);
+}

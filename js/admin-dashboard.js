@@ -224,7 +224,7 @@ async function loadStudents() {
     populateNotifStudentSelect(allStudents);
   } catch (err) {
     console.error(err);
-    showToast('Unable to load students', 'error');
+    showToast(`Unable to load students: ${err.message}`, 'error');
   }
 }
 
@@ -282,6 +282,19 @@ function renderOverviewStats() {
   }
 }
 
+
+function getSelectedCourseIds(selectId) {
+  const select = document.getElementById(selectId);
+  return Array.from(select.selectedOptions).map(option => option.value).filter(id => COURSES[id]);
+}
+
+function setSelectedCourseIds(selectId, courseIds) {
+  const selected = new Set(courseIds);
+  document.querySelectorAll(`#${selectId} option`).forEach(option => {
+    option.selected = selected.has(option.value);
+  });
+}
+
 function renderPendingList() {
   const pending = allStudents.filter(s => s.status === 'pending');
   const container = document.getElementById('pendingList');
@@ -290,13 +303,13 @@ function renderPendingList() {
     return;
   }
   container.innerHTML = pending.map(s => {
-    const course = COURSES[s.course];
+    const courseNames = getCourseNames(s);
     return `
       <div class="pending-item" style="border: 1px solid var(--gray-100); padding: 12px; border-radius: 10px; background: var(--gray-50); display: flex; flex-direction: column; gap: 8px;">
         <div class="pending-info" style="margin:0">
           <div class="pending-name" style="font-size: 0.95rem; font-weight: 600;">${s.firstName} ${s.lastName}</div>
           <div class="pending-meta" style="font-size: 0.8rem; line-height: 1.4;">
-            ${course ? course.name : s.course}<br>
+            ${courseNames}<br>
             <span style="color:var(--gray-400)">${s.phone || s.email}</span>
           </div>
         </div>
@@ -318,7 +331,7 @@ function renderStudentsTable(students) {
     return;
   }
   tbody.innerHTML = students.map(s => {
-    const course = COURSES[s.course];
+    const courseNames = getCourseNames(s);
     const statusClass = s.status === 'active' ? 'badge-success' : s.status === 'pending' ? 'badge-warning' : 'badge-danger';
     
     // Enrollment and Expiry calc
@@ -336,7 +349,7 @@ function renderStudentsTable(students) {
           <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
           <div style="font-size:0.8rem;color:var(--gray-400)">${s.email}</div>
         </td>
-        <td>${course ? course.name : s.course || '—'}</td>
+        <td>${courseNames}</td>
         <td><span class="badge ${statusClass}">${s.status || 'pending'}</span></td>
         <td>${s.enrolledDate ? formatDate(s.enrolledDate) : '—'}</td>
         <td style="font-weight:500;color:var(--teal)">${expiryStr}</td>
@@ -362,7 +375,7 @@ function filterStudents() {
   const filtered = allStudents.filter(s => {
     const name = `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase();
     return (!q || name.includes(q)) &&
-           (!course || s.course === course) &&
+           (!course || getCourseIds(s).includes(course)) &&
            (!status || s.status === status);
   });
   renderStudentsTable(filtered);
@@ -405,6 +418,7 @@ function saveStudentPayload(id, student) {
       lastName: student.lastName,
       phone: student.phone || '',
       course: student.course,
+      courses: student.courses || (student.course ? [student.course] : []),
       status: student.status,
       totalPaid: student.totalPaid || 0,
       totalDue: student.totalDue || 0,
@@ -430,7 +444,7 @@ function openEditStudent(id) {
   document.getElementById('editFirst').value = s.firstName || '';
   document.getElementById('editLast').value = s.lastName || '';
   document.getElementById('editPhone').value = s.phone || '';
-  document.getElementById('editCourse').value = s.course || '';
+  setSelectedCourseIds('editCourse', getCourseIds(s));
   document.getElementById('editStatus').value = s.status || 'pending';
   document.getElementById('editStudentIdField').value = s.studentId || '';
   document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
@@ -446,7 +460,8 @@ async function saveStudentEdit() {
   const id = document.getElementById('editStudentId').value;
   const errEl = document.getElementById('editStudentErr');
   try {
-    const course = document.getElementById('editCourse').value;
+    const courses = getSelectedCourseIds('editCourse');
+    const course = courses[0] || '';
     const existing = allStudents.find(x => x.id === id);
     const paid = existing ? (existing.totalPaid || 0) : 0;
     const due = existing ? (existing.totalDue || 0) : 0;
@@ -456,6 +471,7 @@ async function saveStudentEdit() {
       lastName: document.getElementById('editLast').value.trim(),
       phone: document.getElementById('editPhone').value.trim(),
       course,
+      courses,
       status: document.getElementById('editStatus').value,
       totalPaid: paid,
       totalDue: due,
@@ -486,6 +502,7 @@ function openAddStudentModal() {
     if (el) el.value = '';
   });
   // Default selections
+  setSelectedCourseIds('addCourse', []);
   document.getElementById('addClassDays').value = 'Sat, Mon, Wed';
   document.getElementById('addClassTime').value = '4:00 PM';
   // Default to today
@@ -499,7 +516,8 @@ async function addStudent() {
   const last = document.getElementById('addLast').value.trim();
   const email = document.getElementById('addEmail').value.trim();
   const phone = document.getElementById('addPhone').value.trim();
-  const course = document.getElementById('addCourse').value;
+  const courses = getSelectedCourseIds('addCourse');
+  const course = courses[0] || '';
   const password = document.getElementById('addPassword').value;
   const studentId = document.getElementById('addStudentId').value.trim();
   const assignedFacultyId = document.getElementById('addFacultyId').value.trim();
@@ -521,7 +539,8 @@ async function addStudent() {
         lastName: last, 
         email, 
         phone, 
-        course, 
+        course,
+        courses, 
         password, 
         studentId, 
         assignedFacultyId, 
@@ -700,15 +719,15 @@ function renderPayTable(students) {
     return;
   }
   tbody.innerHTML = students.map(s => {
-    const course = COURSES[s.course];
-    const totalFee = course ? course.totalFee : 0;
+    const totalFee = getCourseTotalFee(s);
+    const courseNames = getCourseNames(s);
     return `
       <tr>
         <td>
           <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
           <div style="font-size:0.8rem;color:var(--gray-400)">${s.studentId || s.email}</div>
         </td>
-        <td>${course ? course.name : '—'}</td>
+        <td>${courseNames}</td>
         <td>৳${totalFee.toLocaleString()}</td>
         <td style="color:var(--success);font-weight:500">৳${(s.totalPaid || 0).toLocaleString()}</td>
         <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'};font-weight:500">৳${(s.totalDue || 0).toLocaleString()}</td>
@@ -732,9 +751,8 @@ function openPaymentModal(id) {
   const s = allStudents.find(x => x.id === id);
   if (!s) return;
   
-  const course = COURSES[s.course];
-  const totalFee = course ? course.totalFee : 0;
-  const courseName = course ? course.name : s.course || '—';
+  const totalFee = getCourseTotalFee(s);
+  const courseName = getCourseNames(s);
   
   document.getElementById('paymentStudentId').value = id;
   document.getElementById('paymentStudentName').textContent = `${s.firstName} ${s.lastName}`;
@@ -1005,17 +1023,32 @@ async function loadAuditLogs() {
   try {
     const data = await apiFetch('/api/admin/logs');
     const tbody = document.getElementById('auditLogList');
+    if (!data.logs || data.logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No audit logs yet.</td></tr>';
+      return;
+    }
+
     tbody.innerHTML = data.logs.map(log => `
       <tr>
-        <td style="font-size:0.8rem; color:var(--gray-500)">${new Date(log.created_at).toLocaleString()}</td>
-        <td style="font-weight:500">${log.admin_email}</td>
-        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action}</code></td>
-        <td style="font-size:0.85rem">${log.details}</td>
+        <td style="font-size:0.8rem; color:var(--gray-500)">${formatAuditDate(log.created_at)}</td>
+        <td style="font-weight:500">${log.admin_email || 'System'}</td>
+        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action || 'UNKNOWN'}</code></td>
+        <td style="font-size:0.85rem">${log.details || '—'}</td>
       </tr>
     `).join('');
   } catch (err) {
     console.error(err);
+    const tbody = document.getElementById('auditLogList');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--red)">Unable to load audit logs: ${err.message}</td></tr>`;
+    }
   }
+}
+
+function formatAuditDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 function showSection(name, btn) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -1075,31 +1108,42 @@ function renderAnnouncementsList(ads) {
     return;
   }
   container.innerHTML = ads.map(ad => {
-    const imgUrl = ad.image_url || ad.imageUrl || '';
-    const videoUrl = ad.video_url || ad.videoUrl || '';
-    const linkUrl = ad.link_url || ad.linkUrl;
-    const linkText = ad.link_text || ad.linkText || 'Learn More';
-    const bgGradient = ad.bg_gradient || ad.bgGradient || 'var(--primary)';
+    const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
+    const videoUrl = normalizeVideoEmbedUrl(ad.video_url || ad.videoUrl || '');
+    const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
+    const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
+    const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'var(--primary)');
     const createdAt = ad.created_at || ad.createdAt;
+    const title = escapeHtml(ad.title || 'Announcement');
+    const body = escapeHtml(ad.body || '');
+    const id = escapeHtml(ad.id || '');
     
     return `
-    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)">
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-       ${videoUrl ? `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:1.5rem">🎥</div>` : 
-         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${ad.title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+       ${videoUrl ? `<div style="width:220px;height:124px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);overflow:hidden"><iframe src="${videoUrl}" title="Announcement video preview" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0"></iframe></div>` :
+         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
         <div style="flex:1;min-width:200px">
-          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${ad.title}</div>
-          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${ad.body || ''}</div>
-          ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Video: ${videoUrl}</div>` : ''}
+          <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
+          <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
+          ${videoUrl ? `<div style="font-size:0.75rem;opacity:0.8;margin-top:4px;word-break:break-all">Embed: ${escapeHtml(videoUrl)}</div>` : ''}
           ${linkUrl ? `<div style="margin-top:10px"><span style="background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:6px;font-size:0.85rem">${linkText} →</span></div>` : ''}
         </div>
       </div>
       <div style="background:white;padding:12px 24px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.8rem;color:var(--gray-400)">Created: ${formatDate(createdAt)}</span>
-        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${ad.id}')">Delete</button>
+        <button class="btn-xs btn-xs-suspend" onclick="deleteAd('${id}')">Delete</button>
       </div>
     </div>
   `}).join('');
+}
+
+
+function safeAnnouncementBackground(value) {
+  const background = String(value || '').trim();
+  if (background === 'var(--primary)') return background;
+  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
+  return 'var(--primary)';
 }
 
 function openAnnouncementModal() {
@@ -1123,7 +1167,8 @@ async function createAnnouncement() {
   const title = document.getElementById('adTitle').value.trim();
   const body = document.getElementById('adBody').value.trim();
   const imageUrl = document.getElementById('adImageUrl').value.trim();
-  const videoUrl = document.getElementById('adVideoUrl').value.trim();
+  const rawVideoUrl = document.getElementById('adVideoUrl').value.trim();
+  const videoUrl = rawVideoUrl ? normalizeVideoEmbedUrl(rawVideoUrl) : '';
   const linkUrl = document.getElementById('adLinkUrl').value.trim();
   const linkText = document.getElementById('adLinkText').value.trim() || 'Learn More';
   const bgGradient = document.getElementById('adGradient').value;
@@ -1136,9 +1181,8 @@ async function createAnnouncement() {
     return;
   }
 
-  // Basic Video URL validation to prevent recursive site embedding
-  if (videoUrl && videoUrl.includes(window.location.hostname)) {
-    errEl.textContent = 'Cannot use internal site links as Video URLs. Please use a YouTube or Vimeo link.';
+  if (rawVideoUrl && !videoUrl) {
+    errEl.textContent = 'Paste a valid HTTPS iframe embed code or embed URL. Put normal event/page links in the Button Link field.';
     errEl.classList.remove('hidden');
     return;
   }
@@ -1251,6 +1295,54 @@ function updateToggleUI(enabled) {
 }
 
 
+
+// ============================================================
+// Password Reset (Self-Service)
+// ============================================================
+function openChangePasswordModal() {
+  document.getElementById('ownCurrentPassword').value = '';
+  document.getElementById('ownNewPassword').value = '';
+  document.getElementById('ownConfirmPassword').value = '';
+  document.getElementById('ownPasswordErr').classList.add('hidden');
+  openModal('changePasswordModal');
+}
+
+async function saveOwnPassword() {
+  const currentPassword = document.getElementById('ownCurrentPassword').value;
+  const newPassword = document.getElementById('ownNewPassword').value;
+  const confirmPassword = document.getElementById('ownConfirmPassword').value;
+  const errEl = document.getElementById('ownPasswordErr');
+
+  errEl.classList.add('hidden');
+  if (!currentPassword) {
+    errEl.textContent = 'Current password is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!newPassword || newPassword.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    closeModal('changePasswordModal');
+    showToast('Password changed successfully ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 // ============================================================
 // Password Reset (Admin)
 // ============================================================
@@ -1272,8 +1364,8 @@ async function saveResetPassword() {
   const confirmPw = document.getElementById('resetPwConfirm').value;
   const errEl = document.getElementById('resetPwErr');
 
-  if (!newPw || newPw.length < 6) {
-    errEl.textContent = 'Password must be at least 6 characters.';
+  if (!newPw || newPw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
     errEl.classList.remove('hidden');
     return;
   }
