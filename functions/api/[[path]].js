@@ -620,8 +620,21 @@ function expiredSessionCookie() {
 // ============================================================
 // Other Services (Portals)
 // ============================================================
-async function listServices({ env }) {
-  const { results } = await env.DB.prepare('SELECT * FROM other_services WHERE active = 1 ORDER BY created_at DESC').all();
+async function ensureServicesTable({ env }) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS other_services (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    desc TEXT,
+    url TEXT NOT NULL,
+    icon TEXT,
+    active INTEGER DEFAULT 1,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+}
+
+async function listServices(context) {
+  await ensureServicesTable(context);
+  const { results } = await context.env.DB.prepare('SELECT * FROM other_services WHERE active = 1 ORDER BY created_at DESC').all();
   return json({ services: results });
 }
 
@@ -675,17 +688,42 @@ async function updateUserRole({ request, env }, user, targetUserId) {
   return json({ ok: true });
 }
 
-async function listAuditLogs({ env }, user) {
+async function ensureAuditLogsTable({ env }) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    admin_email TEXT NOT NULL,
+    action TEXT NOT NULL,
+    details TEXT,
+    target_id TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+}
+
+async function listAuditLogs(context, user) {
   requireRole(user, ['admin']);
-  const { results } = await env.DB.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200').all();
+  await ensureAuditLogsTable(context);
+  const { results } = await context.env.DB.prepare('SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 200').all();
   return json({ logs: results });
 }
 
 // ============================================================
 // Academic Calendar
 // ============================================================
-async function listCalendar({ env }) {
-  const { results } = await env.DB.prepare('SELECT * FROM academic_calendar ORDER BY date ASC').all();
+async function ensureCalendarTable({ env }) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS academic_calendar (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    date TEXT NOT NULL,
+    type TEXT DEFAULT 'event',
+    desc TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`).run();
+}
+
+async function listCalendar(context) {
+  await ensureCalendarTable(context);
+  const { results } = await context.env.DB.prepare('SELECT * FROM academic_calendar ORDER BY date ASC').all();
   return json({ calendar: results });
 }
 
@@ -715,6 +753,7 @@ async function deleteCalendarEntry({ env }, user, id) {
 
 async function logAction(env, admin, action, details, targetId = null) {
   try {
+    await ensureAuditLogsTable({ env });
     await env.DB.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(crypto.randomUUID(), admin.id, admin.email, action, details, targetId)
       .run();
