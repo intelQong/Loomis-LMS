@@ -1266,6 +1266,54 @@ function updateToggleUI(enabled) {
 }
 
 
+
+// ============================================================
+// Password Reset (Self-Service)
+// ============================================================
+function openChangePasswordModal() {
+  document.getElementById('ownCurrentPassword').value = '';
+  document.getElementById('ownNewPassword').value = '';
+  document.getElementById('ownConfirmPassword').value = '';
+  document.getElementById('ownPasswordErr').classList.add('hidden');
+  openModal('changePasswordModal');
+}
+
+async function saveOwnPassword() {
+  const currentPassword = document.getElementById('ownCurrentPassword').value;
+  const newPassword = document.getElementById('ownNewPassword').value;
+  const confirmPassword = document.getElementById('ownConfirmPassword').value;
+  const errEl = document.getElementById('ownPasswordErr');
+
+  errEl.classList.add('hidden');
+  if (!currentPassword) {
+    errEl.textContent = 'Current password is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!newPassword || newPassword.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    closeModal('changePasswordModal');
+    showToast('Password changed successfully ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 // ============================================================
 // Password Reset (Admin)
 // ============================================================
@@ -1287,8 +1335,8 @@ async function saveResetPassword() {
   const confirmPw = document.getElementById('resetPwConfirm').value;
   const errEl = document.getElementById('resetPwErr');
 
-  if (!newPw || newPw.length < 6) {
-    errEl.textContent = 'Password must be at least 6 characters.';
+  if (!newPw || newPw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
     errEl.classList.remove('hidden');
     return;
   }
