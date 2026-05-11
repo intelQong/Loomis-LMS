@@ -1,3 +1,10 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; frame-src https:; upgrade-insecure-requests
+
 # HTML pages: always revalidate, never serve stale
 /*.html
   Cache-Control: no-cache, must-revalidate
@@ -5,12 +12,12 @@
 /
   Cache-Control: no-cache, must-revalidate
 
-# Allow YouTube/Vimeo iframes
+# Allow HTTPS iframe embeds for admin-created announcement videos
 /student-dashboard.html
-  Content-Security-Policy: frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; frame-src https:; upgrade-insecure-requests
 
 /student
-  Content-Security-Policy: frame-src https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com;
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; frame-src https:; upgrade-insecure-requests
 
 /js/*
   Cache-Control: public, max-age=86400
