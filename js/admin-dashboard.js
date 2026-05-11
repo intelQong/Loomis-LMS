@@ -951,10 +951,9 @@ async function deleteService(id) {
 // ============================================================
 // Super Admin & Audit Logs
 // ============================================================
-const SUPER_ADMIN_EMAIL = 'mahmudulkhan.office@gmail.com';
 
 function checkSuperAdmin() {
-  if (currentUser.email === SUPER_ADMIN_EMAIL) {
+  if (adminUser && adminUser.isSuperAdmin) {
     document.getElementById('navSuperPortal').classList.remove('hidden');
     loadSuperUsers();
     loadAuditLogs();
