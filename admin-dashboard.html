@@ -48,8 +48,8 @@
     <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
       <span class="nav-icon">✨</span> Announcements
     </button>
-    <button class="nav-item" onclick="showSection('portals', this)">
-      <span class="nav-icon">🔗</span> Portals
+    <button class="nav-item" onclick="showSection('services', this)">
+      <span class="nav-icon">🔗</span> Other Services
     </button>
     <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
       <span class="nav-icon">⚙️</span> Site Tools
@@ -263,12 +263,17 @@
       </div>
     </section>
 
-    <!-- SECTION: Portals -->
-    <section class="page-section" id="section-portals">
+    <!-- SECTION: Other Services -->
+    <section class="page-section" id="section-services">
       <div class="section-header">
-        <div class="section-title">AIMS Portals</div>
+        <div class="section-title">Other Services</div>
+        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openServiceModal()">+ Add Service</button>
       </div>
-      <div class="portals-grid" id="adminPortalsGrid"></div>
+      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These links appear on the student dashboard under "Other Services".</p>
+      
+      <div id="servicesManageList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
+        <div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Loading services...</div>
+      </div>
     </section>
 
     <!-- SECTION: Site Tools -->
@@ -708,6 +713,37 @@
       <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
     </div>
     <div id="paymentErr" class="error-msg hidden"></div>
+  </div>
+</div>
+
+<!-- MODAL: Add Other Service -->
+<div class="modal-backdrop hidden" id="serviceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Add Other Service</h3>
+      <button class="modal-close" onclick="closeModal('serviceModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>Service Name</label>
+      <input type="text" id="serviceName" placeholder="e.g. AIMS Website">
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="serviceDesc" placeholder="e.g. Official website with course info...">
+    </div>
+    <div class="field">
+      <label>URL</label>
+      <input type="url" id="serviceUrl" placeholder="https://...">
+    </div>
+    <div class="field">
+      <label>Icon (Emoji or Image URL)</label>
+      <input type="text" id="serviceIcon" placeholder="e.g. 🌐 or https://...">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn-secondary" onclick="closeModal('serviceModal')">Cancel</button>
+      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createService()">Add Service</button>
+    </div>
+    <div id="serviceErr" class="error-msg hidden"></div>
   </div>
 </div>
 

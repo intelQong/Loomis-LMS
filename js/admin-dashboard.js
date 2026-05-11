@@ -31,7 +31,7 @@ function initAdmin() {
   loadStudents();
   loadNotifications();
   loadAnnouncements();
-  renderAdminPortals();
+  loadServices();
   loadMaintenanceStatus();
 }
 
@@ -752,18 +752,85 @@ async function savePayment() {
 
 
 // ============================================================
-// Portals
+// Other Services
 // ============================================================
-function renderAdminPortals() {
-  const grid = document.getElementById('adminPortalsGrid');
-  grid.innerHTML = PORTALS.map(p => `
-    <a class="portal-card" href="${p.url}" target="${p.url.startsWith('http') ? '_blank' : '_self'}">
-      <div class="portal-icon">${p.icon}</div>
-      <div class="portal-name">${p.name}</div>
-      <div class="portal-desc">${p.desc}</div>
-      <div class="portal-arrow">→</div>
-    </a>
+async function loadServices() {
+  try {
+    const data = await apiFetch('/api/services?t=' + Date.now());
+    renderServicesManageList(data.services);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderServicesManageList(services) {
+  const container = document.getElementById('servicesManageList');
+  if (!services || services.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">No services added yet.</div>';
+    return;
+  }
+  container.innerHTML = services.map(s => `
+    <div class="card" style="display:flex; flex-direction:column; gap:12px; padding:16px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="font-size:1.5rem;">${s.icon.startsWith('http') ? `<img src="${s.icon}" style="width:32px;height:32px;object-fit:contain">` : s.icon}</div>
+        <div style="flex:1">
+          <div style="font-weight:600; color:var(--gray-800)">${s.name}</div>
+          <div style="font-size:0.8rem; color:var(--gray-500); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px">${s.url}</div>
+        </div>
+      </div>
+      <div style="font-size:0.85rem; color:var(--gray-600); line-height:1.4">${s.desc}</div>
+      <div style="margin-top:auto; padding-top:12px; border-top:1px solid var(--gray-50); display:flex; justify-content:flex-end;">
+        <button class="btn-xs btn-xs-suspend" onclick="deleteService('${s.id}')">Delete</button>
+      </div>
+    </div>
   `).join('');
+}
+
+function openServiceModal() {
+  document.getElementById('serviceName').value = '';
+  document.getElementById('serviceDesc').value = '';
+  document.getElementById('serviceUrl').value = '';
+  document.getElementById('serviceIcon').value = '🌐';
+  document.getElementById('serviceErr').classList.add('hidden');
+  openModal('serviceModal');
+}
+
+async function createService() {
+  const name = document.getElementById('serviceName').value.trim();
+  const desc = document.getElementById('serviceDesc').value.trim();
+  const url = document.getElementById('serviceUrl').value.trim();
+  const icon = document.getElementById('serviceIcon').value.trim();
+  const errEl = document.getElementById('serviceErr');
+  
+  if (!name || !url) {
+    errEl.textContent = 'Name and URL are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  try {
+    await apiFetch('/api/services', {
+      method: 'POST',
+      body: JSON.stringify({ name, desc, url, icon })
+    });
+    closeModal('serviceModal');
+    loadServices();
+    showToast('Service added ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function deleteService(id) {
+  if (!confirm('Are you sure you want to delete this service?')) return;
+  try {
+    await apiFetch(`/api/services/${id}`, { method: 'DELETE' });
+    loadServices();
+    showToast('Service deleted', 'info');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 // ============================================================

@@ -58,7 +58,7 @@ function initDashboard() {
   renderStats();
   renderCourse();
   renderPayments();
-  renderPortals();
+  renderServices();
   renderProfile();
   listenNotifications();
   loadAdBanners();
@@ -283,17 +283,34 @@ function renderPayments() {
     }).catch(() => {});
 }
 
-
-function renderPortals() {
-  const grid = document.getElementById('portalsGrid');
-  grid.innerHTML = PORTALS.map(p => `
-    <a class="portal-card" href="${p.url}" target="${p.url.startsWith('http') ? '_blank' : '_self'}">
-      <div class="portal-icon">${p.icon}</div>
-      <div class="portal-name">${p.name}</div>
-      <div class="portal-desc">${p.desc}</div>
-      <div class="portal-arrow">→</div>
-    </a>
-  `).join('');
+// ============================================================
+// Other Services
+// ============================================================
+async function renderServices() {
+  const grid = document.getElementById('servicesGrid');
+  if (!grid) return;
+  
+  try {
+    const data = await apiFetch('/api/services?t=' + Date.now());
+    const services = data.services || [];
+    
+    if (services.length === 0) {
+      grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">No services available.</div>';
+      return;
+    }
+    
+    grid.innerHTML = services.map(p => `
+      <a class="portal-card" href="${p.url}" target="${p.url.startsWith('http') ? '_blank' : '_self'}">
+        <div class="portal-icon">${p.icon.startsWith('http') ? `<img src="${p.icon}" style="width:40px;height:40px;object-fit:contain">` : p.icon}</div>
+        <div class="portal-name">${p.name}</div>
+        <div class="portal-desc">${p.desc}</div>
+        <div class="portal-arrow">→</div>
+      </a>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Failed to load services.</div>';
+  }
 }
 
 function renderProfile() {
@@ -596,7 +613,7 @@ function showSection(name, btn) {
     'my-course': 'My Course',
     'payments': 'Payments',
     'notifications': 'Broadcasts',
-    'portals': 'Portals',
+    'services': 'Other Services',
     'profile': 'My Profile'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;

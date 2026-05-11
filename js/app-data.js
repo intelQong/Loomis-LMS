@@ -152,29 +152,5 @@ const COURSES = {
   }
 };
 
-const PORTALS = [
-  {
-    icon: '🌐',
-    name: 'AIMS English Website',
-    desc: 'Official website with course info, news, and announcements.',
-    url: 'https://example.com'
-  },
-  {
-    icon: '📅',
-    name: 'Class Schedule',
-    desc: 'View your class timetable and upcoming sessions.',
-    url: '#schedule'
-  },
-  {
-    icon: '📝',
-    name: 'IELTS Practice',
-    desc: 'Access practice tests and band scoring tools.',
-    url: '#ielts-practice'
-  },
-  {
-    icon: '🎓',
-    name: 'Study Resources',
-    desc: 'Download study materials, notes and worksheets.',
-    url: '#resources'
-  }
 ];
+
