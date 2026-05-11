@@ -224,7 +224,7 @@ async function loadStudents() {
     populateNotifStudentSelect(allStudents);
   } catch (err) {
     console.error(err);
-    showToast('Unable to load students', 'error');
+    showToast(`Unable to load students: ${err.message}`, 'error');
   }
 }
 
@@ -1005,17 +1005,32 @@ async function loadAuditLogs() {
   try {
     const data = await apiFetch('/api/admin/logs');
     const tbody = document.getElementById('auditLogList');
+    if (!data.logs || data.logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No audit logs yet.</td></tr>';
+      return;
+    }
+
     tbody.innerHTML = data.logs.map(log => `
       <tr>
-        <td style="font-size:0.8rem; color:var(--gray-500)">${new Date(log.created_at).toLocaleString()}</td>
-        <td style="font-weight:500">${log.admin_email}</td>
-        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action}</code></td>
-        <td style="font-size:0.85rem">${log.details}</td>
+        <td style="font-size:0.8rem; color:var(--gray-500)">${formatAuditDate(log.created_at)}</td>
+        <td style="font-weight:500">${log.admin_email || 'System'}</td>
+        <td><code style="background:var(--gray-100); padding:2px 6px; border-radius:4px; font-size:0.75rem">${log.action || 'UNKNOWN'}</code></td>
+        <td style="font-size:0.85rem">${log.details || '—'}</td>
       </tr>
     `).join('');
   } catch (err) {
     console.error(err);
+    const tbody = document.getElementById('auditLogList');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--red)">Unable to load audit logs: ${err.message}</td></tr>`;
+    }
   }
+}
+
+function formatAuditDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 function showSection(name, btn) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
