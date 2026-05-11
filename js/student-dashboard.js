@@ -422,17 +422,19 @@ async function loadAdBanners() {
 
     // Build slideshow HTML
     const slidesHtml = ads.map((ad, i) => {
-      const imgUrl = ad.image_url || ad.imageUrl || '';
+      const imgUrl = safeMediaUrl(ad.image_url || ad.imageUrl || '');
       const rawVideoUrl = ad.video_url || ad.videoUrl || '';
-      const videoUrl = getEmbedUrl(rawVideoUrl);
-      const linkUrl = ad.link_url || ad.linkUrl;
-      const linkText = ad.link_text || ad.linkText || 'Learn More';
-      const bgGradient = ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)';
+      const videoUrl = normalizeVideoEmbedUrl(rawVideoUrl);
+      const linkUrl = safeExternalUrl(ad.link_url || ad.linkUrl || '');
+      const linkText = escapeHtml(ad.link_text || ad.linkText || 'Learn More');
+      const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)');
+      const title = escapeHtml(ad.title || 'Announcement');
+      const body = escapeHtml(ad.body || '');
       
       const hasImg = !!imgUrl;
       const hasVideo = !!videoUrl;
       const isGradient = !hasImg && !hasVideo;
-      const slideClass = `ad-slide ${i === 0 ? 'active' : ''} ${isGradient ? 'ad-slide-gradient' : ''}`;
+      const slideClass = `ad-slide ${i === 0 ? 'active' : ''} ${isGradient ? 'ad-slide-gradient' : 'ad-slide-media'}`;
       const slideStyle = i === 0 ? 'flex' : 'none';
       const bgStyle = isGradient ? bgGradient : '#ffffff';
 
@@ -440,24 +442,24 @@ async function loadAdBanners() {
         <div class="${slideClass}" data-index="${i}" data-has-video="${hasVideo}" style="display:${slideStyle}; background:${bgStyle};">
           ${hasVideo ? `
             <div class="ad-video-container">
-              ${videoUrl.startsWith('<') ? videoUrl : `
-                <iframe src="${videoUrl}" 
-                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
-                  allowfullscreen
-                  referrerpolicy="no-referrer-when-downgrade"></iframe>
-              `}
+              <iframe src="${videoUrl}"
+                title="Announcement video"
+                allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                allowfullscreen
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           ` : hasImg ? `
             <div class="ad-image-container">
-              <img src="${imgUrl}" alt="${ad.title}" onerror="this.style.display='none'">
+              <img src="${imgUrl}" alt="${title}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" onerror="this.closest('.ad-image-container').style.display='none'">
             </div>
           ` : `
             <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none">✨</div>
           `}
           <div class="ad-content">
-            <div class="ad-content-title">${ad.title}</div>
-            <div class="ad-content-body">${ad.body || ''}</div>
-            ${linkUrl ? `<a href="${linkUrl}" target="_blank" class="btn-secondary" style="display:inline-flex; width:fit-content; background:${(hasImg || hasVideo) ? 'var(--indigo-600)' : 'rgba(255,255,255,0.2)'}; color:white; border:none; text-decoration:none; padding:8px 20px; border-radius:8px; font-size:0.85rem; font-weight:600; transition: transform 0.2s;">${linkText} →</a>` : ''}
+            <div class="ad-content-kicker">AIMS Announcement</div>
+            <div class="ad-content-title">${title}</div>
+            <div class="ad-content-body">${body}</div>
+            ${linkUrl ? `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="ad-link">${linkText} →</a>` : ''}
           </div>
         </div>`;
     }).join('');
@@ -486,49 +488,10 @@ async function loadAdBanners() {
   }
 }
 
-function getEmbedUrl(url) {
-  if (!url) return '';
-  let finalUrl = url.trim();
-  
-  // Support raw iframe embed code
-  if (finalUrl.startsWith('<') && finalUrl.includes('iframe')) {
-    // Basic cleanup: ensure width/height are 100% for our container
-    return finalUrl.replace(/width="[^"]*"/, 'width="100%"').replace(/height="[^"]*"/, 'height="100%"');
-  }
-
-  try {
-    // YouTube long URLs (watch?v=...)
-    if (finalUrl.includes('youtube.com/watch?v=')) {
-      const urlObj = new URL(finalUrl);
-      const videoId = urlObj.searchParams.get('v');
-      if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
-    } 
-    // YouTube short URLs (youtu.be/...)
-    else if (finalUrl.includes('youtu.be/')) {
-      const videoId = finalUrl.split('/').pop().split('?')[0];
-      if (videoId) return `https://www.youtube-nocookie.com/embed/${videoId}`;
-    }
-    // Vimeo URLs
-    else if (finalUrl.includes('vimeo.com/') && !finalUrl.includes('player.vimeo.com')) {
-      const videoId = finalUrl.split('/').pop().split('?')[0];
-      if (videoId) return `https://player.vimeo.com/video/${videoId}`;
-    }
-    // Already an embed URL (detected as URL)
-    if (finalUrl.includes('youtube.com/embed/') || finalUrl.includes('youtube-nocookie.com/embed/') || finalUrl.includes('player.vimeo.com/video/')) {
-      // Upgrade youtube.com to youtube-nocookie.com
-      return finalUrl.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
-    }
-    
-    // Safety check: block internal links from being loaded as video iframes
-    if (finalUrl.includes(window.location.hostname)) {
-      console.warn('Blocked recursive dashboard embed:', finalUrl);
-      return '';
-    }
-  } catch (e) {
-    console.error('Invalid Video URL:', finalUrl);
-  }
-  
-  return finalUrl;
+function safeAnnouncementBackground(value) {
+  const background = String(value || '').trim();
+  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
+  return 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)';
 }
 
 function startAdTimer() {
@@ -652,6 +615,57 @@ function markRead(id) {
   }
   // Re-fetch or re-render is better, but we can just trigger listenNotifications()
   listenNotifications();
+}
+
+
+// ============================================================
+// Password Reset (Self-Service)
+// ============================================================
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function openChangePasswordModal() {
+  document.getElementById('ownCurrentPassword').value = '';
+  document.getElementById('ownNewPassword').value = '';
+  document.getElementById('ownConfirmPassword').value = '';
+  document.getElementById('ownPasswordErr').classList.add('hidden');
+  openModal('changePasswordModal');
+}
+
+async function saveOwnPassword() {
+  const currentPassword = document.getElementById('ownCurrentPassword').value;
+  const newPassword = document.getElementById('ownNewPassword').value;
+  const confirmPassword = document.getElementById('ownConfirmPassword').value;
+  const errEl = document.getElementById('ownPasswordErr');
+
+  errEl.classList.add('hidden');
+  if (!currentPassword) {
+    errEl.textContent = 'Current password is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!newPassword || newPassword.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    closeModal('changePasswordModal');
+    showToast('Password changed successfully ✓', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
 }
 
 // UI helpers
