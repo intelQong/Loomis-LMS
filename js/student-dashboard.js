@@ -163,7 +163,6 @@ function startLiveClock() {
     clockEl.textContent = now.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit', 
-      second: '2-digit',
       hour12: true 
     });
     dateEl.textContent = now.toLocaleDateString('en-GB', {

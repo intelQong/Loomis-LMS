@@ -34,8 +34,44 @@ function initAdmin() {
   loadServices();
   loadMaintenanceStatus();
   loadCalendar();
+  renderGreeting();
   startLiveClock();
   checkSuperAdmin();
+}
+
+function renderGreeting() {
+  const hour = new Date().getHours();
+  let greet = 'Good morning';
+  if (hour >= 12 && hour < 17) greet = 'Good afternoon';
+  else if (hour >= 17 && hour < 21) greet = 'Good evening';
+  else if (hour >= 21 || hour < 5) greet = 'Hello';
+
+  const greetEl = document.getElementById('greetName');
+  if (greetEl) greetEl.textContent = `${greet}, ${adminUser.firstName}!`;
+}
+
+function startLiveClock() {
+  const clockEl = document.getElementById('liveClock');
+  const dateEl = document.getElementById('liveDate');
+  if (!clockEl || !dateEl) return;
+  
+  function update() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: true 
+    });
+    dateEl.textContent = now.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+  
+  update();
+  setInterval(update, 1000);
 }
 
 function isFaculty() {
