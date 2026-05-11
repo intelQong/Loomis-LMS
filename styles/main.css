@@ -32,7 +32,7 @@
   --warning: #d97706;
   --danger: #dc2626;
   --info: #0284c7;
-  --font-sans: 'DM Sans', sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-serif: 'DM Serif Display', serif;
   
   /* Standard Color Shades */
