@@ -211,8 +211,8 @@ async function updateStudent({ request, env }, user, studentId) {
       body.assignedFacultyId || '',
       body.nextPaymentDate || '',
       body.enrolledDate || existing.enrolled_date,
-      body.classDays || '',
-      body.classTime || '',
+      body.classDays || existing.class_days || '',
+      body.classTime || existing.class_time || '',
       studentId
     ).run();
   } catch (e) {
