@@ -9,8 +9,8 @@
   <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
   <title>My Dashboard — AIMS English</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=49">
-  <link rel="stylesheet" href="styles/dashboard.css?v=49">
+  <link rel="stylesheet" href="styles/main.css?v=53">
+  <link rel="stylesheet" href="styles/dashboard.css?v=53">
 </head>
 
 <body class="dashboard-page">
@@ -110,12 +110,12 @@
                 <span style="font-weight:600; font-size:0.85rem; letter-spacing:0.05em; text-transform:uppercase; opacity:0.8;">AIMS English LMS</span>
               </div>
               <div class="greeting-content">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; width:100%">
                   <div>
                     <h2 id="greetName" style="margin-bottom:4px">Good morning, Niloy!</h2>
                     <p id="enrollStatus" style="font-size:1.1rem; opacity:0.9">Enrolled in Spoken English</p>
                   </div>
-                  <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
+                  <div id="liveDateTime" style="margin-left:auto; text-align:right; font-family:'DM Sans', sans-serif;">
                     <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
                     <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
                   </div>
@@ -397,7 +397,8 @@
             </div>
           </div>
           <div id="profileFields"></div>
-          <div style="margin-top:24px">
+          <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="openChangePasswordModal()">Change Password</button>
             <button class="btn-danger" onclick="handleLogout()">Sign Out</button>
           </div>
         </div>
@@ -431,21 +432,58 @@
             </div>
           </div>
         </div>
+
+        <div class="card" style="max-width:600px;margin-top:20px">
+          <h4 style="margin-bottom:8px">Account Security</h4>
+          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:18px;">Change your password anytime using your current password.</p>
+          <button class="btn-secondary" style="width:auto;padding:10px 20px" onclick="openChangePasswordModal()">Change Password</button>
+        </div>
       </section>
 
     </div><!-- /content-area -->
   </div><!-- /main-content -->
 
+
+  <!-- MODAL: Change Password -->
+  <div class="modal-backdrop hidden" id="changePasswordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
+      </div>
+      <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
+        Enter your current password before setting a new one. Other active sessions on your account will be signed out.
+      </p>
+      <div class="field">
+        <label>Current Password</label>
+        <input type="password" id="ownCurrentPassword" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="ownNewPassword" placeholder="Minimum 8 characters" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <input type="password" id="ownConfirmPassword" autocomplete="new-password">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update Password</button>
+      </div>
+      <div id="ownPasswordErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
   <!-- Toast container -->
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Cloudflare API client -->
-  <script src="js/app-data.js?v=49"></script>
-  <script src="js/api-client.js?v=49"></script>
-  <script src="js/student-dashboard.js?v=49"></script>
+  <script src="js/app-data.js?v=53"></script>
+  <script src="js/api-client.js?v=53"></script>
+  <script src="js/student-dashboard.js?v=53"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=49', { updateViaCache: 'none' });
+      navigator.serviceWorker.register('/sw.js?v=53', { updateViaCache: 'none' });
       
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
