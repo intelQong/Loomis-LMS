@@ -664,7 +664,7 @@
 
 .ad-video-container iframe {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   border: 0;
   max-height: 100%;
   object-fit: contain;
