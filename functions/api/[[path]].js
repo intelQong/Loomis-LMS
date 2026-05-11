@@ -13,6 +13,7 @@ const COURSES = {
 };
 
 const SESSION_DAYS = 7;
+const SUPER_ADMIN_EMAIL = 'admin@example.com';
 
 export async function onRequest(context) {
   try {
@@ -649,7 +650,6 @@ async function deleteService({ env }, user, id) {
 // ============================================================
 // Super Admin & Audit Logs
 // ============================================================
-const SUPER_ADMIN_EMAIL = 'admin@example.com';
 
 async function listAllUsers({ env }, user) {
   if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
@@ -712,9 +712,9 @@ async function deleteCalendarEntry({ env }, user, id) {
   return json({ ok: true });
 }
 
-async function logAction(db, admin, action, details, targetId = null) {
+async function logAction(env, admin, action, details, targetId = null) {
   try {
-    await db.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
+    await env.DB.prepare('INSERT INTO audit_logs (id, user_id, admin_email, action, details, target_id) VALUES (?, ?, ?, ?, ?, ?)')
       .bind(crypto.randomUUID(), admin.id, admin.email, action, details, targetId)
       .run();
   } catch (e) {
