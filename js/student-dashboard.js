@@ -121,10 +121,10 @@ function applyTheme(name) {
   root.style.setProperty('--primary-mid', theme.mid);
   root.style.setProperty('--shadow', `0 4px 16px ${theme.shadow}`);
   root.style.setProperty('--shadow-lg', `0 8px 32px ${theme.shadow.replace('0.12', '0.18')}`);
-  
+
   // Update sidebar gradient if needed (dashboard.css uses var(--teal-dark))
   localStorage.setItem('aims-theme', name);
-  
+
   // Update UI selection state if palette exists
   document.querySelectorAll('.theme-opt').forEach(opt => {
     opt.classList.toggle('active', opt.dataset.theme === name);
@@ -147,23 +147,23 @@ function renderGreeting() {
 
   document.getElementById('greetName').textContent = `${greet}, ${currentUser.firstName}!`;
   document.getElementById('greetIcon').textContent = icon;
-  
+
   const courseNames = getCourseNames(currentUser);
   document.getElementById('enrollStatus').textContent = `Enrolled in ${courseNames}`;
-  
+
   startLiveClock();
 }
 
 function startLiveClock() {
   const clockEl = document.getElementById('liveClock');
   const dateEl = document.getElementById('liveDate');
-  
+
   function update() {
     const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true 
+    clockEl.textContent = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
     dateEl.textContent = now.toLocaleDateString('en-GB', {
       weekday: 'long',
@@ -172,7 +172,7 @@ function startLiveClock() {
       year: 'numeric'
     });
   }
-  
+
   update();
   setInterval(update, 1000);
 }
@@ -280,7 +280,7 @@ function renderPayments() {
           <td><span class="badge badge-success">${p.status || 'Received'}</span></td>
         </tr>
       `).join('');
-    }).catch(() => {});
+    }).catch(() => { });
 
   // NEW: Installment Plan
   apiFetch('/api/installments')
@@ -309,7 +309,7 @@ function renderPayments() {
           </div>
         `;
       }).join('');
-    }).catch(() => {});
+    }).catch(() => { });
 }
 
 // ============================================================
@@ -408,7 +408,7 @@ let _adInitialized = false;
 async function loadAdBanners() {
   if (_adInitialized) return;
   _adInitialized = true;
-  
+
   try {
     const data = await apiFetch('/api/announcements?t=' + Date.now());
     const ads = data.announcements;
@@ -429,7 +429,7 @@ async function loadAdBanners() {
       const bgGradient = safeAnnouncementBackground(ad.bg_gradient || ad.bgGradient || 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)');
       const title = escapeHtml(ad.title || 'Announcement');
       const body = escapeHtml(ad.body || '');
-      
+
       const hasImg = !!imgUrl;
       const hasVideo = !!videoUrl;
       const isGradient = !hasImg && !hasVideo;
@@ -497,13 +497,13 @@ function startAdTimer() {
     clearInterval(_adSlideTimer);
     _adSlideTimer = null;
   }
-  
+
   if (!_adSlides.length) return;
   const currentSlide = document.querySelector('.ad-slide[data-index="' + _adSlideIndex + '"]');
   // Don't auto-advance if it's a video
   if (currentSlide && currentSlide.dataset.hasVideo === 'true') return;
 
-  _adSlideTimer = setInterval(function() { nextAdSlide(); }, 6000); // Slower interval
+  _adSlideTimer = setInterval(function () { nextAdSlide(); }, 6000); // Slower interval
 }
 
 function pauseAdTimer() {
@@ -525,15 +525,15 @@ function goToAdSlide(index) {
   const slides = document.querySelectorAll('.ad-slide');
   const dots = document.querySelectorAll('.ad-dot');
   if (!slides.length) return;
-  
+
   slides[_adSlideIndex].style.display = 'none';
   if (dots[_adSlideIndex]) dots[_adSlideIndex].classList.remove('active');
-  
+
   _adSlideIndex = (index + slides.length) % slides.length;
-  
+
   slides[_adSlideIndex].style.display = 'flex';
   if (dots[_adSlideIndex]) dots[_adSlideIndex].classList.add('active');
-  
+
   startAdTimer();
 }
 
@@ -573,7 +573,7 @@ function renderNotifications(notifs) {
 
   if (notifs.length === 0) {
     list.innerHTML = '<div class="notif-empty">No broadcasts yet</div>';
-    if(pageList) pageList.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:32px">No broadcasts yet.</td></tr>';
+    if (pageList) pageList.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-400);padding:32px">No broadcasts yet.</td></tr>';
     return;
   }
 
@@ -690,9 +690,11 @@ function showSection(name, btn) {
     'calendar': 'Academic Calendar',
     'profile': 'My Profile',
     'security': 'Security & Privacy',
-    'settings': 'Appearance Settings'
+    'settings': 'Appearance Settings',
+    'attendance': 'My Attendance'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
+  if (name === 'attendance') loadAttendance();
   closeSidebar();
 }
 
@@ -717,4 +719,38 @@ function showToast(msg, type = 'info') {
   toast.textContent = msg;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
+}
+
+// ============================================================
+// Attendance Logic
+// ============================================================
+async function loadAttendance() {
+  const tbody = document.getElementById('attendanceList');
+  if (!tbody) return;
+
+  try {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading attendance history...</td></tr>';
+
+    const { attendance } = await apiFetch('/api/attendance');
+
+    if (!attendance || attendance.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No attendance records yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = attendance.map(a => {
+      const statusClass = a.status === 'present' ? 'badge-success' : a.status === 'absent' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr>
+          <td style="font-weight:600">${formatDate(a.date)}</td>
+          <td><span class="badge ${statusClass}">${a.status.toUpperCase()}</span></td>
+          <td style="font-size:0.85rem">${a.course_id || 'General'}</td>
+          <td style="font-size:0.85rem;color:var(--gray-500)">${a.notes || '—'}</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--danger)">Error: ${err.message}</td></tr>`;
+  }
 }

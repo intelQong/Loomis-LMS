@@ -10,6 +10,32 @@ let adminRole = 'admin';
 (async function requireAdminOrFaculty() {
   const data = await getCurrentUserData();
   if (!data) { window.location.href = 'index.html'; return; }
+
+  // Check maintenance mode
+  try {
+    const maint = await apiFetch('/api/settings/maintenance');
+    if (maint.enabled && !data.isSuperAdmin) {
+      document.body.innerHTML = `
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:white;font-family:'Inter',sans-serif;text-align:center;padding:40px">
+          <div style="max-width:500px">
+            <div style="font-size:4rem;margin-bottom:24px">🔐</div>
+            <h1 style="font-size:2rem;font-weight:600;margin-bottom:16px">Maintenance in Progress</h1>
+            <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
+              The AIMS English LMS is currently undergoing essential administrative maintenance.<br><br>
+              Access to this portal is restricted to the <strong>System Developer / Super Admin</strong> at this time.
+            </p>
+            <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;backdrop-filter:blur(8px)">
+              <p style="font-size:0.9rem;opacity:0.7;margin-bottom:12px">If you are a student, please wait for the site to go live.</p>
+              <button onclick="window.location.href='index.html'" style="background:var(--white);color:var(--gray-900);border:none;padding:10px 24px;border-radius:8px;font-weight:600;cursor:pointer">Back to Login</button>
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+  } catch (e) {
+    console.error('Maintenance check failed:', e);
+  }
+
   if (!['admin', 'faculty'].includes(data.role)) {
     if (data.role === 'student') window.location.href = 'student-dashboard.html';
     else window.location.href = 'index.html';
@@ -37,6 +63,7 @@ function initAdmin() {
   renderGreeting();
   startLiveClock();
   checkSuperAdmin();
+  initAttendance();
 }
 
 function renderGreeting() {
@@ -54,13 +81,13 @@ function startLiveClock() {
   const clockEl = document.getElementById('liveClock');
   const dateEl = document.getElementById('liveDate');
   if (!clockEl || !dateEl) return;
-  
+
   function update() {
     const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true 
+    clockEl.textContent = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
     dateEl.textContent = now.toLocaleDateString('en-GB', {
       weekday: 'long',
@@ -69,7 +96,7 @@ function startLiveClock() {
       year: 'numeric'
     });
   }
-  
+
   update();
   setInterval(update, 1000);
 }
@@ -109,7 +136,7 @@ function handleFileSelect(input, urlId, previewId) {
   if (fileNameSpan) fileNameSpan.textContent = file.name;
 
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     const base64 = e.target.result;
     document.getElementById(urlId).value = base64;
     const preview = document.getElementById(previewId);
@@ -130,12 +157,12 @@ async function loadCalendar() {
     const data = await apiFetch('/api/calendar?t=' + Date.now());
     const tbody = document.getElementById('adminCalendarList');
     if (!tbody) return;
-    
+
     if (data.calendar.length === 0) {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No entries yet.</td></tr>';
       return;
     }
-    
+
     tbody.innerHTML = data.calendar.map(c => `
       <tr>
         <td style="font-weight:600">${formatDate(c.date)}</td>
@@ -166,13 +193,13 @@ async function createCalendarEntry() {
   const type = document.getElementById('calType').value;
   const desc = document.getElementById('calDesc').value.trim();
   const errEl = document.getElementById('calErr');
-  
+
   if (!title || !date) {
     errEl.textContent = 'Title and Date are required.';
     errEl.classList.remove('hidden');
     return;
   }
-  
+
   try {
     await apiFetch('/api/calendar', {
       method: 'POST',
@@ -207,7 +234,7 @@ async function loadStudents() {
   try {
     const data = await apiFetch('/api/students');
     allStudents = data.students;
-    
+
     // Also fetch all installments for financial insights
     try {
       const instData = await apiFetch('/api/installments');
@@ -231,11 +258,11 @@ async function loadStudents() {
 function renderOverviewStats() {
   const period = document.getElementById('statPeriod') ? document.getElementById('statPeriod').value : 'month';
   const now = new Date();
-  
+
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0,0,0,0);
+  startOfWeek.setHours(0, 0, 0, 0);
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const filterFn = (dateStr) => {
@@ -267,7 +294,7 @@ function renderOverviewStats() {
     .reduce((acc, i) => acc + (i.amount || 0), 0);
 
   // Fallback for "All Time" Revenue: if allInstallments is empty, use totalPaid from student records
-  const displayedRevenue = (period === 'all' && revenue === 0) 
+  const displayedRevenue = (period === 'all' && revenue === 0)
     ? allStudents.reduce((acc, s) => acc + (s.totalPaid || 0), 0)
     : revenue;
 
@@ -333,7 +360,7 @@ function renderStudentsTable(students) {
   tbody.innerHTML = students.map(s => {
     const courseNames = getCourseNames(s);
     const statusClass = s.status === 'active' ? 'badge-success' : s.status === 'pending' ? 'badge-warning' : 'badge-danger';
-    
+
     // Enrollment and Expiry calc
     const enrollDate = s.enrolledDate ? new Date(s.enrolledDate) : null;
     let expiryStr = '—';
@@ -375,8 +402,8 @@ function filterStudents() {
   const filtered = allStudents.filter(s => {
     const name = `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase();
     return (!q || name.includes(q)) &&
-           (!course || getCourseIds(s).includes(course)) &&
-           (!status || s.status === status);
+      (!course || getCourseIds(s).includes(course)) &&
+      (!status || s.status === status);
   });
   renderStudentsTable(filtered);
 }
@@ -485,7 +512,7 @@ async function saveStudentEdit() {
     closeModal('editStudentModal');
     await loadStudents();
     showToast('Student updated ✓', 'success');
-  } catch(e) {
+  } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
   }
@@ -497,7 +524,7 @@ async function saveStudentEdit() {
 function openAddStudentModal() {
   if (!canManageStudents()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
-  ['addFirst','addLast','addEmail','addPhone','addPassword','addStudentId','addFacultyId','addEnrolledDate'].forEach(id => {
+  ['addFirst', 'addLast', 'addEmail', 'addPhone', 'addPassword', 'addStudentId', 'addFacultyId', 'addEnrolledDate'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -534,16 +561,16 @@ async function addStudent() {
   try {
     await apiFetch('/api/students', {
       method: 'POST',
-      body: JSON.stringify({ 
-        firstName: first, 
-        lastName: last, 
-        email, 
-        phone, 
+      body: JSON.stringify({
+        firstName: first,
+        lastName: last,
+        email,
+        phone,
         course,
-        courses, 
-        password, 
-        studentId, 
-        assignedFacultyId, 
+        courses,
+        password,
+        studentId,
+        assignedFacultyId,
         enrolledDate,
         classDays: document.getElementById('addClassDays').value.trim(),
         classTime: document.getElementById('addClassTime').value.trim()
@@ -553,7 +580,7 @@ async function addStudent() {
     closeModal('addStudentModal');
     await loadStudents();
     showToast('Student created ✓', 'success');
-  } catch(e) {
+  } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
   }
@@ -694,7 +721,7 @@ async function sendNotification() {
     closeModal('notifModal');
     await loadNotifications();
     showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'} ✓`, 'success');
-  } catch(e) {
+  } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
   }
@@ -742,7 +769,34 @@ function renderPayTable(students) {
 
 function filterPayments() {
   const q = document.getElementById('paySearch').value.toLowerCase();
-  const filtered = q ? allStudents.filter(s => `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(q)) : allStudents;
+  const sortBy = document.getElementById('paySort').value;
+
+  let filtered = allStudents;
+  if (q) {
+    filtered = filtered.filter(s => `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(q));
+  }
+
+  // Sorting
+  filtered = [...filtered].sort((a, b) => {
+    if (sortBy === 'name') {
+      return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
+    }
+    if (sortBy === 'due_desc') {
+      return (b.totalDue || 0) - (a.totalDue || 0);
+    }
+    if (sortBy === 'date_asc') {
+      if (!a.nextPaymentDate) return 1;
+      if (!b.nextPaymentDate) return -1;
+      return new Date(a.nextPaymentDate) - new Date(b.nextPaymentDate);
+    }
+    if (sortBy === 'date_desc') {
+      if (!a.nextPaymentDate) return 1;
+      if (!b.nextPaymentDate) return -1;
+      return new Date(b.nextPaymentDate) - new Date(a.nextPaymentDate);
+    }
+    return 0;
+  });
+
   renderPayTable(filtered);
 }
 
@@ -750,26 +804,26 @@ function openPaymentModal(id) {
   if (!canManageStudents()) return;
   const s = allStudents.find(x => x.id === id);
   if (!s) return;
-  
+
   const totalFee = getCourseTotalFee(s);
   const courseName = getCourseNames(s);
-  
+
   document.getElementById('paymentStudentId').value = id;
   document.getElementById('paymentStudentName').textContent = `${s.firstName} ${s.lastName}`;
   document.getElementById('paymentStudentCourse').textContent = courseName;
   document.getElementById('paymentTotalFee').textContent = totalFee.toLocaleString();
-  
+
   document.getElementById('paymentPaid').value = s.totalPaid || 0;
   document.getElementById('paymentDiscount').value = s.discount || 0;
   document.getElementById('paymentDue').value = s.totalDue || 0;
   document.getElementById('paymentNextDate').value = s.nextPaymentDate ? s.nextPaymentDate.split('T')[0] : '';
   document.getElementById('paymentErr').classList.add('hidden');
-  
+
   recalculateDue();
-  
+
   // Load installments
   loadInstallmentsEditor(id);
-  
+
   openModal('paymentModal');
 }
 
@@ -831,7 +885,7 @@ function recalculateDue() {
   const totalFee = parseFloat(document.getElementById('paymentTotalFee').textContent.replace(/,/g, '')) || 0;
   const paid = parseFloat(document.getElementById('paymentPaid').value) || 0;
   const discount = parseFloat(document.getElementById('paymentDiscount').value) || 0;
-  
+
   const due = Math.max(0, totalFee - paid - discount);
   document.getElementById('paymentDue').value = due;
 }
@@ -843,7 +897,7 @@ async function savePayment() {
   try {
     const existing = allStudents.find(x => x.id === id);
     if (!existing) throw new Error("Student not found");
-    
+
     const paid = parseFloat(document.getElementById('paymentPaid').value) || 0;
     const due = parseFloat(document.getElementById('paymentDue').value) || 0;
     const nextDate = document.getElementById('paymentNextDate').value || '';
@@ -877,7 +931,7 @@ async function savePayment() {
     closeModal('paymentModal');
     await loadStudents();
     showToast('Payment and Installment Plan updated ✓', 'success');
-  } catch(e) {
+  } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
   }
@@ -934,13 +988,13 @@ async function createService() {
   const url = document.getElementById('serviceUrl').value.trim();
   const icon = document.getElementById('serviceIcon').value.trim();
   const errEl = document.getElementById('serviceErr');
-  
+
   if (!name || !url) {
     errEl.textContent = 'Name and URL are required.';
     errEl.classList.remove('hidden');
     return;
   }
-  
+
   try {
     await apiFetch('/api/services', {
       method: 'POST',
@@ -993,6 +1047,7 @@ async function loadSuperUsers() {
             <option value="faculty" ${u.role === 'faculty' ? 'selected' : ''}>Faculty</option>
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select>
+          <button class="btn-xs" onclick="openEditUser('${u.id}', '${u.firstName}', '${u.lastName}', '${u.email}')">Edit</button>
         </td>
       </tr>
     `).join('');
@@ -1065,9 +1120,11 @@ function showSection(name, btn) {
     'services': 'Other Services',
     'site-tools': 'Site Tools',
     'super-portal': 'Secure Portal',
-    'security': 'Security & Privacy'
+    'security': 'Security & Privacy',
+    'attendance': 'Attendance'
   };
   document.getElementById('pageTitle').textContent = titles[name] || name;
+  if (name === 'attendance') loadAttendanceList();
   closeSidebar();
 }
 
@@ -1121,12 +1178,12 @@ function renderAnnouncementsList(ads) {
     const title = escapeHtml(ad.title || 'Announcement');
     const body = escapeHtml(ad.body || '');
     const id = escapeHtml(ad.id || '');
-    
+
     return `
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
        ${videoUrl ? `<div style="width:220px;height:124px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);overflow:hidden"><iframe src="${videoUrl}" title="Announcement video preview" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0"></iframe></div>` :
-         (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+        (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
@@ -1160,7 +1217,7 @@ function openAnnouncementModal() {
   if (title) title.textContent = 'Create Announcement';
   const btn = document.getElementById('adSubmitBtn');
   if (btn) btn.textContent = 'Publish';
-  
+
   document.getElementById('adTitle').value = '';
   document.getElementById('adBody').value = '';
   document.getElementById('adImageUrl').value = '';
@@ -1181,18 +1238,18 @@ async function openEditAnnouncement(id) {
   try {
     const data = await apiFetch(`/api/announcements/${id}?t=` + Date.now());
     const ad = data.announcement;
-    
+
     document.getElementById('adId').value = ad.id;
     document.getElementById('adModalTitle').textContent = 'Edit Announcement';
     document.getElementById('adSubmitBtn').textContent = 'Update';
-    
+
     document.getElementById('adTitle').value = ad.title || '';
     document.getElementById('adBody').value = ad.body || '';
     document.getElementById('adImageUrl').value = ad.imageUrl || ad.image_url || '';
     document.getElementById('adVideoUrl').value = ad.videoUrl || ad.video_url || '';
     document.getElementById('adLinkUrl').value = ad.linkUrl || ad.link_url || '';
     document.getElementById('adLinkText').value = ad.linkText || ad.link_text || 'Learn More';
-    
+
     const grad = ad.bgGradient || ad.bg_gradient || '';
     const sel = document.getElementById('adGradient');
     for (let i = 0; i < sel.options.length; i++) {
@@ -1201,7 +1258,7 @@ async function openEditAnnouncement(id) {
         break;
       }
     }
-    
+
     if (ad.imageUrl || ad.image_url) {
       const preview = document.getElementById('adImagePreview');
       preview.style.display = 'block';
@@ -1209,7 +1266,7 @@ async function openEditAnnouncement(id) {
     } else {
       document.getElementById('adImagePreview').style.display = 'none';
     }
-    
+
     document.getElementById('adErr').classList.add('hidden');
     openModal('announcementModal');
   } catch (e) {
@@ -1453,10 +1510,208 @@ async function saveResetPassword() {
   }
 }
 
+function openEditUser(userId, fName, lName, email) {
+  window.targetEditUserId = userId;
+  document.getElementById('editUserDisplayEmail').textContent = email;
+  document.getElementById('editFirstName').value = fName || '';
+  document.getElementById('editLastName').value = lName || '';
+  document.getElementById('editUserNewPw').value = '';
+  document.getElementById('editUserConfirmPw').value = '';
+  document.getElementById('editUserErr').classList.add('hidden');
+  openModal('editUserModal');
+}
+
+async function saveUserChanges() {
+  const fName = document.getElementById('editFirstName').value.trim();
+  const lName = document.getElementById('editLastName').value.trim();
+  const newPass = document.getElementById('editUserNewPw').value;
+  const confirmPass = document.getElementById('editUserConfirmPw').value;
+  const errEl = document.getElementById('editUserErr');
+  errEl.classList.add('hidden');
+
+  if (!fName || !lName) {
+    errEl.textContent = 'First and Last name are required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  if (newPass) {
+    if (newPass.length < 8) {
+      errEl.textContent = 'Password must be at least 8 characters.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      errEl.textContent = 'Passwords do not match.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+  }
+
+  try {
+    const updateData = { firstName: fName, lastName: lName };
+    if (newPass) updateData.password = newPass;
+
+    const endpoint = `/api/super/update-user/${window.targetEditUserId}`;
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateData)
+    });
+
+    if (response.ok) {
+      showToast('User updated successfully');
+      closeModal('editUserModal');
+      if (typeof loadStudents === 'function') loadStudents();
+      if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
+    } else {
+      const data = await response.json();
+      errEl.textContent = data.error || 'Failed to update user';
+      errEl.classList.remove('hidden');
+    }
+  } catch (error) {
+    errEl.textContent = 'An error occurred. Please try again.';
+    errEl.classList.remove('hidden');
+  }
+}
+
 
 // Close modals on backdrop click
 document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-  backdrop.addEventListener('click', function(e) {
+  backdrop.addEventListener('click', function (e) {
     if (e.target === this) this.classList.add('hidden');
   });
 });
+
+// ============================================================
+// Attendance Logic
+// ============================================================
+let currentAttendanceMap = {};
+
+function initAttendance() {
+  const dateInput = document.getElementById('attendanceDate');
+  if (dateInput) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+}
+
+async function loadAttendanceList() {
+  const dateEl = document.getElementById('attendanceDate');
+  const courseEl = document.getElementById('attendanceCourseFilter');
+  if (!dateEl || !courseEl) return;
+
+  const date = dateEl.value;
+  const courseId = courseEl.value;
+  const tbody = document.getElementById('attendanceTable');
+  const countLabel = document.getElementById('attendanceCountLabel');
+
+  if (!date) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Please select a date.</td></tr>';
+    return;
+  }
+
+  try {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Loading students...</td></tr>';
+
+    const filteredStudents = allStudents.filter(s => {
+      if (s.status !== 'active') return false;
+      if (isFaculty() && s.assignedFacultyId !== adminUser.id) return false;
+      if (courseId && !s.courses.includes(courseId)) return false;
+      return true;
+    });
+
+    if (countLabel) countLabel.textContent = `${filteredStudents.length} Students`;
+
+    if (filteredStudents.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">No active students found for this selection.</td></tr>';
+      return;
+    }
+
+    const { attendance } = await apiFetch(`/api/attendance?date=${date}${courseId ? `&courseId=${courseId}` : ''}`);
+    currentAttendanceMap = {};
+    if (attendance) {
+      attendance.forEach(a => {
+        currentAttendanceMap[a.student_id] = a;
+      });
+    }
+
+    tbody.innerHTML = filteredStudents.map(s => {
+      const record = currentAttendanceMap[s.id] || { status: 'absent', notes: '' };
+      const statusClass = record.status === 'present' ? 'badge-success' : record.status === 'absent' ? 'badge-danger' : 'badge-warning';
+      return `
+        <tr data-student-id="${s.id}">
+          <td>
+            <div style="font-weight:600">${s.firstName} ${s.lastName}</div>
+            <div style="font-size:0.75rem;color:var(--gray-400)">${s.studentId || s.email}</div>
+          </td>
+          <td>
+            <div class="attendance-tap-area" onclick="toggleAttendanceStatus('${s.id}')" id="at-status-${s.id}" style="cursor:pointer; display:inline-block; padding:8px 16px; border-radius:8px; border:1px solid var(--gray-100); transition:0.2s; user-select:none">
+              <span class="badge ${statusClass}" style="pointer-events:none">${record.status.toUpperCase()}</span>
+            </div>
+          </td>
+          <td>
+            <input type="text" class="notes-input" placeholder="Notes..." value="${record.notes || ''}" style="width:100%;padding:6px 12px;border:1.5px solid var(--gray-100);border-radius:6px;font-size:0.85rem;outline:none">
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--danger)">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function toggleAttendanceStatus(studentId) {
+  const container = document.getElementById(`at-status-${studentId}`);
+  const badge = container.querySelector('.badge');
+  const statuses = ['present', 'absent', 'late', 'excused'];
+  let current = badge.textContent.toLowerCase();
+  
+  let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
+  let next = statuses[nextIdx];
+  
+  badge.textContent = next.toUpperCase();
+  badge.className = `badge badge-${next === 'present' ? 'success' : next === 'absent' ? 'danger' : 'warning'}`;
+  
+  // Feedback effect
+  container.style.transform = 'scale(1.05)';
+  setTimeout(() => container.style.transform = 'scale(1)', 100);
+}
+
+async function submitAttendance() {
+  const dateInput = document.getElementById('attendanceDate');
+  const courseEl = document.getElementById('attendanceCourseFilter');
+  if (!dateInput || !courseEl) return;
+
+  const date = dateInput.value;
+  const courseId = courseEl.value;
+  const rows = document.querySelectorAll('#attendanceTable tr[data-student-id]');
+
+  if (!date) {
+    showToast('Please select a date first.', 'error');
+    return;
+  }
+
+  const records = Array.from(rows).map(row => ({
+    studentId: row.dataset.studentId,
+    date,
+    courseId: courseId || '',
+    status: row.querySelector('.badge').textContent.toLowerCase(),
+    notes: row.querySelector('.notes-input').value
+  }));
+
+  try {
+    showLoading(true);
+    await apiFetch('/api/attendance', {
+      method: 'POST',
+      body: JSON.stringify({ records })
+    });
+    showLoading(false);
+    showToast('Attendance saved successfully ✓', 'success');
+  } catch (err) {
+    showLoading(false);
+    showToast(`Error: ${err.message}`, 'error');
+  }
+}
