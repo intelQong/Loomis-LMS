@@ -1,173 +1,695 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#FF7F50">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
-<title>Admin — AIMS English LMS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=57">
-<link rel="stylesheet" href="styles/dashboard.css?v=57">
-<link rel="stylesheet" href="styles/admin.css?v=57">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FF7F50">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
+  <title>Admin — AIMS English LMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css?v=57">
+  <link rel="stylesheet" href="styles/dashboard.css?v=57">
+  <link rel="stylesheet" href="styles/admin.css?v=57">
 </head>
+
 <body class="dashboard-page">
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <img class="logo-img" src="assets/aims-logo.jpeg" alt="AIMS English logo">
-    <span id="dashboardBrand">AIMS Admin</span>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Dashboard</div>
-    <button class="nav-item active" onclick="showSection('overview', this)">
-      <span class="nav-icon">📊</span> Overview
-    </button>
-    <button class="nav-item" id="nav-students" onclick="showSection('students', this)">
-      <span class="nav-icon">👥</span> Students
-      <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showSection('broadcasts', this)">
-      <span class="nav-icon">📢</span> Broadcasts
-    </button>
-
-    <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
-      <span class="nav-icon">💰</span> Payments
-    </button>
-    <div class="nav-section-label">System</div>
-    <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
-      <span class="nav-icon">✨</span> Announcements
-    </button>
-    <button class="nav-item" data-admin-only onclick="showSection('admin-calendar', this)">
-      <span class="nav-icon">📅</span> Academic Calendar
-    </button>
-    <button class="nav-item" onclick="showSection('services', this)">
-      <span class="nav-icon">🔗</span> Other Services
-    </button>
-    <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
-      <span class="nav-icon">⚙️</span> Site Tools
-    </button>
-    <button class="nav-item" onclick="showSection('security', this)">
-      <span class="nav-icon">🔒</span> Security & Privacy
-    </button>
-    
-    <!-- Super Admin Only -->
-    <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
-      <span class="nav-icon">🛡️</span> Secure Portal
-    </button>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar" id="sidebarAvatar">A</div>
-      <div class="user-meta">
-        <div class="user-name" id="sidebarName">Admin</div>
-        <div class="user-role" id="sidebarRole" style="color:var(--accent)">Administrator</div>
-      </div>
-      <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img class="logo-img" src="assets/aims-logo.jpeg" alt="AIMS English logo">
+      <span id="dashboardBrand">AIMS Admin</span>
     </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Dashboard</div>
+      <button class="nav-item active" onclick="showSection('overview', this)">
+        <span class="nav-icon">📊</span> Overview
+      </button>
+      <button class="nav-item" id="nav-students" onclick="showSection('students', this)">
+        <span class="nav-icon">👥</span> Students
+        <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="showSection('broadcasts', this)">
+        <span class="nav-icon">📢</span> Broadcasts
+      </button>
+      <button class="nav-item" onclick="showSection('attendance', this)">
+        <span class="nav-icon">📝</span> Attendance
+      </button>
+
+      <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
+        <span class="nav-icon">💰</span> Payments
+      </button>
+      <div class="nav-section-label">System</div>
+      <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
+        <span class="nav-icon">✨</span> Announcements
+      </button>
+      <button class="nav-item" data-admin-only onclick="showSection('admin-calendar', this)">
+        <span class="nav-icon">📅</span> Academic Calendar
+      </button>
+      <button class="nav-item" onclick="showSection('services', this)">
+        <span class="nav-icon">🔗</span> Other Services
+      </button>
+      <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
+        <span class="nav-icon">⚙️</span> Site Tools
+      </button>
+      <button class="nav-item" onclick="showSection('security', this)">
+        <span class="nav-icon">🔒</span> Security & Privacy
+      </button>
+
+      <!-- Super Admin Only -->
+      <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
+        <span class="nav-icon">🛡️</span> Secure Portal
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="sidebarAvatar">A</div>
+        <div class="user-meta">
+          <div class="user-name" id="sidebarName">Admin</div>
+          <div class="user-role" id="sidebarRole" style="color:var(--accent)">Administrator</div>
+        </div>
+        <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
+      </div>
     </div>
   </aside>
 
-<!-- Main -->
-<div class="main-content">
-  <header class="top-bar">
-    <div class="top-bar-left">
-      <button class="burger-btn" onclick="toggleSidebar()">☰</button>
-      <span class="page-title" id="pageTitle">Overview</span>
-    </div>
-    <div class="top-bar-right">
-      <span class="badge badge-gold" id="topRoleBadge">Admin</span>
-    </div>
-  </header>
+  <!-- Main -->
+  <div class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <button class="burger-btn" onclick="toggleSidebar()">☰</button>
+        <span class="page-title" id="pageTitle">Overview</span>
+      </div>
+      <div class="top-bar-right">
+        <span class="badge badge-gold" id="topRoleBadge">Admin</span>
+      </div>
+    </header>
 
-  <div class="content-area">
+    <div class="content-area">
 
-    <!-- SECTION: Overview -->
-    <section class="page-section active" id="section-overview">
-      <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gray-800); margin: 0;">Financial Insights</h3>
-        <div style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--gray-100); box-shadow: var(--shadow-sm);">
-          <span style="font-size: 0.85rem; color: var(--gray-500); font-weight: 500;">Period:</span>
-          <select id="statPeriod" onchange="renderOverviewStats()" style="border: none; background: transparent; font-size: 0.85rem; font-weight: 600; color: var(--primary-dark); cursor: pointer; outline: none; padding-right: 8px;">
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month" selected>This Month</option>
-            <option value="all">All Time</option>
+      <!-- SECTION: Overview -->
+      <section class="page-section active" id="section-overview">
+        <div
+          style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--gray-800); margin: 0;">Financial Insights</h3>
+          <div
+            style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--gray-100); box-shadow: var(--shadow-sm);">
+            <span style="font-size: 0.85rem; color: var(--gray-500); font-weight: 500;">Period:</span>
+            <select id="statPeriod" onchange="renderOverviewStats()"
+              style="border: none; background: transparent; font-size: 0.85rem; font-weight: 600; color: var(--primary-dark); cursor: pointer; outline: none; padding-right: 8px;">
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month" selected>This Month</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="greeting-content">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
+            <div>
+              <h2 id="greetName">Good morning, Admin!</h2>
+              <p>Here's what's happening today.</p>
+            </div>
+            <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
+              <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
+              <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="adminStatsGrid">
+          <div class="stat-card">
+            <div class="stat-icon teal">👥</div>
+            <div class="stat-body">
+              <div class="stat-value" id="ov-total">—</div>
+              <div class="stat-label" id="totalStudentsLabel">Total Students</div>
+            </div>
+          </div>
+          <div class="stat-card" id="pendingCard">
+            <div class="stat-icon warning">⏳</div>
+            <div class="stat-body">
+              <div class="stat-value" id="ov-pending">—</div>
+              <div class="stat-label">Pending Approval</div>
+            </div>
+          </div>
+          <div class="stat-card" id="revenueCard">
+            <div class="stat-icon success">💰</div>
+            <div class="stat-body">
+              <div class="stat-value" id="ov-revenue">৳0</div>
+              <div class="stat-label">Total Collected</div>
+            </div>
+          </div>
+          <div class="stat-card" id="dueCollectionCard">
+            <div class="stat-icon danger">📋</div>
+            <div class="stat-body">
+              <div class="stat-value" id="ov-due-collection">৳0</div>
+              <div class="stat-label">Due Collection</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compact Pending approvals -->
+        <div class="card" id="pendingQuickView" style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4 style="margin:0; font-size: 1rem; color: var(--gray-800);">Recent Registrations</h4>
+            <button class="btn-xs" style="padding: 6px 12px;"
+              onclick="showSection('students', document.getElementById('nav-students'))">Manage All</button>
+          </div>
+          <div id="pendingList"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+            <div style="text-align:center;padding:16px;color:var(--gray-400);grid-column: 1 / -1;">Loading...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Students -->
+      <section class="page-section" id="section-students">
+        <div class="section-header">
+          <div class="section-title" id="studentsSectionTitle">Students</div>
+          <button class="btn-primary" data-admin-only style="width:auto;padding:9px 18px"
+            onclick="openAddStudentModal()">+ Add Student</button>
+        </div>
+        <div class="admin-toolbar">
+          <input class="search-input" type="text" id="studentSearch" placeholder="🔍  Search by name or email..."
+            oninput="filterStudents()">
+          <select class="search-input" style="min-width:160px" id="courseFilter" onchange="filterStudents()">
+            <option value="">All Courses</option>
+            <optgroup label="IELTS">
+              <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+              <option value="ielts-fast-track">IELTS Fast Track</option>
+              <option value="ielts-platinum">IELTS Platinum</option>
+              <option value="ielts-online">IELTS Live/Online</option>
+              <option value="ielts-skill-focus">IELTS Skill Focus</option>
+              <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+            </optgroup>
+            <optgroup label="PTE">
+              <option value="pte-academic">PTE Academic</option>
+            </optgroup>
+            <optgroup label="Spoken English">
+              <option value="spoken-english">Spoken English</option>
+              <option value="business-english">Business English for Professionals</option>
+              <option value="spoken-english-online">Spoken English (Online)</option>
+              <option value="foundation-english">Foundation English & Phonetics</option>
+            </optgroup>
+          </select>
+          <select class="search-input" style="min-width:140px" id="statusFilter" onchange="filterStudents()">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="suspended">Suspended</option>
           </select>
         </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Status</th>
+                  <th>Enrolled Date</th>
+                  <th>Course Expiry</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTable">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Notifications -->
+      <section class="page-section" id="section-broadcasts">
+        <div class="section-header">
+          <div class="section-title" id="notificationsSectionTitle">Broadcasts</div>
+          <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="openNotifModal()">+ Send
+            Broadcast</button>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Target</th>
+                  <th>Sent</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="notifTable">
+                <tr>
+                  <td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Payments -->
+      <section class="page-section" id="section-payments">
+        <div class="section-header">
+          <div class="section-title">Payment Records</div>
+        </div>
+        <div class="admin-toolbar">
+          <input class="search-input" type="text" id="paySearch" placeholder="🔍  Search student..."
+            oninput="filterPayments()">
+          <select class="search-input" style="min-width:160px" id="paySort" onchange="filterPayments()">
+            <option value="name">Sort by Name</option>
+            <option value="due_desc">Sort by Due (High to Low)</option>
+            <option value="date_asc">Next Payment (Soonest)</option>
+            <option value="date_desc">Next Payment (Latest)</option>
+          </select>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Course</th>
+                  <th>Total Fee</th>
+                  <th>Paid</th>
+                  <th>Due</th>
+                  <th>Next Payment</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payTable">
+                <tr>
+                  <td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Announcements -->
+      <section class="page-section" id="section-announcements">
+        <div class="section-header">
+          <div class="section-title">Announcements / Ads</div>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openAnnouncementModal()">+ New
+            Announcement</button>
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These banners appear on the student
+          dashboard. Students can see them immediately.</p>
+        <div id="announcementsManageList" style="display:flex;flex-direction:column;gap:16px">
+          <div style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</div>
+        </div>
+      </section>
+
+      <!-- SECTION: Academic Calendar Management -->
+      <section class="page-section" id="section-admin-calendar">
+        <div class="section-header">
+          <div class="section-title">Academic Calendar Management</div>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add
+            Event/Holiday</button>
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Manage events, holidays, and exams for the
+          student portal.</p>
+
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Title</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminCalendarList">
+              <tr>
+                <td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="page-section" id="section-services">
+        <div class="section-header">
+          <div class="section-title">Other Services</div>
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openServiceModal()">+ Add
+            Service</button>
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These links appear on the student
+          dashboard under "Other Services".</p>
+
+        <div id="servicesManageList"
+          style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
+          <div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Loading services...</div>
+        </div>
+      </section>
+
+      </section>
+
+      <!-- SECTION: Secure Portal (Super Admin) -->
+      <section class="page-section" id="section-super-portal">
+        <div class="section-header">
+          <div class="section-title">Secure Portal — User Management</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Restricted access for System
+          Administrator. Manage roles and system permissions.</p>
+
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Current Role</th>
+                <th>Change Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="superUserList">
+              <tr>
+                <td colspan="4" style="text-align:center;padding:32px">Loading all users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section-header" style="margin-top:40px">
+          <div class="section-title">System Audit Logs</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Permanent history of all administrative
+          actions. This log cannot be edited or deleted.</p>
+
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Admin</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogList">
+              <tr>
+                <td colspan="4" style="text-align:center;padding:32px">Loading history...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION: Site Tools -->
+      <section class="page-section" id="section-site-tools">
+        <div class="section-header">
+          <div class="section-title">Site Tools</div>
+        </div>
+        <div class="card" style="max-width:600px;margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+            <div>
+              <h3 style="font-size:1.1rem;margin-bottom:4px;color:var(--gray-800)">🚧 Maintenance Mode</h3>
+              <p style="font-size:0.85rem;color:var(--gray-500);line-height:1.5;max-width:360px">
+                When enabled, students and visitors will see a "Site Under Maintenance" page instead of the normal
+                dashboard.
+              </p>
+            </div>
+            <label style="position:relative;display:inline-block;width:56px;height:30px;flex-shrink:0">
+              <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)"
+                style="opacity:0;width:0;height:0">
+              <span id="maintenanceTrack"
+                style="position:absolute;cursor:pointer;inset:0;background:var(--gray-300);border-radius:30px;transition:0.3s"></span>
+
+              <span
+                style="position:absolute;left:4px;top:4px;width:22px;height:22px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2)"
+                id="maintenanceSlider"></span>
+            </label>
+          </div>
+          <div id="maintenanceStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)">Loading status...
+          </div>
+        </div>
+
+        <div class="card" style="max-width:600px">
+          <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🧹 Service Worker Cache</h3>
+          <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
+            If students are seeing outdated pages after a deployment, click below to clear the service worker cache.
+            This forces all browsers to download fresh files on their next visit.
+          </p>
+          <button class="btn-danger" style="display:inline-flex;align-items:center;gap:8px" onclick="clearAllCaches()">
+            🗑️ Clear Service Worker Cache
+          </button>
+          <div id="cacheStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)"></div>
+
+          <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--gray-100)">
+            <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🔄 Force Reload</h3>
+            <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
+              Unregister the service worker entirely and hard-reload this page. Useful if cached files are stuck.
+            </p>
+            <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="forceFullReload()">
+              🚀 Unregister SW &amp; Reload
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Security & Privacy -->
+      <section class="page-section" id="section-security">
+        <div class="section-header">
+          <div class="section-title">Security & Privacy</div>
+        </div>
+        <div class="card" style="max-width:600px">
+          <h4 style="margin-bottom:12px">Administrative Security</h4>
+          <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:20px;">
+            As an administrator, your account access is critical. Ensure your password is secure and do not share your
+            credentials.
+          </p>
+          <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="openChangePasswordModal()">
+            Change Admin Password
+          </button>
+
+          <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--gray-100)">
+            <h4 style="margin-bottom:12px">Access Control</h4>
+            <p style="color:var(--gray-500); font-size:0.9rem; line-height:1.6">
+              All administrative actions are logged in the system audit trail for security compliance.
+              Access is restricted based on your assigned role (Admin/Faculty).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: Attendance -->
+      <section class="page-section" id="section-attendance">
+        <div class="section-header">
+          <div class="section-title">Attendance Management</div>
+          <div style="display:flex; gap:10px; align-items:center">
+            <input type="date" id="attendanceDate" class="search-input" style="width:auto" onchange="loadAttendanceList()">
+            <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="submitAttendance()">Save All</button>
+          </div>
+        </div>
+        <div class="admin-toolbar">
+          <select class="search-input" style="min-width:180px" id="attendanceCourseFilter" onchange="loadAttendanceList()">
+            <option value="">All Courses</option>
+            <optgroup label="IELTS">
+              <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+              <option value="ielts-fast-track">IELTS Fast Track</option>
+              <option value="ielts-platinum">IELTS Platinum</option>
+              <option value="ielts-online">IELTS Live/Online</option>
+              <option value="ielts-skill-focus">IELTS Skill Focus</option>
+              <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+            </optgroup>
+            <optgroup label="PTE">
+              <option value="pte-academic">PTE Academic</option>
+            </optgroup>
+            <optgroup label="Spoken English">
+              <option value="spoken-english">Spoken English</option>
+              <option value="business-english">Business English for Professionals</option>
+              <option value="spoken-english-online">Spoken English (Online)</option>
+              <option value="foundation-english">Foundation English & Phonetics</option>
+            </optgroup>
+          </select>
+          <p style="font-size:0.85rem;color:var(--gray-500);margin-left:auto" id="attendanceCountLabel">Loading students...</p>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Status (Tap to Change)</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTable">
+                <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Select a date to start marking attendance.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Create Announcement -->
+  <div class="modal-backdrop hidden" id="announcementModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="adModalTitle">Create Announcement</h3>
+        <button class="modal-close" onclick="closeModal('announcementModal')">✕</button>
+      </div>
+      <input type="hidden" id="adId">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="adTitle" placeholder="e.g. 🎉 Eid Special Offer!">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="adBody" rows="3" placeholder="Get 30% off on all IELTS courses this month!"></textarea>
+      </div>
+      <div class="field">
+        <label>Banner Image</label>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+          <input type="file" id="adImageFile" accept="image/*" style="display:none"
+            onchange="handleFileSelect(this, 'adImageUrl', 'adImagePreview')">
+          <button class="btn-secondary" onclick="document.getElementById('adImageFile').click()"
+            style="padding:8px 14px;font-size:0.85rem">📷 Choose File</button>
+          <span id="adImageFileName" style="font-size:0.85rem;color:var(--gray-500)">No file chosen</span>
+        </div>
+        <div id="adImagePreview" style="margin-bottom:10px;display:none">
+          <img src=""
+            style="max-width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-200)">
+        </div>
+        <label>Or Image URL <span class="optional">(optional)</span></label>
+        <input type="text" id="adImageUrl" placeholder="https://i.imgur.com/example.jpg">
+
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Choosing a file will overwrite the URL
+          field.</div>
       </div>
 
-      <div class="greeting-content">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px">
-          <div>
-            <h2 id="greetName">Good morning, Admin!</h2>
-            <p>Here's what's happening today.</p>
-          </div>
-          <div id="liveDateTime" style="text-align:right; font-family:'DM Sans', sans-serif;">
-            <div id="liveClock" style="font-size:1.5rem; font-weight:600; line-height:1">--:-- --</div>
-            <div id="liveDate" style="font-size:0.9rem; opacity:0.8; margin-top:4px">Monday, 11 May 2026</div>
-          </div>
-        </div>
+      <div class="field">
+        <label>Video Embed URL <span class="optional">(optional)</span></label>
+        <input type="text" id="adVideoUrl" placeholder="Paste any HTTPS iframe embed code or embed URL">
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Paste an HTTPS video iframe code or iframe
+          src URL from any provider. Some sites still block embedding; put normal event/page links in the Button Link
+          field.</div>
       </div>
 
-      <div class="stats-grid" id="adminStatsGrid">
-        <div class="stat-card">
-          <div class="stat-icon teal">👥</div>
-          <div class="stat-body">
-            <div class="stat-value" id="ov-total">—</div>
-            <div class="stat-label" id="totalStudentsLabel">Total Students</div>
-          </div>
+      <div class="field-row-2">
+        <div class="field">
+          <label>Button Link <span class="optional">(optional)</span></label>
+          <input type="url" id="adLinkUrl" placeholder="https://...">
         </div>
-        <div class="stat-card" id="pendingCard">
-          <div class="stat-icon warning">⏳</div>
-          <div class="stat-body">
-            <div class="stat-value" id="ov-pending">—</div>
-            <div class="stat-label">Pending Approval</div>
-          </div>
+        <div class="field">
+          <label>Button Text</label>
+          <input type="text" id="adLinkText" placeholder="Learn More" value="Learn More">
         </div>
-        <div class="stat-card" id="revenueCard">
-          <div class="stat-icon success">💰</div>
-          <div class="stat-body">
-            <div class="stat-value" id="ov-revenue">৳0</div>
-            <div class="stat-label">Total Collected</div>
-          </div>
-        </div>
-        <div class="stat-card" id="dueCollectionCard">
-          <div class="stat-icon danger">📋</div>
-          <div class="stat-body">
-            <div class="stat-value" id="ov-due-collection">৳0</div>
-            <div class="stat-label">Due Collection</div>
-          </div>
-        </div>
+      </div>
+      <div class="field">
+        <label>Banner Style</label>
+        <select id="adGradient">
+          <option value="linear-gradient(135deg, #0d9488 0%, #0891b2 100%)">🟢 Teal (Default)</option>
+          <option value="linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)">🟣 Purple</option>
+          <option value="linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)">🟠 Orange / Gold</option>
+          <option value="linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)">🔴 Red / Pink</option>
+          <option value="linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)">🔵 Blue</option>
+          <option value="linear-gradient(135deg, #1e293b 0%, #334155 100%)">⚫ Dark</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('announcementModal')">Cancel</button>
+        <button class="btn-primary" id="adSubmitBtn" style="width:auto;padding:10px 24px"
+          onclick="createAnnouncement()">Publish</button>
+      </div>
+      <div id="adErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Send Notification -->
+  <div class="modal-backdrop hidden" id="notifModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Send Broadcast</h3>
+        <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
       </div>
 
-      <!-- Compact Pending approvals -->
-      <div class="card" id="pendingQuickView" style="padding: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h4 style="margin:0; font-size: 1rem; color: var(--gray-800);">Recent Registrations</h4>
-          <button class="btn-xs" style="padding: 6px 12px;" onclick="showSection('students', document.getElementById('nav-students'))">Manage All</button>
-        </div>
-        <div id="pendingList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
-          <div style="text-align:center;padding:16px;color:var(--gray-400);grid-column: 1 / -1;">Loading...</div>
-        </div>
+      <div class="field">
+        <label>Target Audience</label>
+        <select id="notifTarget" onchange="toggleStudentSelect()">
+          <option value="all">📢 All Students (Mass Notification)</option>
+          <option value="individual">👤 Individual Student</option>
+        </select>
       </div>
-    </section>
+      <div class="field hidden" id="studentSelectField">
+        <label>Select Student</label>
+        <select id="notifStudent"></select>
+      </div>
+      <div class="field">
+        <label>Notification Title</label>
+        <input type="text" id="notifTitle" placeholder="e.g. Class postponed – Saturday">
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea id="notifBody" placeholder="Write your message here..."></textarea>
+      </div>
+      <div class="field">
+        <label>Attach Image <span class="optional">(optional)</span></label>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+          <input type="file" id="notifImageFile" accept="image/*" style="display:none"
+            onchange="handleFileSelect(this, 'notifImageUrl', 'notifImagePreview')">
+          <button class="btn-secondary" onclick="document.getElementById('notifImageFile').click()"
+            style="padding:8px 14px;font-size:0.85rem">📷 Choose Image</button>
+          <span id="notifImageFileName" style="font-size:0.85rem;color:var(--gray-500)">No image chosen</span>
+        </div>
+        <div id="notifImagePreview" style="margin-bottom:10px;display:none">
+          <img src=""
+            style="max-width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--gray-200)">
+        </div>
+        <input type="hidden" id="notifImageUrl">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send
+          Broadcast</button>
+      </div>
 
-    <!-- SECTION: Students -->
-    <section class="page-section" id="section-students">
-      <div class="section-header">
-        <div class="section-title" id="studentsSectionTitle">Students</div>
-        <button class="btn-primary" data-admin-only style="width:auto;padding:9px 18px" onclick="openAddStudentModal()">+ Add Student</button>
+      <div id="notifModalErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Edit Student -->
+  <div class="modal-backdrop hidden" id="editStudentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Student</h3>
+        <button class="modal-close" onclick="closeModal('editStudentModal')">✕</button>
       </div>
-      <div class="admin-toolbar">
-        <input class="search-input" type="text" id="studentSearch" placeholder="🔍  Search by name or email..." oninput="filterStudents()">
-        <select class="search-input" style="min-width:160px" id="courseFilter" onchange="filterStudents()">
-          <option value="">All Courses</option>
+      <input type="hidden" id="editStudentId">
+      <div class="field-row-2">
+        <div class="field">
+          <label>First Name</label>
+          <input type="text" id="editFirst">
+        </div>
+        <div class="field">
+          <label>Last Name</label>
+          <input type="text" id="editLast">
+        </div>
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input type="text" id="editPhone">
+      </div>
+      <div class="field">
+        <label>Courses</label>
+        <select id="editCourse" multiple size="8">
           <optgroup label="IELTS">
             <option value="ielts-regular">IELTS Regular (AC/GT)</option>
             <option value="ielts-fast-track">IELTS Fast Track</option>
@@ -186,793 +708,414 @@
             <option value="foundation-english">Foundation English & Phonetics</option>
           </optgroup>
         </select>
-        <select class="search-input" style="min-width:140px" id="statusFilter" onchange="filterStudents()">
-          <option value="">All Status</option>
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.
+        </div>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="editStatus">
           <option value="active">Active</option>
           <option value="pending">Pending</option>
           <option value="suspended">Suspended</option>
         </select>
       </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Status</th>
-                <th>Enrolled Date</th>
-                <th>Course Expiry</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentsTable">
-              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
-            </tbody>
-          </table>
+
+      <div class="field">
+        <label>Student ID</label>
+        <input type="text" id="editStudentIdField">
+      </div>
+      <div class="field">
+        <label>Assigned Faculty UID <span class="optional">(optional)</span></label>
+        <input type="text" id="editFacultyId" placeholder="Faculty user document ID">
+      </div>
+      <div class="field">
+        <label>Enrolled Date</label>
+        <input type="date" id="editEnrolledDate">
+      </div>
+
+      <div class="field-row-2">
+        <div class="field">
+          <label>Class Days</label>
+          <select id="editClassDays">
+            <option value="">— Select Days —</option>
+            <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
+            <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
+            <option value="Fri, Sat">Fri, Sat</option>
+            <option value="Everyday">Everyday</option>
+            <option value="Mon-Fri">Mon-Fri</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Class Time</label>
+          <select id="editClassTime">
+            <option value="">— Select Time —</option>
+            <option value="8:00 AM">8:00 AM</option>
+            <option value="9:00 AM">9:00 AM</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="1:00 PM">1:00 PM</option>
+            <option value="2:00 PM">2:00 PM</option>
+            <option value="3:00 PM">3:00 PM</option>
+            <option value="4:00 PM">4:00 PM</option>
+            <option value="5:00 PM">5:00 PM</option>
+            <option value="6:00 PM">6:00 PM</option>
+            <option value="7:00 PM">7:00 PM</option>
+            <option value="8:00 PM">8:00 PM</option>
+          </select>
         </div>
       </div>
-    </section>
-
-    <!-- SECTION: Notifications -->
-    <section class="page-section" id="section-broadcasts">
-      <div class="section-header">
-        <div class="section-title" id="notificationsSectionTitle">Broadcasts</div>
-        <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="openNotifModal()">+ Send Broadcast</button>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveStudentEdit()">Save
+          Changes</button>
       </div>
-
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Target</th>
-                <th>Sent</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="notifTable">
-              <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: Payments -->
-    <section class="page-section" id="section-payments">
-      <div class="section-header">
-        <div class="section-title">Payment Records</div>
-      </div>
-      <div class="admin-toolbar">
-        <input class="search-input" type="text" id="paySearch" placeholder="🔍  Search student..." oninput="filterPayments()">
-      </div>
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Total Fee</th>
-                <th>Paid</th>
-                <th>Due</th>
-                <th>Next Payment</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="payTable">
-              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: Announcements -->
-    <section class="page-section" id="section-announcements">
-      <div class="section-header">
-        <div class="section-title">Announcements / Ads</div>
-        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openAnnouncementModal()">+ New Announcement</button>
-      </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These banners appear on the student dashboard. Students can see them immediately.</p>
-      <div id="announcementsManageList" style="display:flex;flex-direction:column;gap:16px">
-        <div style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</div>
-      </div>
-    </section>
-
-    <!-- SECTION: Academic Calendar Management -->
-    <section class="page-section" id="section-admin-calendar">
-      <div class="section-header">
-        <div class="section-title">Academic Calendar Management</div>
-        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openCalendarModal()">+ Add Event/Holiday</button>
-      </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Manage events, holidays, and exams for the student portal.</p>
-      
-      <div class="card" style="padding:0; overflow:hidden">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Type</th>
-              <th>Title</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="adminCalendarList">
-            <tr><td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-    <section class="page-section" id="section-services">
-      <div class="section-header">
-        <div class="section-title">Other Services</div>
-        <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="openServiceModal()">+ Add Service</button>
-      </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">These links appear on the student dashboard under "Other Services".</p>
-      
-      <div id="servicesManageList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:16px">
-        <div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Loading services...</div>
-      </div>
-    </section>
-
-    </section>
-
-    <!-- SECTION: Secure Portal (Super Admin) -->
-    <section class="page-section" id="section-super-portal">
-      <div class="section-header">
-        <div class="section-title">Secure Portal — User Management</div>
-      </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Restricted access for System Administrator. Manage roles and system permissions.</p>
-      
-      <div class="card" style="padding:0; overflow:hidden">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Current Role</th>
-              <th>Change Role</th>
-            </tr>
-          </thead>
-          <tbody id="superUserList">
-            <tr><td colspan="4" style="text-align:center;padding:32px">Loading all users...</td></tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <div class="section-header" style="margin-top:40px">
-        <div class="section-title">System Audit Logs</div>
-      </div>
-      <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Permanent history of all administrative actions. This log cannot be edited or deleted.</p>
-      
-      <div class="card" style="padding:0; overflow:hidden">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date & Time</th>
-              <th>Admin</th>
-              <th>Action</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody id="auditLogList">
-            <tr><td colspan="4" style="text-align:center;padding:32px">Loading history...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- SECTION: Site Tools -->
-    <section class="page-section" id="section-site-tools">
-      <div class="section-header">
-        <div class="section-title">Site Tools</div>
-      </div>
-      <div class="card" style="max-width:600px;margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
-          <div>
-            <h3 style="font-size:1.1rem;margin-bottom:4px;color:var(--gray-800)">🚧 Maintenance Mode</h3>
-            <p style="font-size:0.85rem;color:var(--gray-500);line-height:1.5;max-width:360px">
-              When enabled, students and visitors will see a "Site Under Maintenance" page instead of the normal dashboard.
-            </p>
-          </div>
-          <label style="position:relative;display:inline-block;width:56px;height:30px;flex-shrink:0">
-            <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenanceMode(this.checked)" style="opacity:0;width:0;height:0">
-            <span id="maintenanceTrack" style="position:absolute;cursor:pointer;inset:0;background:var(--gray-300);border-radius:30px;transition:0.3s"></span>
-
-            <span style="position:absolute;left:4px;top:4px;width:22px;height:22px;background:white;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.2)" id="maintenanceSlider"></span>
-          </label>
-        </div>
-        <div id="maintenanceStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)">Loading status...</div>
-      </div>
-
-      <div class="card" style="max-width:600px">
-        <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🧹 Service Worker Cache</h3>
-        <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
-          If students are seeing outdated pages after a deployment, click below to clear the service worker cache. This forces all browsers to download fresh files on their next visit.
-        </p>
-        <button class="btn-danger" style="display:inline-flex;align-items:center;gap:8px" onclick="clearAllCaches()">
-          🗑️ Clear Service Worker Cache
-        </button>
-        <div id="cacheStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)"></div>
-
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--gray-100)">
-          <h3 style="font-size:1.1rem;margin-bottom:8px;color:var(--gray-800)">🔄 Force Reload</h3>
-          <p style="font-size:0.875rem;color:var(--gray-500);line-height:1.6;margin-bottom:20px">
-            Unregister the service worker entirely and hard-reload this page. Useful if cached files are stuck.
-          </p>
-          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="forceFullReload()">
-            🚀 Unregister SW &amp; Reload
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: Security & Privacy -->
-    <section class="page-section" id="section-security">
-      <div class="section-header">
-        <div class="section-title">Security & Privacy</div>
-      </div>
-      <div class="card" style="max-width:600px">
-        <h4 style="margin-bottom:12px">Administrative Security</h4>
-        <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:20px;">
-          As an administrator, your account access is critical. Ensure your password is secure and do not share your credentials.
-        </p>
-        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="openChangePasswordModal()">
-          Change Admin Password
-        </button>
-        
-        <div style="margin-top:32px; padding-top:24px; border-top:1px solid var(--gray-100)">
-          <h4 style="margin-bottom:12px">Access Control</h4>
-          <p style="color:var(--gray-500); font-size:0.9rem; line-height:1.6">
-            All administrative actions are logged in the system audit trail for security compliance. 
-            Access is restricted based on your assigned role (Admin/Faculty).
-          </p>
-        </div>
-      </div>
-    </section>
-
+      <div id="editStudentErr" class="error-msg hidden"></div>
+    </div>
   </div>
-</div>
 
-<!-- MODAL: Create Announcement -->
-<div class="modal-backdrop hidden" id="announcementModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="adModalTitle">Create Announcement</h3>
-      <button class="modal-close" onclick="closeModal('announcementModal')">✕</button>
-    </div>
-    <input type="hidden" id="adId">
-    <div class="field">
-      <label>Title</label>
-      <input type="text" id="adTitle" placeholder="e.g. 🎉 Eid Special Offer!">
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <textarea id="adBody" rows="3" placeholder="Get 30% off on all IELTS courses this month!"></textarea>
-    </div>
-    <div class="field">
-      <label>Banner Image</label>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-        <input type="file" id="adImageFile" accept="image/*" style="display:none" onchange="handleFileSelect(this, 'adImageUrl', 'adImagePreview')">
-        <button class="btn-secondary" onclick="document.getElementById('adImageFile').click()" style="padding:8px 14px;font-size:0.85rem">📷 Choose File</button>
-        <span id="adImageFileName" style="font-size:0.85rem;color:var(--gray-500)">No file chosen</span>
+  <!-- MODAL: Add Student -->
+  <div class="modal-backdrop hidden" id="addStudentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Student</h3>
+        <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
       </div>
-      <div id="adImagePreview" style="margin-bottom:10px;display:none">
-        <img src="" style="max-width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-200)">
+      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Manually create a student account
+        (admin-approved instantly).</p>
+      <div class="field-row-2">
+        <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
+        <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
       </div>
-      <label>Or Image URL <span class="optional">(optional)</span></label>
-      <input type="text" id="adImageUrl" placeholder="https://i.imgur.com/example.jpg">
-
-      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Choosing a file will overwrite the URL field.</div>
-    </div>
-
-    <div class="field">
-      <label>Video Embed URL <span class="optional">(optional)</span></label>
-      <input type="text" id="adVideoUrl" placeholder="Paste any HTTPS iframe embed code or embed URL">
-      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Paste an HTTPS video iframe code or iframe src URL from any provider. Some sites still block embedding; put normal event/page links in the Button Link field.</div>
-    </div>
-
-    <div class="field-row-2">
+      <div class="field"><label>Email</label><input type="email" id="addEmail"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="addPhone"></div>
       <div class="field">
-        <label>Button Link <span class="optional">(optional)</span></label>
-        <input type="url" id="adLinkUrl" placeholder="https://...">
+        <label>Courses</label>
+        <select id="addCourse" multiple size="8">
+          <optgroup label="IELTS">
+            <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+            <option value="ielts-fast-track">IELTS Fast Track</option>
+            <option value="ielts-platinum">IELTS Platinum</option>
+            <option value="ielts-online">IELTS Live/Online</option>
+            <option value="ielts-skill-focus">IELTS Skill Focus</option>
+            <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+          </optgroup>
+          <optgroup label="PTE">
+            <option value="pte-academic">PTE Academic</option>
+          </optgroup>
+          <optgroup label="Spoken English">
+            <option value="spoken-english">Spoken English</option>
+            <option value="business-english">Business English for Professionals</option>
+            <option value="spoken-english-online">Spoken English (Online)</option>
+            <option value="foundation-english">Foundation English & Phonetics</option>
+          </optgroup>
+        </select>
+        <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.
+        </div>
       </div>
-      <div class="field">
-        <label>Button Text</label>
-        <input type="text" id="adLinkText" placeholder="Learn More" value="Learn More">
+      <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars">
       </div>
+      <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text"
+          id="addStudentId" placeholder="AIMS-XXXX"></div>
+      <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text"
+          id="addFacultyId" placeholder="Faculty user document ID"></div>
+      <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
+      <div class="field-row-2">
+        <div class="field">
+          <label>Class Days</label>
+          <select id="addClassDays">
+            <option value="">— Select Days —</option>
+            <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
+            <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
+            <option value="Fri, Sat">Fri, Sat</option>
+            <option value="Everyday">Everyday</option>
+            <option value="Mon-Fri">Mon-Fri</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Class Time</label>
+          <select id="addClassTime">
+            <option value="">— Select Time —</option>
+            <option value="8:00 AM">8:00 AM</option>
+            <option value="9:00 AM">9:00 AM</option>
+            <option value="10:00 AM">10:00 AM</option>
+            <option value="11:00 AM">11:00 AM</option>
+            <option value="12:00 PM">12:00 PM</option>
+            <option value="1:00 PM">1:00 PM</option>
+            <option value="2:00 PM">2:00 PM</option>
+            <option value="3:00 PM">3:00 PM</option>
+            <option value="4:00 PM">4:00 PM</option>
+            <option value="5:00 PM">5:00 PM</option>
+            <option value="6:00 PM">6:00 PM</option>
+            <option value="7:00 PM">7:00 PM</option>
+            <option value="8:00 PM">8:00 PM</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="addStudent()">Create Account</button>
+      </div>
+      <div id="addStudentErr" class="error-msg hidden"></div>
     </div>
-    <div class="field">
-      <label>Banner Style</label>
-      <select id="adGradient">
-        <option value="linear-gradient(135deg, #0d9488 0%, #0891b2 100%)">🟢 Teal (Default)</option>
-        <option value="linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)">🟣 Purple</option>
-        <option value="linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)">🟠 Orange / Gold</option>
-        <option value="linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)">🔴 Red / Pink</option>
-        <option value="linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)">🔵 Blue</option>
-        <option value="linear-gradient(135deg, #1e293b 0%, #334155 100%)">⚫ Dark</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('announcementModal')">Cancel</button>
-      <button class="btn-primary" id="adSubmitBtn" style="width:auto;padding:10px 24px" onclick="createAnnouncement()">Publish</button>
-    </div>
-    <div id="adErr" class="error-msg hidden"></div>
   </div>
-</div>
 
-<!-- MODAL: Send Notification -->
-<div class="modal-backdrop hidden" id="notifModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Send Broadcast</h3>
-      <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
-    </div>
-
-    <div class="field">
-      <label>Target Audience</label>
-      <select id="notifTarget" onchange="toggleStudentSelect()">
-        <option value="all">📢 All Students (Mass Notification)</option>
-        <option value="individual">👤 Individual Student</option>
-      </select>
-    </div>
-    <div class="field hidden" id="studentSelectField">
-      <label>Select Student</label>
-      <select id="notifStudent"></select>
-    </div>
-    <div class="field">
-      <label>Notification Title</label>
-      <input type="text" id="notifTitle" placeholder="e.g. Class postponed – Saturday">
-    </div>
-    <div class="field">
-      <label>Message</label>
-      <textarea id="notifBody" placeholder="Write your message here..."></textarea>
-    </div>
-    <div class="field">
-      <label>Attach Image <span class="optional">(optional)</span></label>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-        <input type="file" id="notifImageFile" accept="image/*" style="display:none" onchange="handleFileSelect(this, 'notifImageUrl', 'notifImagePreview')">
-        <button class="btn-secondary" onclick="document.getElementById('notifImageFile').click()" style="padding:8px 14px;font-size:0.85rem">📷 Choose Image</button>
-        <span id="notifImageFileName" style="font-size:0.85rem;color:var(--gray-500)">No image chosen</span>
-      </div>
-      <div id="notifImagePreview" style="margin-bottom:10px;display:none">
-        <img src="" style="max-width:100%;max-height:120px;object-fit:contain;border-radius:8px;border:1px solid var(--gray-200)">
-      </div>
-      <input type="hidden" id="notifImageUrl">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send Broadcast</button>
-    </div>
-
-    <div id="notifModalErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-<!-- MODAL: Edit Student -->
-<div class="modal-backdrop hidden" id="editStudentModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Edit Student</h3>
-      <button class="modal-close" onclick="closeModal('editStudentModal')">✕</button>
-    </div>
-    <input type="hidden" id="editStudentId">
-    <div class="field-row-2">
-      <div class="field">
-        <label>First Name</label>
-        <input type="text" id="editFirst">
+  <!-- MODAL: Send Notification -->
+  <div class="modal-backdrop hidden" id="notifModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Send Notification</h3>
+        <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
       </div>
       <div class="field">
-        <label>Last Name</label>
-        <input type="text" id="editLast">
+        <label>Target Audience</label>
+        <select id="notifTarget" onchange="toggleStudentSelect()">
+          <!-- options populated dynamically -->
+        </select>
       </div>
-    </div>
-    <div class="field">
-      <label>Phone</label>
-      <input type="text" id="editPhone">
-    </div>
-    <div class="field">
-      <label>Courses</label>
-      <select id="editCourse" multiple size="8">
-        <optgroup label="IELTS">
-          <option value="ielts-regular">IELTS Regular (AC/GT)</option>
-          <option value="ielts-fast-track">IELTS Fast Track</option>
-          <option value="ielts-platinum">IELTS Platinum</option>
-          <option value="ielts-online">IELTS Live/Online</option>
-          <option value="ielts-skill-focus">IELTS Skill Focus</option>
-          <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
-        </optgroup>
-        <optgroup label="PTE">
-          <option value="pte-academic">PTE Academic</option>
-        </optgroup>
-        <optgroup label="Spoken English">
-          <option value="spoken-english">Spoken English</option>
-          <option value="business-english">Business English for Professionals</option>
-          <option value="spoken-english-online">Spoken English (Online)</option>
-          <option value="foundation-english">Foundation English & Phonetics</option>
-        </optgroup>
-      </select>
-      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.</div>
-    </div>
-    <div class="field">
-      <label>Status</label>
-      <select id="editStatus">
-        <option value="active">Active</option>
-        <option value="pending">Pending</option>
-        <option value="suspended">Suspended</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>Student ID</label>
-      <input type="text" id="editStudentIdField">
-    </div>
-    <div class="field">
-      <label>Assigned Faculty UID <span class="optional">(optional)</span></label>
-      <input type="text" id="editFacultyId" placeholder="Faculty user document ID">
-    </div>
-    <div class="field">
-      <label>Enrolled Date</label>
-      <input type="date" id="editEnrolledDate">
-    </div>
-
-    <div class="field-row-2">
-      <div class="field">
-        <label>Class Days</label>
-        <select id="editClassDays">
-          <option value="">— Select Days —</option>
-          <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
-          <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
-          <option value="Fri, Sat">Fri, Sat</option>
-          <option value="Everyday">Everyday</option>
-          <option value="Mon-Fri">Mon-Fri</option>
+      <div class="field hidden" id="studentSelectField">
+        <label>Select Student</label>
+        <select id="notifStudent">
+          <!-- populated dynamically -->
         </select>
       </div>
       <div class="field">
-        <label>Class Time</label>
-        <select id="editClassTime">
-          <option value="">— Select Time —</option>
-          <option value="8:00 AM">8:00 AM</option>
-          <option value="9:00 AM">9:00 AM</option>
-          <option value="10:00 AM">10:00 AM</option>
-          <option value="11:00 AM">11:00 AM</option>
-          <option value="12:00 PM">12:00 PM</option>
-          <option value="1:00 PM">1:00 PM</option>
-          <option value="2:00 PM">2:00 PM</option>
-          <option value="3:00 PM">3:00 PM</option>
-          <option value="4:00 PM">4:00 PM</option>
-          <option value="5:00 PM">5:00 PM</option>
-          <option value="6:00 PM">6:00 PM</option>
-          <option value="7:00 PM">7:00 PM</option>
-          <option value="8:00 PM">8:00 PM</option>
+        <label>Title</label>
+        <input type="text" id="notifTitle" placeholder="e.g. Class Rescheduled">
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea id="notifBody" rows="4"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send</button>
+      </div>
+      <div id="notifModalErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Update Payment -->
+  <div class="modal-backdrop hidden" id="paymentModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Update Payment</h3>
+        <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
+      </div>
+      <input type="hidden" id="paymentStudentId">
+
+      <div
+        style="background:var(--gray-50);padding:16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
+        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800);margin-bottom:4px" id="paymentStudentName">
+          Student Name</div>
+        <div style="font-size:0.875rem;color:var(--gray-500);display:flex;justify-content:space-between">
+          <span id="paymentStudentCourse">Course Name</span>
+          <span style="font-weight:600;color:var(--gray-700)">Fee: ৳<span id="paymentTotalFee">0</span></span>
+        </div>
+      </div>
+
+      <div class="field-row-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="field">
+          <label>Total Paid (৳)</label>
+          <input type="number" id="paymentPaid" min="0" oninput="recalculateDue()">
+        </div>
+        <div class="field">
+          <label>Discount (৳)</label>
+          <input type="number" id="paymentDiscount" min="0" oninput="recalculateDue()">
+        </div>
+        <div class="field">
+          <label>Outstanding Due (৳)</label>
+          <input type="number" id="paymentDue" min="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>Next Payment Date <span class="optional">(optional)</span></label>
+        <input type="date" id="paymentNextDate">
+      </div>
+
+      <!-- Installment Plan Section -->
+      <div style="margin-top:24px;border-top:1px solid var(--gray-100);padding-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h4 style="font-size:0.95rem;color:var(--gray-800);font-weight:600">Instalment Plan</h4>
+          <button class="btn-xs btn-xs-approve" onclick="addInstallmentRow()">+ Add Row</button>
+        </div>
+        <div id="installmentContainer"
+          style="display:flex;flex-direction:column;gap:10px;max-height:240px;overflow-y:auto;padding-right:4px">
+          <!-- Installment rows added here -->
+        </div>
+        <div id="instEmpty" style="text-align:center;padding:12px;color:var(--gray-400);font-size:0.85rem">No
+          installments planned.</div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
+      </div>
+      <div id="paymentErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Calendar Entry -->
+  <div class="modal-backdrop hidden" id="calendarModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Calendar Entry</h3>
+        <button class="modal-close" onclick="closeModal('calendarModal')">✕</button>
+      </div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="calTitle" placeholder="e.g. Eid-ul-Fitr Holiday">
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="calDate">
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select id="calType">
+          <option value="event">Event</option>
+          <option value="holiday">Holiday</option>
+          <option value="exam">Exam</option>
         </select>
       </div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('editStudentModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveStudentEdit()">Save Changes</button>
-    </div>
-    <div id="editStudentErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-<!-- MODAL: Add Student -->
-<div class="modal-backdrop hidden" id="addStudentModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add Student</h3>
-      <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
-    </div>
-    <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Manually create a student account (admin-approved instantly).</p>
-    <div class="field-row-2">
-      <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
-      <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
-    </div>
-    <div class="field"><label>Email</label><input type="email" id="addEmail"></div>
-    <div class="field"><label>Phone</label><input type="tel" id="addPhone"></div>
-    <div class="field">
-      <label>Courses</label>
-      <select id="addCourse" multiple size="8">
-        <optgroup label="IELTS">
-          <option value="ielts-regular">IELTS Regular (AC/GT)</option>
-          <option value="ielts-fast-track">IELTS Fast Track</option>
-          <option value="ielts-platinum">IELTS Platinum</option>
-          <option value="ielts-online">IELTS Live/Online</option>
-          <option value="ielts-skill-focus">IELTS Skill Focus</option>
-          <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
-        </optgroup>
-        <optgroup label="PTE">
-          <option value="pte-academic">PTE Academic</option>
-        </optgroup>
-        <optgroup label="Spoken English">
-          <option value="spoken-english">Spoken English</option>
-          <option value="business-english">Business English for Professionals</option>
-          <option value="spoken-english-online">Spoken English (Online)</option>
-          <option value="foundation-english">Foundation English & Phonetics</option>
-        </optgroup>
-      </select>
-      <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px">Hold Ctrl/Cmd to select multiple courses.</div>
-    </div>
-    <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars"></div>
-    <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text" id="addStudentId" placeholder="AIMS-XXXX"></div>
-    <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text" id="addFacultyId" placeholder="Faculty user document ID"></div>
-    <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
-    <div class="field-row-2">
       <div class="field">
-        <label>Class Days</label>
-        <select id="addClassDays">
-          <option value="">— Select Days —</option>
-          <option value="Sat, Mon, Wed">Sat, Mon, Wed</option>
-          <option value="Sun, Tue, Thu">Sun, Tue, Thu</option>
-          <option value="Fri, Sat">Fri, Sat</option>
-          <option value="Everyday">Everyday</option>
-          <option value="Mon-Fri">Mon-Fri</option>
-        </select>
+        <label>Description</label>
+        <input type="text" id="calDesc" placeholder="e.g. Campus will remain closed.">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('calendarModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createCalendarEntry()">Add
+          Entry</button>
+      </div>
+      <div id="calErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Add Other Service -->
+  <div class="modal-backdrop hidden" id="serviceModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Other Service</h3>
+        <button class="modal-close" onclick="closeModal('serviceModal')">✕</button>
       </div>
       <div class="field">
-        <label>Class Time</label>
-        <select id="addClassTime">
-          <option value="">— Select Time —</option>
-          <option value="8:00 AM">8:00 AM</option>
-          <option value="9:00 AM">9:00 AM</option>
-          <option value="10:00 AM">10:00 AM</option>
-          <option value="11:00 AM">11:00 AM</option>
-          <option value="12:00 PM">12:00 PM</option>
-          <option value="1:00 PM">1:00 PM</option>
-          <option value="2:00 PM">2:00 PM</option>
-          <option value="3:00 PM">3:00 PM</option>
-          <option value="4:00 PM">4:00 PM</option>
-          <option value="5:00 PM">5:00 PM</option>
-          <option value="6:00 PM">6:00 PM</option>
-          <option value="7:00 PM">7:00 PM</option>
-          <option value="8:00 PM">8:00 PM</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="addStudent()">Create Account</button>
-    </div>
-    <div id="addStudentErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-<!-- MODAL: Send Notification -->
-<div class="modal-backdrop hidden" id="notifModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Send Notification</h3>
-      <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
-    </div>
-    <div class="field">
-      <label>Target Audience</label>
-      <select id="notifTarget" onchange="toggleStudentSelect()">
-        <!-- options populated dynamically -->
-      </select>
-    </div>
-    <div class="field hidden" id="studentSelectField">
-      <label>Select Student</label>
-      <select id="notifStudent">
-        <!-- populated dynamically -->
-      </select>
-    </div>
-    <div class="field">
-      <label>Title</label>
-      <input type="text" id="notifTitle" placeholder="e.g. Class Rescheduled">
-    </div>
-    <div class="field">
-      <label>Message</label>
-      <textarea id="notifBody" rows="4"></textarea>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send</button>
-    </div>
-    <div id="notifModalErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-<!-- MODAL: Update Payment -->
-<div class="modal-backdrop hidden" id="paymentModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Update Payment</h3>
-      <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
-    </div>
-    <input type="hidden" id="paymentStudentId">
-    
-    <div style="background:var(--gray-50);padding:16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
-      <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800);margin-bottom:4px" id="paymentStudentName">Student Name</div>
-      <div style="font-size:0.875rem;color:var(--gray-500);display:flex;justify-content:space-between">
-        <span id="paymentStudentCourse">Course Name</span>
-        <span style="font-weight:600;color:var(--gray-700)">Fee: ৳<span id="paymentTotalFee">0</span></span>
-      </div>
-    </div>
-
-    <div class="field-row-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-      <div class="field">
-        <label>Total Paid (৳)</label>
-        <input type="number" id="paymentPaid" min="0" oninput="recalculateDue()">
+        <label>Service Name</label>
+        <input type="text" id="serviceName" placeholder="e.g. AIMS Website">
       </div>
       <div class="field">
-        <label>Discount (৳)</label>
-        <input type="number" id="paymentDiscount" min="0" oninput="recalculateDue()">
+        <label>Description</label>
+        <input type="text" id="serviceDesc" placeholder="e.g. Official website with course info...">
       </div>
       <div class="field">
-        <label>Outstanding Due (৳)</label>
-        <input type="number" id="paymentDue" min="0">
+        <label>URL</label>
+        <input type="url" id="serviceUrl" placeholder="https://...">
       </div>
-    </div>
-    <div class="field">
-      <label>Next Payment Date <span class="optional">(optional)</span></label>
-      <input type="date" id="paymentNextDate">
-    </div>
-
-    <!-- Installment Plan Section -->
-    <div style="margin-top:24px;border-top:1px solid var(--gray-100);padding-top:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h4 style="font-size:0.95rem;color:var(--gray-800);font-weight:600">Instalment Plan</h4>
-        <button class="btn-xs btn-xs-approve" onclick="addInstallmentRow()">+ Add Row</button>
+      <div class="field">
+        <label>Icon (Emoji or Image URL)</label>
+        <input type="text" id="serviceIcon" placeholder="e.g. 🌐 or https://...">
       </div>
-      <div id="installmentContainer" style="display:flex;flex-direction:column;gap:10px;max-height:240px;overflow-y:auto;padding-right:4px">
-        <!-- Installment rows added here -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('serviceModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createService()">Add Service</button>
       </div>
-      <div id="instEmpty" style="text-align:center;padding:12px;color:var(--gray-400);font-size:0.85rem">No installments planned.</div>
+      <div id="serviceErr" class="error-msg hidden"></div>
     </div>
-
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="savePayment()">Save Payment</button>
-    </div>
-    <div id="paymentErr" class="error-msg hidden"></div>
   </div>
-</div>
 
-<!-- MODAL: Add Calendar Entry -->
-<div class="modal-backdrop hidden" id="calendarModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add Calendar Entry</h3>
-      <button class="modal-close" onclick="closeModal('calendarModal')">✕</button>
+  <!-- MODAL: Edit User (Name & Password) -->
+  <div class="modal-backdrop hidden" id="editUserModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="editUserModalTitle">Edit User</h3>
+        <button class="modal-close" onclick="closeModal('editUserModal')">✕</button>
+      </div>
+
+      <div
+        style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
+        <div style="font-size:0.85rem;color:var(--gray-500)">Editing:</div>
+        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="editUserDisplayEmail">user@example.com
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+        <div class="field">
+          <label>First Name</label>
+          <input type="text" id="editFirstName" placeholder="First Name">
+        </div>
+        <div class="field">
+          <label>Last Name</label>
+          <input type="text" id="editLastName" placeholder="Last Name">
+        </div>
+      </div>
+
+      <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-100)">
+        <h4 style="font-size:0.9rem; color:var(--gray-700); margin-bottom:12px">Security Updates</h4>
+        <div class="field">
+          <label>New Password (leave blank to keep current)</label>
+          <input type="password" id="editUserNewPw" placeholder="Minimum 8 characters">
+        </div>
+        <div class="field">
+          <label>Confirm Password</label>
+          <input type="password" id="editUserConfirmPw" placeholder="Re-enter new password">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+        <button class="btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveUserChanges()">Save
+          Changes</button>
+      </div>
+      <div id="editUserErr" class="error-msg hidden"></div>
     </div>
-    <div class="field">
-      <label>Title</label>
-      <input type="text" id="calTitle" placeholder="e.g. Eid-ul-Fitr Holiday">
-    </div>
-    <div class="field">
-      <label>Date</label>
-      <input type="date" id="calDate">
-    </div>
-    <div class="field">
-      <label>Type</label>
-      <select id="calType">
-        <option value="event">Event</option>
-        <option value="holiday">Holiday</option>
-        <option value="exam">Exam</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <input type="text" id="calDesc" placeholder="e.g. Campus will remain closed.">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('calendarModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createCalendarEntry()">Add Entry</button>
-    </div>
-    <div id="calErr" class="error-msg hidden"></div>
   </div>
-</div>
 
-<!-- MODAL: Add Other Service -->
-<div class="modal-backdrop hidden" id="serviceModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Add Other Service</h3>
-      <button class="modal-close" onclick="closeModal('serviceModal')">✕</button>
+
+  <!-- MODAL: Change Own Password -->
+  <div class="modal-backdrop hidden" id="changePasswordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
+      </div>
+      <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
+        Enter your current password before setting a new one. Other active sessions on your account will be signed out.
+      </p>
+      <div class="field">
+        <label>Current Password</label>
+        <input type="password" id="ownCurrentPassword" autocomplete="current-password">
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="ownNewPassword" placeholder="Minimum 8 characters" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <input type="password" id="ownConfirmPassword" autocomplete="new-password">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update
+          Password</button>
+      </div>
+      <div id="ownPasswordErr" class="error-msg hidden"></div>
     </div>
-    <div class="field">
-      <label>Service Name</label>
-      <input type="text" id="serviceName" placeholder="e.g. AIMS Website">
-    </div>
-    <div class="field">
-      <label>Description</label>
-      <input type="text" id="serviceDesc" placeholder="e.g. Official website with course info...">
-    </div>
-    <div class="field">
-      <label>URL</label>
-      <input type="url" id="serviceUrl" placeholder="https://...">
-    </div>
-    <div class="field">
-      <label>Icon (Emoji or Image URL)</label>
-      <input type="text" id="serviceIcon" placeholder="e.g. 🌐 or https://...">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('serviceModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="createService()">Add Service</button>
-    </div>
-    <div id="serviceErr" class="error-msg hidden"></div>
   </div>
-</div>
 
-<!-- MODAL: Reset Password -->
-<div class="modal-backdrop hidden" id="resetPasswordModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Reset Password</h3>
-      <button class="modal-close" onclick="closeModal('resetPasswordModal')">✕</button>
-    </div>
-    <input type="hidden" id="resetPwStudentId">
+  <!-- Toast -->
+  <div class="toast-container" id="toastContainer"></div>
 
-    <div style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
-      <div style="font-size:0.85rem;color:var(--gray-500)">Resetting password for:</div>
-      <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="resetPwStudentName">Student Name</div>
-    </div>
+  <script src="js/app-data.js?v=54"></script>
+  <script src="js/api-client.js?v=54"></script>
+  <script src="js/admin-dashboard.js?v=54"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js?v=54', { updateViaCache: 'none' });
 
-    <div class="field">
-      <label>New Password</label>
-      <input type="password" id="resetPwNew" placeholder="Minimum 8 characters">
-    </div>
-    <div class="field">
-      <label>Confirm Password</label>
-      <input type="password" id="resetPwConfirm" placeholder="Re-enter new password">
-    </div>
-
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('resetPasswordModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveResetPassword()">Reset Password</button>
-    </div>
-    <div id="resetPwErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-
-<!-- MODAL: Change Own Password -->
-<div class="modal-backdrop hidden" id="changePasswordModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Change Password</h3>
-      <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
-    </div>
-    <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
-      Enter your current password before setting a new one. Other active sessions on your account will be signed out.
-    </p>
-    <div class="field">
-      <label>Current Password</label>
-      <input type="password" id="ownCurrentPassword" autocomplete="current-password">
-    </div>
-    <div class="field">
-      <label>New Password</label>
-      <input type="password" id="ownNewPassword" placeholder="Minimum 8 characters" autocomplete="new-password">
-    </div>
-    <div class="field">
-      <label>Confirm New Password</label>
-      <input type="password" id="ownConfirmPassword" autocomplete="new-password">
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-      <button class="btn-secondary" onclick="closeModal('changePasswordModal')">Cancel</button>
-      <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveOwnPassword()">Update Password</button>
-    </div>
-    <div id="ownPasswordErr" class="error-msg hidden"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast-container" id="toastContainer"></div>
-
-<script src="js/app-data.js?v=54"></script>
-<script src="js/api-client.js?v=54"></script>
-<script src="js/admin-dashboard.js?v=54"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js?v=54', { updateViaCache: 'none' });
-    
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('New version ready.');
-    });
-  }
-</script>
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('New version ready.');
+      });
+    }
+  </script>
 </body>
+
 </html>

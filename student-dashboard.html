@@ -8,7 +8,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
   <title>My Dashboard — AIMS English</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="styles/main.css?v=57">
   <link rel="stylesheet" href="styles/dashboard.css?v=57">
 </head>
@@ -48,6 +50,9 @@
       </button>
       <button class="nav-item" onclick="showSection('calendar', this)">
         <span class="nav-icon">📅</span> Academic Calendar
+      </button>
+      <button class="nav-item" onclick="showSection('attendance', this)">
+        <span class="nav-icon">📝</span> My Attendance
       </button>
       <div class="nav-section-label">Account</div>
       <button class="nav-item" onclick="showSection('profile', this)">
@@ -330,6 +335,31 @@
           </table>
         </div>
       </section>
+
+      <!-- SECTION: My Attendance -->
+      <section class="page-section" id="section-attendance">
+        <div class="section-header">
+          <div class="section-title">My Attendance History</div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Course</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceList">
+              <tr>
+                <td colspan="4" style="text-align:center;padding:32px;color:var(--gray-400)">No attendance records found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="page-section" id="section-contact">
         <div class="section-header">
           <div class="section-title">Contact Us</div>

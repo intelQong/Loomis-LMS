@@ -434,7 +434,7 @@ async function saveInstallments({ request, env }, user) {
   // We'll do a simple sync: delete all and re-insert, or update existing.
   // For simplicity, let's delete all installments for this user and insert the new ones.
   // This is easier for "editing the whole plan".
-  
+
   await env.DB.prepare('DELETE FROM installments WHERE user_id = ?').bind(userId).run();
 
   if (installments.length > 0) {
@@ -933,12 +933,12 @@ async function createService({ request, env }, user) {
   const url = required(body.url, 'URL');
   const desc = body.desc || '';
   const icon = body.icon || '🌐';
-  
+
   const id = crypto.randomUUID().slice(0, 8);
   await env.DB.prepare('INSERT INTO other_services (id, name, desc, url, icon) VALUES (?, ?, ?, ?, ?)')
     .bind(id, name, desc, url, icon)
     .run();
-    
+
   return json({ ok: true, id });
 }
 
@@ -1037,7 +1037,7 @@ async function createCalendarEntry({ request, env }, user) {
   await env.DB.prepare('INSERT INTO academic_calendar (id, title, date, type, desc) VALUES (?, ?, ?, ?, ?)')
     .bind(id, title, date, type, desc)
     .run();
-  
+
   await logAction(env, user, 'CREATE_CALENDAR', `Added ${type}: ${title} on ${date}`);
   return json({ ok: true, id });
 }
