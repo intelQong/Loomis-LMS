@@ -253,7 +253,7 @@ async function loadStudents() {
     renderOverviewStats();
     renderPendingList();
     renderStudentsTable(allStudents);
-    renderPayTable(allStudents);
+    filterPayments();
     populateNotifStudentSelect(allStudents);
   } catch (err) {
     console.error(err);
@@ -751,7 +751,7 @@ async function deleteNotif(id) {
 function renderPayTable(students) {
   const tbody = document.getElementById('payTable');
   if (students.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">No students.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">No students match the selected payment filters.</td></tr>';
     return;
   }
   tbody.innerHTML = students.map(s => {
@@ -760,32 +760,45 @@ function renderPayTable(students) {
     return `
       <tr>
         <td>
-          <div style="font-weight:500">${s.firstName} ${s.lastName}</div>
-          <div style="font-size:0.8rem;color:var(--gray-400)">${s.studentId || s.email}</div>
+          <div style="font-weight:500">${escapeHtml(`${s.firstName || ''} ${s.lastName || ''}`.trim())}</div>
+          <div style="font-size:0.8rem;color:var(--gray-400)">${escapeHtml(s.studentId || s.email || '')}</div>
         </td>
-        <td>${courseNames}</td>
+        <td>${escapeHtml(courseNames)}</td>
         <td>৳${totalFee.toLocaleString()}</td>
         <td style="color:var(--success);font-weight:500">৳${(s.totalPaid || 0).toLocaleString()}</td>
         <td style="color:${s.totalDue > 0 ? 'var(--danger)' : 'var(--gray-400)'};font-weight:500">৳${(s.totalDue || 0).toLocaleString()}</td>
         <td style="color:var(--gray-600);font-size:0.9rem">${s.nextPaymentDate ? formatDate(s.nextPaymentDate) : '—'}</td>
         <td>
-          ${canManageStudents() ? `<button class="btn-xs btn-xs-pay" onclick="openPaymentModal('${s.id}')">Update Payment</button>` : '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>'}
+          ${canManageStudents() ? `<button class="btn-xs btn-xs-pay" onclick="openPaymentModal('${escapeHtml(s.id)}')">Update Payment</button>` : '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>'}
         </td>
       </tr>
     `;
   }).join('');
 }
 
+function paymentDateValue(student) {
+  if (!student.nextPaymentDate) return '';
+  return String(student.nextPaymentDate).split('T')[0];
+}
+
 function filterPayments() {
   const q = document.getElementById('paySearch').value.toLowerCase();
   const sortBy = document.getElementById('paySort').value;
+  const fromDate = document.getElementById('payDateFrom')?.value || '';
+  const toDate = document.getElementById('payDateTo')?.value || '';
 
   let filtered = allStudents;
   if (q) {
-    filtered = filtered.filter(s => `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(q));
+    filtered = filtered.filter(s => `${s.firstName} ${s.lastName} ${s.email} ${s.studentId || ''}`.toLowerCase().includes(q));
+  }
+  if (fromDate || toDate) {
+    filtered = filtered.filter(s => {
+      const paymentDate = paymentDateValue(s);
+      if (!paymentDate) return false;
+      return (!fromDate || paymentDate >= fromDate) && (!toDate || paymentDate <= toDate);
+    });
   }
 
-  // Sorting
   filtered = [...filtered].sort((a, b) => {
     if (sortBy === 'name') {
       return `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`);
@@ -807,6 +820,14 @@ function filterPayments() {
   });
 
   renderPayTable(filtered);
+}
+
+function clearPaymentDateFilters() {
+  const fromEl = document.getElementById('payDateFrom');
+  const toEl = document.getElementById('payDateTo');
+  if (fromEl) fromEl.value = '';
+  if (toEl) toEl.value = '';
+  filterPayments();
 }
 
 function openPaymentModal(id) {
@@ -1045,21 +1066,34 @@ async function loadSuperUsers() {
   try {
     const data = await apiFetch('/api/admin/users');
     const tbody = document.getElementById('superUserList');
-    tbody.innerHTML = data.users.map(u => `
-      <tr>
-        <td style="font-weight:600">${u.firstName} ${u.lastName}</td>
-        <td style="color:var(--gray-500)">${u.email}</td>
-        <td><span class="badge badge-${u.role}">${u.role}</span></td>
-        <td>
-          <select onchange="updateUserRole('${u.id}', this.value)" style="padding:4px 8px; border-radius:4px; border:1px solid var(--gray-200); font-size:0.85rem">
-            <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
-            <option value="faculty" ${u.role === 'faculty' ? 'selected' : ''}>Faculty</option>
-            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
-          </select>
-          <button class="btn-xs" onclick="openEditUser('${u.id}', '${u.firstName}', '${u.lastName}', '${u.email}')">Edit</button>
-        </td>
-      </tr>
-    `).join('');
+    tbody.innerHTML = data.users.map(u => {
+      const userId = encodeURIComponent(u.id);
+      const firstName = escapeHtml(u.firstName || '');
+      const lastName = escapeHtml(u.lastName || '');
+      const email = escapeHtml(u.email || '');
+      const role = escapeHtml(u.role || 'student');
+      const payload = encodeURIComponent(JSON.stringify({ id: u.id, firstName: u.firstName || '', lastName: u.lastName || '', email: u.email || '' }));
+      return `
+        <tr>
+          <td style="font-weight:600">${firstName} ${lastName}</td>
+          <td style="color:var(--gray-500)">${email}</td>
+          <td><span class="badge badge-${role}">${role}</span></td>
+          <td>
+            <select onchange="updateUserRole('${userId}', this.value)" style="padding:4px 8px; border-radius:4px; border:1px solid var(--gray-200); font-size:0.85rem">
+              <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option>
+              <option value="faculty" ${u.role === 'faculty' ? 'selected' : ''}>Faculty</option>
+              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-xs btn-xs-edit" onclick="openEditUserFromPayload('${payload}')">Edit</button>
+              <button class="btn-xs btn-xs-pay" onclick="openUserPasswordReset('${userId}', '${encodeURIComponent(u.email || '')}')">Reset Password</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
   } catch (err) {
     console.error(err);
   }
@@ -1128,7 +1162,7 @@ function showSection(name, btn) {
     'admin-calendar': 'Academic Calendar',
     'services': 'Other Services',
     'site-tools': 'Site Tools',
-    'super-portal': 'Secure Portal',
+    'super-portal': 'User Management',
     'security': 'Security & Privacy',
     'attendance': 'Attendance'
   };
@@ -1519,6 +1553,56 @@ async function saveResetPassword() {
   }
 }
 
+function openEditUserFromPayload(encodedPayload) {
+  try {
+    const user = JSON.parse(decodeURIComponent(encodedPayload));
+    openEditUser(user.id, user.firstName, user.lastName, user.email);
+  } catch (error) {
+    showToast('Unable to open user editor: ' + error.message, 'error');
+  }
+}
+
+function openUserPasswordReset(userId, email) {
+  document.getElementById('resetUserId').value = decodeURIComponent(userId);
+  document.getElementById('resetUserDisplayEmail').textContent = decodeURIComponent(email);
+  document.getElementById('resetUserNewPw').value = '';
+  document.getElementById('resetUserConfirmPw').value = '';
+  document.getElementById('resetUserErr').classList.add('hidden');
+  openModal('userPasswordResetModal');
+}
+
+async function saveUserPasswordReset() {
+  const userId = document.getElementById('resetUserId').value;
+  const newPass = document.getElementById('resetUserNewPw').value;
+  const confirmPass = document.getElementById('resetUserConfirmPw').value;
+  const errEl = document.getElementById('resetUserErr');
+  errEl.classList.add('hidden');
+
+  if (newPass.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPass !== confirmPass) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch(`/api/admin/users/${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ newPassword: newPass })
+    });
+    showToast('User password reset successfully', 'success');
+    closeModal('userPasswordResetModal');
+    if (typeof loadAuditLogs === 'function' && adminUser.isSuperAdmin) loadAuditLogs();
+  } catch (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
 function openEditUser(userId, fName, lName, email) {
   window.targetEditUserId = userId;
   document.getElementById('editUserDisplayEmail').textContent = email;
@@ -1596,11 +1680,23 @@ const attendanceStatusLabels = {
   excused: 'Excused'
 };
 
-function initAttendance() {
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function lockAttendanceDateToToday() {
   const dateInput = document.getElementById('attendanceDate');
-  if (dateInput) {
-    dateInput.value = new Date().toISOString().split('T')[0];
-  }
+  if (!dateInput) return '';
+  const today = getTodayDateString();
+  dateInput.value = today;
+  dateInput.min = today;
+  dateInput.max = today;
+  dateInput.disabled = true;
+  return today;
+}
+
+function initAttendance() {
+  lockAttendanceDateToToday();
 }
 
 async function loadAttendanceList() {
@@ -1608,7 +1704,7 @@ async function loadAttendanceList() {
   const courseEl = document.getElementById('attendanceCourseFilter');
   if (!dateEl || !courseEl) return;
 
-  const date = dateEl.value;
+  const date = lockAttendanceDateToToday() || dateEl.value;
   const courseId = courseEl.value;
   const list = document.getElementById('attendanceTable');
   const countLabel = document.getElementById('attendanceCountLabel');
@@ -1728,7 +1824,7 @@ async function submitAttendance() {
   const courseEl = document.getElementById('attendanceCourseFilter');
   if (!dateInput || !courseEl) return;
 
-  const date = dateInput.value;
+  const date = lockAttendanceDateToToday() || dateInput.value;
   const courseId = courseEl.value;
   const rows = document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]');
 

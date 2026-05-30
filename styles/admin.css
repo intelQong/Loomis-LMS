@@ -357,14 +357,9 @@
   }
 }
 
-/* Hide placeholder letter icons in the sidebar menu. They looked like stray
-   characters before each option on small screens; SVG icons remain visible. */
-.sidebar-nav .nav-icon:not(.nav-icon-svg) {
+/* Hide sidebar menu icons/letter placeholders so labels align cleanly. */
+.sidebar-nav .nav-icon {
   display: none;
-}
-
-.sidebar-nav .nav-icon-svg {
-  margin-right: 2px;
 }
 
 @media (max-width: 900px) {
@@ -373,4 +368,10 @@
     min-height: 46px;
     padding-inline: 18px;
   }
+}
+
+.attendance-field small {
+  color: #5f6368;
+  font-size: 0.74rem;
+  line-height: 1.35;
 }

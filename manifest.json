@@ -8,8 +8,8 @@
   "theme_color": "#FF7F50",
   "icons": [
     {
-      "src": "assets/aims-logo.jpeg",
-      "type": "image/png",
+      "src": "assets/intelqong-logo.svg",
+      "type": "image/svg+xml",
       "sizes": "any",
       "purpose": "any maskable"
     }

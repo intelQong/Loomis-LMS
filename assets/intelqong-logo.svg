@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">intelQong logo</title>
+  <desc id="desc">Red glowing intelQong wordmark.</desc>
+  <defs>
+    <filter id="glow" x="-20%" y="-80%" width="140%" height="260%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18" result="blur1"/>
+      <feColorMatrix in="blur1" type="matrix" values="1 0 0 0 1  0 0.22 0 0 0.15  0 0 0.22 0 0.15  0 0 0 0.65 0" result="glow1"/>
+      <feGaussianBlur stdDeviation="42" result="blur2"/>
+      <feColorMatrix in="blur2" type="matrix" values="1 0 0 0 1  0 0.18 0 0 0.12  0 0 0.18 0 0.12  0 0 0 0.45 0" result="glow2"/>
+      <feMerge>
+        <feMergeNode in="glow2"/>
+        <feMergeNode in="glow1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="fill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9292"/>
+      <stop offset="0.48" stop-color="#ff6969"/>
+      <stop offset="1" stop-color="#ff4f4f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="transparent"/>
+  <g filter="url(#glow)">
+    <text x="50%" y="54%" text-anchor="middle"
+      font-family="Inter, Arial, Helvetica, sans-serif" font-size="188" font-weight="700"
+      letter-spacing="-13" fill="url(#fill)" stroke="#ff5252" stroke-width="5" paint-order="stroke fill">
+      intelQong
+    </text>
+  </g>
+</svg>
