@@ -3,13 +3,14 @@
 // ============================================================
 
 async function apiFetch(path, options = {}) {
+  const { headers = {}, ...fetchOptions } = options;
   const res = await fetch(path, {
     credentials: 'include',
+    ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
-    },
-    ...options
+      ...headers
+    }
   });
 
   const text = await res.text();
@@ -28,9 +29,19 @@ async function apiFetch(path, options = {}) {
 }
 
 
+
+async function apiDelete(path) {
+  const separator = path.includes('?') ? '&' : '?';
+  return apiFetch(`${path}${separator}_method=DELETE`, {
+    method: 'POST',
+    headers: { 'X-HTTP-Method-Override': 'DELETE' },
+    body: '{}'
+  });
+}
+
 function friendlyHttpError(path, status) {
   if (path.includes('/api/auth/login') && (status === 401 || status === 403)) {
-    return 'Invalid email or password.';
+    return 'Wrong username or password, Try Again.';
   }
   if (status === 401) return 'Please sign in again.';
   if (status === 403) return 'You are not allowed to perform this action.';

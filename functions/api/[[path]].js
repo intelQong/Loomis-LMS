@@ -28,10 +28,11 @@ export async function onRequest(context) {
   try {
     const { request } = context;
     const url = new URL(request.url);
-    const method = request.method.toUpperCase();
+    const requestMethod = request.method.toUpperCase();
+    const method = resolveRequestMethod(request, url);
     const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
 
-    if (method === 'OPTIONS') return json(null, 204);
+    if (requestMethod === 'OPTIONS') return json(null, 204);
     enforceSameOrigin(request, method);
 
     if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
@@ -58,9 +59,11 @@ export async function onRequest(context) {
 
     if (path[0] === 'payments' && method === 'GET') return listPayments(context, user, url.searchParams.get('userId'));
 
+    if (path[0] === 'announcements' && path[1] && method === 'GET') return getAnnouncement(context, user, path[1]);
+    if (path[0] === 'announcements' && path[1] && method === 'PATCH') return updateAnnouncement(context, user, path[1]);
+    if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
     if (path[0] === 'announcements' && method === 'GET') return listAnnouncements(context);
     if (path[0] === 'announcements' && method === 'POST') return createAnnouncement(context, user);
-    if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
 
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
@@ -153,7 +156,7 @@ async function login({ request, env }) {
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
 
   if (!user || !(await verifyPassword(password, user))) {
-    throw httpError('Invalid email or password.', 401);
+    throw httpError('Wrong username or password, Try Again.', 401);
   }
   if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact the admin team.', 403);
@@ -748,9 +751,14 @@ async function listAnnouncements({ env }) {
   return json({ announcements: rows.results });
 }
 
-async function createAnnouncement({ request, env }, user) {
+async function getAnnouncement({ env }, user, id) {
   requireRole(user, ['admin']);
-  const body = await readJson(request);
+  const announcement = await env.DB.prepare('SELECT * FROM announcements WHERE id = ? AND active = 1').bind(id).first();
+  if (!announcement) throw httpError('Announcement not found.', 404);
+  return json({ announcement });
+}
+
+function normalizeAnnouncementBody(body) {
   const title = required(body.title, 'Title');
   const adBody = body.body || '';
   const linkUrl = body.linkUrl || '';
@@ -759,11 +767,34 @@ async function createAnnouncement({ request, env }, user) {
   const videoUrl = normalizeVideoEmbedUrl(body.videoUrl || '');
   if (body.videoUrl && !videoUrl) throw httpError('Video URL must be a valid HTTPS embed URL or iframe code.', 400);
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
+  return { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient };
+}
+
+async function createAnnouncement({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient } = normalizeAnnouncementBody(body);
   const id = randomId().slice(0, 16);
   await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, video_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
     .bind(id, title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient, new Date().toISOString())
     .run();
   return json({ ok: true, id });
+}
+
+async function updateAnnouncement({ request, env }, user, id) {
+  requireRole(user, ['admin']);
+  const existing = await env.DB.prepare('SELECT id FROM announcements WHERE id = ? AND active = 1').bind(id).first();
+  if (!existing) throw httpError('Announcement not found.', 404);
+
+  const body = await readJson(request);
+  const { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient } = normalizeAnnouncementBody(body);
+  await env.DB.prepare(`
+    UPDATE announcements
+    SET title = ?, body = ?, link_url = ?, link_text = ?, image_url = ?, video_url = ?, bg_gradient = ?
+    WHERE id = ?
+  `).bind(title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient, id).run();
+  await logAction(env, user, 'UPDATE_ANNOUNCEMENT', `Updated announcement ID: ${id}`);
+  return json({ ok: true });
 }
 
 async function deleteAnnouncement({ env }, user, id) {
@@ -904,6 +935,15 @@ function validatePasswordStrength(password) {
   if (password.length < PASSWORD_MIN_LENGTH) {
     throw httpError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`, 400);
   }
+}
+
+
+function resolveRequestMethod(request, url) {
+  const requestMethod = request.method.toUpperCase();
+  if (requestMethod !== 'POST') return requestMethod;
+
+  const overrideMethod = (request.headers.get('X-HTTP-Method-Override') || url.searchParams.get('_method') || '').toUpperCase();
+  return ['DELETE'].includes(overrideMethod) ? overrideMethod : requestMethod;
 }
 
 function enforceSameOrigin(request, method) {
