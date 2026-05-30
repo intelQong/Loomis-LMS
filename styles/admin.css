@@ -369,3 +369,9 @@
     padding-inline: 18px;
   }
 }
+
+.attendance-field small {
+  color: #5f6368;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}

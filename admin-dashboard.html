@@ -6,15 +6,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#FF7F50">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
+  <link rel="apple-touch-icon" href="/assets/intelqong-logo.svg">
   <title>Admin — Learning Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=59">
-  <link rel="stylesheet" href="styles/dashboard.css?v=59">
-  <link rel="stylesheet" href="styles/admin.css?v=59">
+  <link rel="stylesheet" href="styles/main.css?v=60">
+  <link rel="stylesheet" href="styles/dashboard.css?v=60">
+  <link rel="stylesheet" href="styles/admin.css?v=60">
 </head>
 
 <body class="dashboard-page">
@@ -24,7 +24,7 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img class="logo-img" src="assets/aims-logo.jpeg" alt="Learning portal logo">
+      <img class="logo-img" src="assets/intelqong-logo.svg" alt="intelQong logo">
       <span id="dashboardBrand">Admin Portal</span>
     </div>
     <nav class="sidebar-nav">
@@ -65,7 +65,7 @@
 
       <!-- Super Admin Only -->
       <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
-        <span class="nav-icon">SP</span> Secure Portal
+        <span class="nav-icon">UM</span> User Management
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -267,8 +267,14 @@
         <div class="admin-toolbar">
           <input class="search-input" type="text" id="paySearch" placeholder="Search student..."
             oninput="filterPayments()">
-          <input class="search-input" type="date" id="payDateFrom" aria-label="Payment date from" onchange="filterPayments()">
-          <input class="search-input" type="date" id="payDateTo" aria-label="Payment date to" onchange="filterPayments()">
+          <label class="toolbar-date-field" for="payDateFrom">
+            <span>From date</span>
+            <input class="search-input" type="date" id="payDateFrom" onchange="filterPayments()">
+          </label>
+          <label class="toolbar-date-field" for="payDateTo">
+            <span>To date</span>
+            <input class="search-input" type="date" id="payDateTo" onchange="filterPayments()">
+          </label>
           <select class="search-input" style="min-width:160px" id="paySort" onchange="filterPayments()">
             <option value="date_desc">Next Payment (Latest)</option>
             <option value="date_asc">Next Payment (Soonest)</option>
@@ -360,10 +366,10 @@
         </div>
       </section>
 
-      <!-- SECTION: Secure Portal (Super Admin) -->
+      <!-- SECTION: User Management (Super Admin) -->
       <section class="page-section" id="section-super-portal">
         <div class="section-header">
-          <div class="section-title">Secure Portal — User Management</div>
+          <div class="section-title">User Management</div>
         </div>
         <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:20px">Restricted access for System
           Administrator. Manage roles and system permissions.</p>
@@ -500,15 +506,16 @@
             <div>
               <p class="attendance-eyebrow">Attendance</p>
               <h2>Daily class attendance</h2>
-              <p>Choose a date and course, then select each student status before submitting.</p>
+              <p>Today is locked automatically. Choose a course, then select each student status before submitting.</p>
             </div>
             <button class="attendance-submit-btn" type="button" onclick="submitAttendance()">Submit attendance</button>
           </div>
 
           <div class="attendance-controls" aria-label="Attendance filters">
             <label class="attendance-field" for="attendanceDate">
-              <span>Date</span>
-              <input type="date" id="attendanceDate" onchange="loadAttendanceList()">
+              <span>Date (today only)</span>
+              <input type="date" id="attendanceDate" disabled aria-describedby="attendanceDateHelp">
+              <small id="attendanceDateHelp">Attendance can only be marked for the current date.</small>
             </label>
             <label class="attendance-field" for="attendanceCourseFilter">
               <span>Course</span>
@@ -1159,10 +1166,10 @@
 
   <script src="js/app-data.js?v=54"></script>
   <script src="js/api-client.js?v=54"></script>
-  <script src="js/admin-dashboard.js?v=55"></script>
+  <script src="js/admin-dashboard.js?v=56"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=55', { updateViaCache: 'none' });
+      navigator.serviceWorker.register('/sw.js?v=56', { updateViaCache: 'none' });
 
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log('New version ready.');

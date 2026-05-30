@@ -360,11 +360,26 @@ async function ensureAttendanceTable({ env }) {
   await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_attendance_student_date ON attendance_records(student_id, date DESC)').run();
 }
 
+function todayDateString() {
+  return new Date().toISOString().split('T')[0];
+}
+
 async function listAttendance(context, user, searchParams) {
-  requireRole(user, ['admin', 'faculty']);
   await ensureUserCompatibilityColumns(context.env);
   await ensureAttendanceTable(context);
 
+  if (user.role === 'student') {
+    const { results } = await context.env.DB.prepare(`
+      SELECT *
+      FROM attendance_records
+      WHERE student_id = ?
+      ORDER BY date DESC, updated_at DESC
+      LIMIT 200
+    `).bind(user.id).all();
+    return json({ attendance: results || [] });
+  }
+
+  requireRole(user, ['admin', 'faculty']);
   const date = required(searchParams.get('date'), 'Date');
   const courseId = String(searchParams.get('courseId') || '').trim();
 
@@ -423,9 +438,12 @@ async function saveAttendance({ request, env }, user) {
   }
 
   const now = new Date().toISOString();
+  const today = todayDateString();
   for (const record of records) {
     const studentId = String(record.studentId || '').trim();
-    const date = required(record.date, 'Date');
+    const requestedDate = required(record.date, 'Date');
+    if (requestedDate !== today) throw httpError('Attendance can only be saved for the current date.', 400);
+    const date = today;
     const courseId = String(record.courseId || '').trim();
     const status = String(record.status || 'absent').trim().toLowerCase();
     const notes = String(record.notes || '').trim().slice(0, 500);
@@ -442,7 +460,7 @@ async function saveAttendance({ request, env }, user) {
     `).bind(crypto.randomUUID(), studentId, user.id, date, courseId, status, notes, now, now).run();
   }
 
-  await logAction(env, user, 'SAVE_ATTENDANCE', `Saved ${records.length} attendance record(s) for ${records[0].date || 'selected date'}`);
+  await logAction(env, user, 'SAVE_ATTENDANCE', `Saved ${records.length} attendance record(s) for ${today}`);
   return json({ ok: true, saved: records.length });
 }
 

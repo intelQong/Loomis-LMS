@@ -276,3 +276,12 @@
   font-weight: 700;
   width: auto;
 }
+
+/* intelQong wordmark sizing */
+.brand-logo .logo-img {
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
+  max-width: 150px;
+  width: min(150px, 48vw);
+}
