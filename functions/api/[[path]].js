@@ -54,14 +54,16 @@ export async function onRequest(context) {
     if (path[0] === 'attendance' && method === 'POST') return saveAttendance(context, user);
 
     if (path[0] === 'notifications' && method === 'GET') return listNotifications(context, user);
-    if (path[0] === 'notifications' && method === 'POST') return createNotification(context, user);
+    if (path[0] === 'notifications' && !path[1] && method === 'POST') return createNotification(context, user);
     if (path[0] === 'notifications' && path[1] && method === 'DELETE') return deleteNotification(context, user, path[1]);
 
     if (path[0] === 'payments' && method === 'GET') return listPayments(context, user, url.searchParams.get('userId'));
 
-    if (path[0] === 'announcements' && method === 'GET') return listAnnouncements(context);
-    if (path[0] === 'announcements' && method === 'POST') return createAnnouncement(context, user);
+    if (path[0] === 'announcements' && path[1] && method === 'GET') return getAnnouncement(context, user, path[1]);
+    if (path[0] === 'announcements' && path[1] && method === 'PATCH') return updateAnnouncement(context, user, path[1]);
     if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
+    if (path[0] === 'announcements' && !path[1] && method === 'GET') return listAnnouncements(context);
+    if (path[0] === 'announcements' && !path[1] && method === 'POST') return createAnnouncement(context, user);
 
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
     if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
@@ -69,16 +71,16 @@ export async function onRequest(context) {
     if (path[0] === 'installments' && method === 'GET') return listInstallments(context, user, url.searchParams.get('userId'));
     if (path[0] === 'installments' && method === 'POST') return saveInstallments(context, user);
 
-    if (path[0] === 'services' && method === 'GET') return listServices(context);
-    if (path[0] === 'services' && method === 'POST') return createService(context, user);
+    if (path[0] === 'services' && !path[1] && method === 'GET') return listServices(context);
+    if (path[0] === 'services' && !path[1] && method === 'POST') return createService(context, user);
     if (path[0] === 'services' && path[1] && method === 'DELETE') return deleteService(context, user, path[1]);
 
     if (path[0] === 'admin' && path[1] === 'users' && method === 'GET') return listAllUsers(context, user);
     if (path[0] === 'admin' && path[1] === 'users' && path[2] && method === 'PATCH') return updateUserRole(context, user, path[2]);
     if (path[0] === 'admin' && path[1] === 'logs' && method === 'GET') return listAuditLogs(context, user);
 
-    if (path[0] === 'calendar' && method === 'GET') return listCalendar(context);
-    if (path[0] === 'calendar' && method === 'POST') return createCalendarEntry(context, user);
+    if (path[0] === 'calendar' && !path[1] && method === 'GET') return listCalendar(context);
+    if (path[0] === 'calendar' && !path[1] && method === 'POST') return createCalendarEntry(context, user);
     if (path[0] === 'calendar' && path[1] && method === 'DELETE') return deleteCalendarEntry(context, user, path[1]);
 
 
@@ -749,9 +751,14 @@ async function listAnnouncements({ env }) {
   return json({ announcements: rows.results });
 }
 
-async function createAnnouncement({ request, env }, user) {
+async function getAnnouncement({ env }, user, id) {
   requireRole(user, ['admin']);
-  const body = await readJson(request);
+  const announcement = await env.DB.prepare('SELECT * FROM announcements WHERE id = ? AND active = 1').bind(id).first();
+  if (!announcement) throw httpError('Announcement not found.', 404);
+  return json({ announcement });
+}
+
+function normalizeAnnouncementBody(body) {
   const title = required(body.title, 'Title');
   const adBody = body.body || '';
   const linkUrl = body.linkUrl || '';
@@ -760,11 +767,34 @@ async function createAnnouncement({ request, env }, user) {
   const videoUrl = normalizeVideoEmbedUrl(body.videoUrl || '');
   if (body.videoUrl && !videoUrl) throw httpError('Video URL must be a valid HTTPS embed URL or iframe code.', 400);
   const bgGradient = body.bgGradient || 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
+  return { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient };
+}
+
+async function createAnnouncement({ request, env }, user) {
+  requireRole(user, ['admin']);
+  const body = await readJson(request);
+  const { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient } = normalizeAnnouncementBody(body);
   const id = randomId().slice(0, 16);
   await env.DB.prepare('INSERT INTO announcements (id, title, body, link_url, link_text, image_url, video_url, bg_gradient, active, created_at) VALUES (?,?,?,?,?,?,?,?,1,?)')
     .bind(id, title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient, new Date().toISOString())
     .run();
   return json({ ok: true, id });
+}
+
+async function updateAnnouncement({ request, env }, user, id) {
+  requireRole(user, ['admin']);
+  const existing = await env.DB.prepare('SELECT id FROM announcements WHERE id = ? AND active = 1').bind(id).first();
+  if (!existing) throw httpError('Announcement not found.', 404);
+
+  const body = await readJson(request);
+  const { title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient } = normalizeAnnouncementBody(body);
+  await env.DB.prepare(`
+    UPDATE announcements
+    SET title = ?, body = ?, link_url = ?, link_text = ?, image_url = ?, video_url = ?, bg_gradient = ?
+    WHERE id = ?
+  `).bind(title, adBody, linkUrl, linkText, imageUrl, videoUrl, bgGradient, id).run();
+  await logAction(env, user, 'UPDATE_ANNOUNCEMENT', `Updated announcement ID: ${id}`);
+  return json({ ok: true });
 }
 
 async function deleteAnnouncement({ env }, user, id) {

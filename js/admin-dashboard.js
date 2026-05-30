@@ -1281,7 +1281,7 @@ function openAnnouncementModal() {
 
 async function openEditAnnouncement(id) {
   try {
-    const data = await apiFetch(`/api/announcements/${id}?t=` + Date.now());
+    const data = await apiFetch(`/api/announcements/${encodeURIComponent(id)}?t=` + Date.now());
     const ad = data.announcement;
 
     document.getElementById('adId').value = ad.id;
@@ -1348,7 +1348,7 @@ async function createAnnouncement() {
 
   try {
     if (adId) {
-      await apiFetch(`/api/announcements/${adId}`, {
+      await apiFetch(`/api/announcements/${encodeURIComponent(adId)}`, {
         method: 'PATCH',
         body: JSON.stringify(adData)
       });

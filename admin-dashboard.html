@@ -887,41 +887,6 @@
     </div>
   </div>
 
-  <!-- MODAL: Send Notification -->
-  <div class="modal-backdrop hidden" id="notifModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Send Notification</h3>
-        <button class="modal-close" onclick="closeModal('notifModal')">×</button>
-      </div>
-      <div class="field">
-        <label>Target Audience</label>
-        <select id="notifTarget" onchange="toggleStudentSelect()">
-          <!-- options populated dynamically -->
-        </select>
-      </div>
-      <div class="field hidden" id="studentSelectField">
-        <label>Select Student</label>
-        <select id="notifStudent">
-          <!-- populated dynamically -->
-        </select>
-      </div>
-      <div class="field">
-        <label>Title</label>
-        <input type="text" id="notifTitle" placeholder="e.g. Class Rescheduled">
-      </div>
-      <div class="field">
-        <label>Message</label>
-        <textarea id="notifBody" rows="4"></textarea>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
-        <button class="btn-secondary" onclick="closeModal('notifModal')">Cancel</button>
-        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="sendNotification()">Send</button>
-      </div>
-      <div id="notifModalErr" class="error-msg hidden"></div>
-    </div>
-  </div>
-
   <!-- MODAL: Update Payment -->
   <div class="modal-backdrop hidden" id="paymentModal">
     <div class="modal">
@@ -1165,11 +1130,11 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <script src="js/app-data.js?v=54"></script>
-  <script src="js/api-client.js?v=57"></script>
-  <script src="js/admin-dashboard.js?v=57"></script>
+  <script src="js/api-client.js?v=59"></script>
+  <script src="js/admin-dashboard.js?v=59"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=57', { updateViaCache: 'none' });
+      navigator.serviceWorker.register('/sw.js?v=59', { updateViaCache: 'none' });
 
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log('New version ready.');

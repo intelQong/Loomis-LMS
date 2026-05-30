@@ -31,11 +31,20 @@ async function apiFetch(path, options = {}) {
 
 
 async function apiDelete(path) {
-  return apiFetch(path, {
-    method: 'POST',
-    headers: { 'X-HTTP-Method-Override': 'DELETE' },
-    body: '{}'
-  });
+  try {
+    return await apiFetch(path, { method: 'DELETE' });
+  } catch (deleteError) {
+    const separator = path.includes('?') ? '&' : '?';
+    try {
+      return await apiFetch(`${path}${separator}_method=DELETE`, {
+        method: 'POST',
+        headers: { 'X-HTTP-Method-Override': 'DELETE' },
+        body: '{}'
+      });
+    } catch (overrideError) {
+      throw overrideError || deleteError;
+    }
+  }
 }
 
 function friendlyHttpError(path, status) {
