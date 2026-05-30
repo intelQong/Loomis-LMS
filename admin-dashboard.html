@@ -12,9 +12,9 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="styles/main.css?v=58">
-  <link rel="stylesheet" href="styles/dashboard.css?v=58">
-  <link rel="stylesheet" href="styles/admin.css?v=58">
+  <link rel="stylesheet" href="styles/main.css?v=59">
+  <link rel="stylesheet" href="styles/dashboard.css?v=59">
+  <link rel="stylesheet" href="styles/admin.css?v=59">
 </head>
 
 <body class="dashboard-page">
@@ -40,9 +40,7 @@
         <span class="nav-icon">BC</span> Broadcasts
       </button>
       <button class="nav-item" onclick="showSection('attendance', this)">
-        <span class="nav-icon nav-icon-svg" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h10V5H7Zm2 3h6v2H9V8Zm0 4h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
-        </span> Attendance
+        Attendance
       </button>
 
       <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
@@ -269,12 +267,15 @@
         <div class="admin-toolbar">
           <input class="search-input" type="text" id="paySearch" placeholder="Search student..."
             oninput="filterPayments()">
+          <input class="search-input" type="date" id="payDateFrom" aria-label="Payment date from" onchange="filterPayments()">
+          <input class="search-input" type="date" id="payDateTo" aria-label="Payment date to" onchange="filterPayments()">
           <select class="search-input" style="min-width:160px" id="paySort" onchange="filterPayments()">
+            <option value="date_desc">Next Payment (Latest)</option>
+            <option value="date_asc">Next Payment (Soonest)</option>
             <option value="name">Sort by Name</option>
             <option value="due_desc">Sort by Due (High to Low)</option>
-            <option value="date_asc">Next Payment (Soonest)</option>
-            <option value="date_desc">Next Payment (Latest)</option>
           </select>
+          <button type="button" class="btn-secondary toolbar-reset-btn" onclick="clearPaymentDateFilters()">Clear dates</button>
         </div>
         <div class="card" style="padding:0;overflow:hidden">
           <div class="table-wrap">
@@ -292,7 +293,7 @@
               </thead>
               <tbody id="payTable">
                 <tr>
-                  <td colspan="6" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td>
+                  <td colspan="7" style="text-align:center;padding:32px;color:var(--gray-400)">Loading...</td>
                 </tr>
               </tbody>
             </table>
@@ -325,21 +326,23 @@
           student portal.</p>
 
         <div class="card" style="padding:0; overflow:hidden">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Title</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="adminCalendarList">
-              <tr>
-                <td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminCalendarList">
+                <tr>
+                  <td colspan="4" style="text-align:center;padding:32px">Loading calendar...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
       <section class="page-section" id="section-services">
@@ -357,8 +360,6 @@
         </div>
       </section>
 
-      </section>
-
       <!-- SECTION: Secure Portal (Super Admin) -->
       <section class="page-section" id="section-super-portal">
         <div class="section-header">
@@ -368,22 +369,24 @@
           Administrator. Manage roles and system permissions.</p>
 
         <div class="card" style="padding:0; overflow:hidden">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Change Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="superUserList">
-              <tr>
-                <td colspan="4" style="text-align:center;padding:32px">Loading all users...</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Current Role</th>
+                  <th>Change Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="superUserList">
+                <tr>
+                  <td colspan="5" style="text-align:center;padding:32px">Loading all users...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div class="section-header" style="margin-top:40px">
@@ -393,21 +396,23 @@
           actions. This log cannot be edited or deleted.</p>
 
         <div class="card" style="padding:0; overflow:hidden">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Date & Time</th>
-                <th>Admin</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="auditLogList">
-              <tr>
-                <td colspan="4" style="text-align:center;padding:32px">Loading history...</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date & Time</th>
+                  <th>Admin</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="auditLogList">
+                <tr>
+                  <td colspan="4" style="text-align:center;padding:32px">Loading history...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -1052,7 +1057,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+      <div class="responsive-field-grid two-col">
         <div class="field">
           <label>First Name</label>
           <input type="text" id="editFirstName" placeholder="First Name">
@@ -1081,6 +1086,39 @@
           Changes</button>
       </div>
       <div id="editUserErr" class="error-msg hidden"></div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: Super Admin Password Reset -->
+  <div class="modal-backdrop hidden" id="userPasswordResetModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Reset User Password</h3>
+        <button class="modal-close" onclick="closeModal('userPasswordResetModal')">×</button>
+      </div>
+      <div
+        style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
+        <div style="font-size:0.85rem;color:var(--gray-500)">Resetting password for:</div>
+        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="resetUserDisplayEmail">user@example.com</div>
+      </div>
+      <input type="hidden" id="resetUserId">
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="resetUserNewPw" placeholder="Minimum 8 characters" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label>Confirm Password</label>
+        <input type="password" id="resetUserConfirmPw" placeholder="Re-enter new password" autocomplete="new-password">
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-500);line-height:1.5;margin-bottom:16px">
+        Saving this will sign the user out of existing sessions so they can log in with the new password.
+      </p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('userPasswordResetModal')">Cancel</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveUserPasswordReset()">Reset Password</button>
+      </div>
+      <div id="resetUserErr" class="error-msg hidden"></div>
     </div>
   </div>
 
@@ -1121,10 +1159,10 @@
 
   <script src="js/app-data.js?v=54"></script>
   <script src="js/api-client.js?v=54"></script>
-  <script src="js/admin-dashboard.js?v=54"></script>
+  <script src="js/admin-dashboard.js?v=55"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=54', { updateViaCache: 'none' });
+      navigator.serviceWorker.register('/sw.js?v=55', { updateViaCache: 'none' });
 
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         console.log('New version ready.');
