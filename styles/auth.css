@@ -211,3 +211,68 @@
   .auth-panel { padding: 24px; }
   .auth-tabs { margin-bottom: 24px; }
 }
+
+/* Minimal authentication refresh */
+.auth-page {
+  background: var(--gray-50);
+}
+
+.auth-split {
+  background: var(--gray-50);
+}
+
+.brand-panel {
+  background: #fff;
+  border-right: 1px solid var(--gray-200);
+}
+
+.brand-content,
+.brand-logo span,
+.brand-headline {
+  color: var(--gray-900);
+}
+
+.brand-headline em {
+  color: var(--primary);
+  font-style: normal;
+}
+
+.brand-sub {
+  color: var(--gray-500);
+}
+
+.brand-pattern {
+  display: none;
+}
+
+.auth-panel {
+  background: var(--gray-50);
+}
+
+.auth-container {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 24px;
+  box-shadow: none;
+}
+
+.auth-tabs {
+  background: var(--gray-100);
+  border-radius: 999px;
+}
+
+.tab-btn {
+  border-radius: 999px;
+}
+
+.tab-btn.active {
+  background: #fff;
+  color: var(--primary);
+}
+
+.toggle-pw {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  width: auto;
+}

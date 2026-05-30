@@ -140,10 +140,10 @@ function renderSidebarUser() {
 function renderGreeting() {
   const hour = new Date().getHours();
   let greet = 'Good morning';
-  let icon = '☀️';
-  if (hour >= 12 && hour < 17) { greet = 'Good afternoon'; icon = '🌤️'; }
-  else if (hour >= 17 && hour < 21) { greet = 'Good evening'; icon = '🌆'; }
-  else if (hour >= 21 || hour < 5) { greet = 'Hello'; icon = '🌙'; }
+  let icon = '';
+  if (hour >= 12 && hour < 17) { greet = 'Good afternoon'; icon = ''; }
+  else if (hour >= 17 && hour < 21) { greet = 'Good evening'; icon = ''; }
+  else if (hour >= 21 || hour < 5) { greet = 'Hello'; icon = ''; }
 
   document.getElementById('greetName').textContent = `${greet}, ${currentUser.firstName}!`;
   document.getElementById('greetIcon').textContent = icon;
@@ -220,21 +220,21 @@ function renderCourse() {
   container.innerHTML = courses.map(course => `
     <div class="course-card" style="margin-bottom:18px">
       <div class="course-header">
-        <div class="course-name">${course.icon} ${course.name}</div>
+        <div class="course-name">${course.icon ? `${course.icon} ` : ''}${course.name}</div>
         <div class="course-meta" style="flex-wrap:wrap">
-          <span>⏱ ${course.duration}</span>
-          <span>📅 ${course.sessions}</span>
-          <span>💰 ৳${course.totalFee.toLocaleString()} total</span>
+          <span>${course.duration}</span>
+          <span>${course.sessions}</span>
+          <span>৳${course.totalFee.toLocaleString()} total</span>
         </div>
       </div>
       <div class="course-body">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--gray-100)">
           <div style="background:var(--gray-50);padding:12px;border-radius:var(--radius-sm)">
-            <div style="font-size:0.75rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">📅 Enrollment Date</div>
+            <div style="font-size:0.75rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Enrollment Date</div>
             <div style="font-weight:600;color:var(--gray-800)">${enrollStr}</div>
           </div>
           <div style="background:var(--teal-light);padding:12px;border-radius:var(--radius-sm)">
-            <div style="font-size:0.75rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">⌛ Access Expiry</div>
+            <div style="font-size:0.75rem;color:var(--teal);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px">Access Expiry</div>
             <div style="font-weight:700;color:var(--teal-dark)">${expiryStr}</div>
           </div>
         </div>
@@ -245,12 +245,12 @@ function renderCourse() {
             <div class="feature-item">
               <span class="fi-icon">${f.icon}</span>
               <span>${f.label}</span>
-              <span class="feature-check">✓</span>
+              <span class="feature-check">•</span>
             </div>
           `).join('')}
         </div>
         <div style="margin-top:24px;padding:16px;background:var(--teal-light);border-radius:var(--radius-sm);font-size:0.875rem;color:var(--teal-dark)">
-          🏅 <strong>British Council Affiliated</strong> — AIMS English is proud to be affiliated with the British Council, Chattogram.
+          <strong>British Council Affiliated</strong> — AIMS English is proud to be affiliated with the British Council, Chattogram.
         </div>
       </div>
     </div>
@@ -327,7 +327,7 @@ async function renderServices() {
     }
     grid.innerHTML = services.map(p => `
       <a class="portal-card" href="${p.url}" target="${p.url.startsWith('http') ? '_blank' : '_self'}">
-        <div class="portal-icon">${p.icon.startsWith('http') ? `<img src="${p.icon}" style="width:40px;height:40px;object-fit:contain">` : p.icon}</div>
+        <div class="portal-icon">${p.icon && p.icon.startsWith('http') ? `<img src="${p.icon}" style="width:40px;height:40px;object-fit:contain">` : 'Link'}</div>
         <div class="portal-name">${p.name}</div>
         <div class="portal-desc">${p.desc}</div>
         <div class="portal-arrow">→</div>
@@ -452,7 +452,7 @@ async function loadAdBanners() {
               <img src="${imgUrl}" alt="${title}" loading="${i === 0 ? 'eager' : 'lazy'}" decoding="async" onerror="this.closest('.ad-image-container').style.display='none'">
             </div>
           ` : `
-            <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none">✨</div>
+            <div style="position:absolute; bottom:-10px; right:-10px; font-size:8rem; opacity:0.1; pointer-events:none"></div>
           `}
           <div class="ad-content">
             <div class="ad-content-title">${title}</div>
@@ -667,7 +667,7 @@ async function saveOwnPassword() {
       body: JSON.stringify({ currentPassword, newPassword })
     });
     closeModal('changePasswordModal');
-    showToast('Password changed successfully ✓', 'success');
+    showToast('Password changed successfully', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
