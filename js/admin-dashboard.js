@@ -109,6 +109,10 @@ function canManageStudents() {
   return adminRole === 'admin';
 }
 
+function canEditStudentInfo() {
+  return ['admin', 'faculty'].includes(adminRole);
+}
+
 function configureDashboardForRole() {
   const roleLabel = isFaculty() ? 'Faculty' : 'Administrator';
   document.getElementById('dashboardBrand').textContent = isFaculty() ? 'AIMS Faculty' : 'AIMS Admin';
@@ -125,6 +129,8 @@ function configureDashboardForRole() {
   document.getElementById('dueCollectionCard').classList.toggle('hidden', isFaculty());
   document.getElementById('pendingQuickView').classList.toggle('hidden', isFaculty());
   document.getElementById('studentsSectionTitle').textContent = isFaculty() ? 'Assigned Students' : 'Students';
+  const addStudentBtn = document.getElementById('addStudentBtn');
+  if (addStudentBtn) addStudentBtn.textContent = isFaculty() ? '+ Add Assigned Student' : '+ Add Student';
   document.getElementById('notificationsSectionTitle').textContent = isFaculty() ? 'Send Broadcast' : 'Broadcasts';
 }
 
@@ -383,11 +389,10 @@ function renderStudentsTable(students) {
         <td>
           <div class="action-btns">
             ${canManageStudents() && s.status === 'pending' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
-            ${canManageStudents() ? `<button class="btn-xs btn-xs-edit" onclick="openEditStudent('${s.id}')">Edit</button>` : ''}
+            ${canEditStudentInfo() ? `<button class="btn-xs btn-xs-edit" onclick="openEditStudent('${s.id}')">Edit</button>` : ''}
             ${canManageStudents() ? `<button class="btn-xs" style="background:var(--gray-100);color:var(--gray-700)" onclick="openResetPasswordModal('${s.id}')">🔑</button>` : ''}
             ${canManageStudents() && s.status !== 'suspended' && s.status !== 'pending' ? `<button class="btn-xs btn-xs-suspend" onclick="suspendStudent('${s.id}')">Suspend</button>` : ''}
             ${canManageStudents() && s.status === 'suspended' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Reactivate</button>` : ''}
-            ${!canManageStudents() ? '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>' : ''}
           </div>
         </td>
       </tr>
@@ -464,7 +469,7 @@ function saveStudentPayload(id, student) {
 // Edit Student Modal
 // ============================================================
 function openEditStudent(id) {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const s = allStudents.find(x => x.id === id);
   if (!s) return;
   document.getElementById('editStudentId').value = id;
@@ -474,7 +479,9 @@ function openEditStudent(id) {
   setSelectedCourseIds('editCourse', getCourseIds(s));
   document.getElementById('editStatus').value = s.status || 'pending';
   document.getElementById('editStudentIdField').value = s.studentId || '';
-  document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
+  document.getElementById('editFacultyId').value = isFaculty() ? adminUser.id : (s.assignedFacultyId || '');
+  document.getElementById('editFacultyId').readOnly = isFaculty();
+  document.getElementById('editStatus').disabled = isFaculty();
   document.getElementById('editEnrolledDate').value = s.enrolledDate ? s.enrolledDate.split('T')[0] : '';
   document.getElementById('editClassDays').value = s.classDays || '';
   document.getElementById('editClassTime').value = s.classTime || '';
@@ -483,7 +490,7 @@ function openEditStudent(id) {
 }
 
 async function saveStudentEdit() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const id = document.getElementById('editStudentId').value;
   const errEl = document.getElementById('editStudentErr');
   try {
@@ -499,11 +506,11 @@ async function saveStudentEdit() {
       phone: document.getElementById('editPhone').value.trim(),
       course,
       courses,
-      status: document.getElementById('editStatus').value,
+      status: isFaculty() && existing ? existing.status : document.getElementById('editStatus').value,
       totalPaid: paid,
       totalDue: due,
       studentId: document.getElementById('editStudentIdField').value.trim(),
-      assignedFacultyId: document.getElementById('editFacultyId').value.trim(),
+      assignedFacultyId: isFaculty() ? adminUser.id : document.getElementById('editFacultyId').value.trim(),
       enrolledDate: document.getElementById('editEnrolledDate').value,
       classDays: document.getElementById('editClassDays').value.trim(),
       classTime: document.getElementById('editClassTime').value.trim()
@@ -522,7 +529,7 @@ async function saveStudentEdit() {
 // Add Student
 // ============================================================
 function openAddStudentModal() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
   ['addFirst', 'addLast', 'addEmail', 'addPhone', 'addPassword', 'addStudentId', 'addFacultyId', 'addEnrolledDate'].forEach(id => {
     const el = document.getElementById(id);
@@ -530,6 +537,8 @@ function openAddStudentModal() {
   });
   // Default selections
   setSelectedCourseIds('addCourse', []);
+  document.getElementById('addFacultyId').value = isFaculty() ? adminUser.id : '';
+  document.getElementById('addFacultyId').readOnly = isFaculty();
   document.getElementById('addClassDays').value = 'Sat, Mon, Wed';
   document.getElementById('addClassTime').value = '4:00 PM';
   // Default to today
@@ -538,7 +547,7 @@ function openAddStudentModal() {
 }
 
 async function addStudent() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const first = document.getElementById('addFirst').value.trim();
   const last = document.getElementById('addLast').value.trim();
   const email = document.getElementById('addEmail').value.trim();
@@ -547,7 +556,7 @@ async function addStudent() {
   const course = courses[0] || '';
   const password = document.getElementById('addPassword').value;
   const studentId = document.getElementById('addStudentId').value.trim();
-  const assignedFacultyId = document.getElementById('addFacultyId').value.trim();
+  const assignedFacultyId = isFaculty() ? adminUser.id : document.getElementById('addFacultyId').value.trim();
   const enrolledDate = document.getElementById('addEnrolledDate').value;
   const errEl = document.getElementById('addStudentErr');
   errEl.classList.add('hidden');
@@ -1638,23 +1647,7 @@ async function loadAttendanceList() {
 
     tbody.innerHTML = filteredStudents.map(s => {
       const record = currentAttendanceMap[s.id] || { status: 'absent', notes: '' };
-      const statusClass = record.status === 'present' ? 'badge-success' : record.status === 'absent' ? 'badge-danger' : 'badge-warning';
-      return `
-        <tr data-student-id="${s.id}">
-          <td>
-            <div style="font-weight:600">${s.firstName} ${s.lastName}</div>
-            <div style="font-size:0.75rem;color:var(--gray-400)">${s.studentId || s.email}</div>
-          </td>
-          <td>
-            <div class="attendance-tap-area" onclick="toggleAttendanceStatus('${s.id}')" id="at-status-${s.id}" style="cursor:pointer; display:inline-block; padding:8px 16px; border-radius:8px; border:1px solid var(--gray-100); transition:0.2s; user-select:none">
-              <span class="badge ${statusClass}" style="pointer-events:none">${record.status.toUpperCase()}</span>
-            </div>
-          </td>
-          <td>
-            <input type="text" class="notes-input" placeholder="Notes..." value="${record.notes || ''}" style="width:100%;padding:6px 12px;border:1.5px solid var(--gray-100);border-radius:6px;font-size:0.85rem;outline:none">
-          </td>
-        </tr>
-      `;
+      return renderAttendanceRow(s, record);
     }).join('');
 
   } catch (err) {
@@ -1663,8 +1656,36 @@ async function loadAttendanceList() {
   }
 }
 
+
+function renderAttendanceRow(student, record) {
+  const safeStatus = ['present', 'absent', 'late', 'excused'].includes(record.status) ? record.status : 'absent';
+  const statusClass = safeStatus === 'present' ? 'badge-success' : safeStatus === 'absent' ? 'badge-danger' : 'badge-warning';
+  const studentName = escapeHtml(`${student.firstName || ''} ${student.lastName || ''}`.trim());
+  const studentMeta = escapeHtml(student.studentId || student.email || '');
+  const notes = escapeHtml(record.notes || '');
+
+  return `
+    <tr class="attendance-row" data-student-id="${student.id}">
+      <td class="attendance-student-cell">
+        <div class="attendance-student-name">${studentName}</div>
+        <div class="attendance-student-meta">${studentMeta}</div>
+      </td>
+      <td class="attendance-status-cell">
+        <button type="button" class="attendance-tap-area" onclick="toggleAttendanceStatus('${student.id}')" id="at-status-${student.id}" aria-label="Change attendance status for ${studentName}">
+          <span class="badge ${statusClass}">${safeStatus.toUpperCase()}</span>
+          <span class="attendance-tap-hint">Tap to change</span>
+        </button>
+      </td>
+      <td class="attendance-notes-cell">
+        <input type="text" class="notes-input" placeholder="Optional notes..." value="${notes}">
+      </td>
+    </tr>
+  `;
+}
+
 function toggleAttendanceStatus(studentId) {
   const container = document.getElementById(`at-status-${studentId}`);
+  if (!container) return;
   const badge = container.querySelector('.badge');
   const statuses = ['present', 'absent', 'late', 'excused'];
   let current = badge.textContent.toLowerCase();
