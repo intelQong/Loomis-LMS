@@ -3,13 +3,14 @@
 // ============================================================
 
 async function apiFetch(path, options = {}) {
+  const { headers = {}, ...fetchOptions } = options;
   const res = await fetch(path, {
     credentials: 'include',
+    ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
-      ...(options.headers || {})
-    },
-    ...options
+      ...headers
+    }
   });
 
   const text = await res.text();
@@ -27,6 +28,15 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
+
+
+async function apiDelete(path) {
+  return apiFetch(path, {
+    method: 'POST',
+    headers: { 'X-HTTP-Method-Override': 'DELETE' },
+    body: '{}'
+  });
+}
 
 function friendlyHttpError(path, status) {
   if (path.includes('/api/auth/login') && (status === 401 || status === 403)) {

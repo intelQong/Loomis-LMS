@@ -223,7 +223,7 @@ async function createCalendarEntry() {
 async function deleteCalendarEntry(id) {
   if (!confirm('Delete this calendar entry?')) return;
   try {
-    await apiFetch(`/api/calendar/${id}`, { method: 'DELETE' });
+    await apiDelete(`/api/calendar/${encodeURIComponent(id)}`);
     loadCalendar();
     showToast('Entry deleted', 'info');
   } catch (e) {
@@ -739,9 +739,13 @@ async function sendNotification() {
 
 async function deleteNotif(id) {
   if (!confirm('Delete this broadcast?')) return;
-  await apiFetch(`/api/notifications/${id}`, { method: 'DELETE' });
-  await loadNotifications();
-  showToast('Broadcast deleted', 'info');
+  try {
+    await apiDelete(`/api/notifications/${encodeURIComponent(id)}`);
+    await loadNotifications();
+    showToast('Broadcast deleted', 'info');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 
@@ -1042,7 +1046,7 @@ async function createService() {
 async function deleteService(id) {
   if (!confirm('Are you sure you want to delete this service?')) return;
   try {
-    await apiFetch(`/api/services/${id}`, { method: 'DELETE' });
+    await apiDelete(`/api/services/${encodeURIComponent(id)}`);
     loadServices();
     showToast('Service deleted', 'info');
   } catch (e) {
@@ -1072,7 +1076,6 @@ async function loadSuperUsers() {
       const lastName = escapeHtml(u.lastName || '');
       const email = escapeHtml(u.email || '');
       const role = escapeHtml(u.role || 'student');
-      const payload = encodeURIComponent(JSON.stringify({ id: u.id, firstName: u.firstName || '', lastName: u.lastName || '', email: u.email || '' }));
       return `
         <tr>
           <td style="font-weight:600">${firstName} ${lastName}</td>
@@ -1087,7 +1090,6 @@ async function loadSuperUsers() {
           </td>
           <td>
             <div class="action-btns">
-              <button class="btn-xs btn-xs-edit" onclick="openEditUserFromPayload('${payload}')">Edit</button>
               <button class="btn-xs btn-xs-pay" onclick="openUserPasswordReset('${userId}', '${encodeURIComponent(u.email || '')}')">Reset Password</button>
             </div>
           </td>
@@ -1368,9 +1370,13 @@ async function createAnnouncement() {
 
 async function deleteAd(id) {
   if (!confirm('Delete this announcement?')) return;
-  await apiFetch(`/api/announcements/${id}`, { method: 'DELETE' });
-  await loadAnnouncements();
-  showToast('Announcement deleted', 'info');
+  try {
+    await apiDelete(`/api/announcements/${encodeURIComponent(id)}`);
+    await loadAnnouncements();
+    showToast('Announcement deleted', 'info');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 // ============================================================
