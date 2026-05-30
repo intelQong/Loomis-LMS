@@ -24,7 +24,7 @@ aims-lms/
 ├── index.html                ← Login / Signup
 ├── student-dashboard.html    ← Student portal
 ├── admin-dashboard.html      ← Admin + faculty dashboard
-├── assets/aims-logo.svg      ← Branding logo
+├── assets/intelqong-logo.svg  ← Branding logo
 ├── functions/api/[[path]].js ← Cloudflare Pages Functions API
 ├── migrations/0001_init.sql  ← D1 schema
 ├── wrangler.toml             ← Cloudflare D1 binding config

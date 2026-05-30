@@ -1162,7 +1162,7 @@ function showSection(name, btn) {
     'admin-calendar': 'Academic Calendar',
     'services': 'Other Services',
     'site-tools': 'Site Tools',
-    'super-portal': 'Secure Portal',
+    'super-portal': 'User Management',
     'security': 'Security & Privacy',
     'attendance': 'Attendance'
   };
@@ -1680,11 +1680,23 @@ const attendanceStatusLabels = {
   excused: 'Excused'
 };
 
-function initAttendance() {
+function getTodayDateString() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function lockAttendanceDateToToday() {
   const dateInput = document.getElementById('attendanceDate');
-  if (dateInput) {
-    dateInput.value = new Date().toISOString().split('T')[0];
-  }
+  if (!dateInput) return '';
+  const today = getTodayDateString();
+  dateInput.value = today;
+  dateInput.min = today;
+  dateInput.max = today;
+  dateInput.disabled = true;
+  return today;
+}
+
+function initAttendance() {
+  lockAttendanceDateToToday();
 }
 
 async function loadAttendanceList() {
@@ -1692,7 +1704,7 @@ async function loadAttendanceList() {
   const courseEl = document.getElementById('attendanceCourseFilter');
   if (!dateEl || !courseEl) return;
 
-  const date = dateEl.value;
+  const date = lockAttendanceDateToToday() || dateEl.value;
   const courseId = courseEl.value;
   const list = document.getElementById('attendanceTable');
   const countLabel = document.getElementById('attendanceCountLabel');
@@ -1812,7 +1824,7 @@ async function submitAttendance() {
   const courseEl = document.getElementById('attendanceCourseFilter');
   if (!dateInput || !courseEl) return;
 
-  const date = dateInput.value;
+  const date = lockAttendanceDateToToday() || dateInput.value;
   const courseId = courseEl.value;
   const rows = document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]');
 

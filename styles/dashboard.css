@@ -1225,6 +1225,27 @@ table th {
   flex: 1 1 180px;
 }
 
+.toolbar-date-field {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.toolbar-date-field span {
+  color: var(--gray-500);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.toolbar-date-field .search-input {
+  min-width: 0;
+  width: 100%;
+}
+
 .toolbar-reset-btn {
   min-height: 40px;
   white-space: nowrap;
@@ -1251,6 +1272,27 @@ table th {
   min-width: 720px;
 }
 
+#pendingList,
+#servicesManageList {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+}
+
+.field-row-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* intelQong wordmark sizing */
+.sidebar-logo .logo-img {
+  background: transparent;
+  border: 0 !important;
+  border-radius: 0;
+  box-shadow: none;
+  height: 32px;
+  object-fit: contain;
+  padding: 0;
+  width: 82px;
+}
+
 @media (max-width: 640px) {
   .admin-toolbar {
     display: grid;
@@ -1258,6 +1300,7 @@ table th {
   }
 
   .admin-toolbar .search-input,
+  .toolbar-date-field,
   .admin-toolbar .btn-secondary,
   .toolbar-reset-btn {
     min-width: 0 !important;
@@ -1265,8 +1308,9 @@ table th {
   }
 
   .responsive-field-grid.two-col,
-  .responsive-field-grid {
-    grid-template-columns: 1fr;
+  .responsive-field-grid,
+  .field-row-3 {
+    grid-template-columns: 1fr !important;
   }
 
   .modal-actions,
@@ -1284,21 +1328,6 @@ table th {
   .table-wrap table,
   .data-table {
     min-width: 640px;
-  }
-}
-
-#pendingList,
-#servicesManageList {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
-}
-
-.field-row-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-}
-
-@media (max-width: 640px) {
-  .field-row-3 {
-    grid-template-columns: 1fr !important;
   }
 
   .installment-row {
