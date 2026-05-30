@@ -213,7 +213,7 @@ async function createCalendarEntry() {
     });
     closeModal('calendarModal');
     loadCalendar();
-    showToast('Calendar entry added ✓', 'success');
+    showToast('Calendar entry added', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -420,7 +420,7 @@ async function approveStudent(id) {
   try {
     await saveStudentPayload(id, { ...student, status: 'active' });
     await loadStudents();
-    showToast('Student approved ✓', 'success');
+    showToast('Student approved', 'success');
   } catch (e) {
     console.error(e);
     showToast('Failed to approve: ' + e.message, 'error');
@@ -518,7 +518,7 @@ async function saveStudentEdit() {
 
     closeModal('editStudentModal');
     await loadStudents();
-    showToast('Student updated ✓', 'success');
+    showToast('Student updated', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -588,7 +588,7 @@ async function addStudent() {
 
     closeModal('addStudentModal');
     await loadStudents();
-    showToast('Student created ✓', 'success');
+    showToast('Student created', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -661,8 +661,8 @@ function toggleStudentSelect() {
 function setupNotificationTargets() {
   const sel = document.getElementById('notifTarget');
   sel.innerHTML = isFaculty()
-    ? '<option value="assigned">👥 All Assigned Students</option><option value="individual">👤 Assigned Individual Student</option>'
-    : '<option value="all">📢 All Students (Mass Notification)</option><option value="individual">👤 Individual Student</option>';
+    ? '<option value="assigned">All Assigned Students</option><option value="individual">Assigned Individual Student</option>'
+    : '<option value="all">All Students (Mass Notification)</option><option value="individual">Individual Student</option>';
 }
 
 function getNotificationTargetLabel(n) {
@@ -729,7 +729,7 @@ async function sendNotification() {
     });
     closeModal('notifModal');
     await loadNotifications();
-    showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'} ✓`, 'success');
+    showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'}`, 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -879,7 +879,7 @@ function addInstallmentRow(data = {}) {
       <option value="paid" ${status === 'paid' ? 'selected' : ''}>Paid</option>
       <option value="overdue" ${status === 'overdue' ? 'selected' : ''}>Overdue</option>
     </select>
-    <button type="button" class="btn-xs btn-xs-suspend" onclick="this.parentElement.remove(); checkInstEmpty()" style="padding:6px 10px">✕</button>
+    <button type="button" class="btn-xs btn-xs-suspend" onclick="this.parentElement.remove(); checkInstEmpty()" style="padding:6px 10px">×</button>
   `;
   container.appendChild(row);
 }
@@ -939,7 +939,7 @@ async function savePayment() {
 
     closeModal('paymentModal');
     await loadStudents();
-    showToast('Payment and Installment Plan updated ✓', 'success');
+    showToast('Payment and Installment Plan updated', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -986,7 +986,7 @@ function openServiceModal() {
   document.getElementById('serviceName').value = '';
   document.getElementById('serviceDesc').value = '';
   document.getElementById('serviceUrl').value = '';
-  document.getElementById('serviceIcon').value = '🌐';
+  document.getElementById('serviceIcon').value = '';
   document.getElementById('serviceErr').classList.add('hidden');
   openModal('serviceModal');
 }
@@ -1011,7 +1011,7 @@ async function createService() {
     });
     closeModal('serviceModal');
     loadServices();
-    showToast('Service added ✓', 'success');
+    showToast('Service added', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -1075,7 +1075,7 @@ async function updateUserRole(userId, newRole) {
       method: 'PATCH',
       body: JSON.stringify({ role: newRole })
     });
-    showToast('User role updated ✓', 'success');
+    showToast('User role updated', 'success');
     loadSuperUsers();
     loadAuditLogs();
   } catch (e) {
@@ -1192,7 +1192,7 @@ function renderAnnouncementsList(ads) {
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
        ${videoUrl ? `<div style="width:220px;height:124px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);overflow:hidden"><iframe src="${videoUrl}" title="Announcement video preview" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0"></iframe></div>` :
-        (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+        (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem"></div>`)}
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
@@ -1316,13 +1316,13 @@ async function createAnnouncement() {
         method: 'PATCH',
         body: JSON.stringify(adData)
       });
-      showToast('Announcement updated ✓', 'success');
+      showToast('Announcement updated', 'success');
     } else {
       await apiFetch('/api/announcements', {
         method: 'POST',
         body: JSON.stringify(adData)
       });
-      showToast('Announcement published ✓', 'success');
+      showToast('Announcement published', 'success');
     }
     closeModal('announcementModal');
     await loadAnnouncements();
@@ -1351,11 +1351,11 @@ async function clearAllCaches() {
     const keys = await caches.keys();
     await Promise.all(keys.map(key => caches.delete(key)));
 
-    statusEl.textContent = `✅ Cleared ${keys.length} cache(s) successfully. Students will get fresh files on next visit.`;
+    statusEl.textContent = `Cleared ${keys.length} cache(s) successfully. Students will get fresh files on next visit.`;
     statusEl.style.color = 'var(--success)';
     showToast(`Cleared ${keys.length} cache(s)`, 'success');
   } catch (e) {
-    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
     statusEl.style.color = 'var(--danger)';
   }
 }
@@ -1409,7 +1409,7 @@ async function toggleMaintenanceMode(enabled) {
     showToast(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', enabled ? 'error' : 'success');
 
   } catch (e) {
-    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
     statusEl.style.color = 'var(--danger)';
     document.getElementById('maintenanceToggle').checked = !enabled;
     updateToggleUI(!enabled);
@@ -1467,7 +1467,7 @@ async function saveOwnPassword() {
       body: JSON.stringify({ currentPassword, newPassword })
     });
     closeModal('changePasswordModal');
-    showToast('Password changed successfully ✓', 'success');
+    showToast('Password changed successfully', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -1512,7 +1512,7 @@ async function saveResetPassword() {
       body: JSON.stringify({ newPassword: newPw })
     });
     closeModal('resetPasswordModal');
-    showToast('Password reset successfully ✓', 'success');
+    showToast('Password reset successfully', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
