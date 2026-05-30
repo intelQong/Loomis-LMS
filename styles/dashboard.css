@@ -1211,3 +1211,98 @@ table th {
     min-height: 0;
   }
 }
+
+/* Responsive hardening for admin/student dashboards */
+.main-content,
+.content-area,
+.page-section,
+.card,
+.table-wrap {
+  min-width: 0;
+}
+
+.admin-toolbar .search-input {
+  flex: 1 1 180px;
+}
+
+.toolbar-reset-btn {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.responsive-field-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.responsive-field-grid.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.data-table {
+  min-width: 720px;
+}
+
+@media (max-width: 640px) {
+  .admin-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-toolbar .search-input,
+  .admin-toolbar .btn-secondary,
+  .toolbar-reset-btn {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .responsive-field-grid.two-col,
+  .responsive-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions,
+  .modal-header + .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    justify-content: center;
+    width: 100% !important;
+  }
+
+  .table-wrap table,
+  .data-table {
+    min-width: 640px;
+  }
+}
+
+#pendingList,
+#servicesManageList {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+}
+
+.field-row-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 640px) {
+  .field-row-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .installment-row {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+}
