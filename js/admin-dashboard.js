@@ -1597,6 +1597,13 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
 // Attendance Logic
 // ============================================================
 let currentAttendanceMap = {};
+const attendanceStatuses = ['present', 'absent', 'late', 'excused'];
+const attendanceStatusLabels = {
+  present: 'Present',
+  absent: 'Absent',
+  late: 'Late',
+  excused: 'Excused'
+};
 
 function initAttendance() {
   const dateInput = document.getElementById('attendanceDate');
@@ -1612,16 +1619,17 @@ async function loadAttendanceList() {
 
   const date = dateEl.value;
   const courseId = courseEl.value;
-  const tbody = document.getElementById('attendanceTable');
+  const list = document.getElementById('attendanceTable');
   const countLabel = document.getElementById('attendanceCountLabel');
 
   if (!date) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Please select a date.</td></tr>';
+    list.innerHTML = '<div class="attendance-empty">Select a date to continue.</div>';
+    updateAttendanceSummary();
     return;
   }
 
   try {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Loading students...</td></tr>';
+    list.innerHTML = '<div class="attendance-empty">Loading students...</div>';
 
     const filteredStudents = allStudents.filter(s => {
       if (s.status !== 'active') return false;
@@ -1630,10 +1638,11 @@ async function loadAttendanceList() {
       return true;
     });
 
-    if (countLabel) countLabel.textContent = `${filteredStudents.length} Students`;
+    if (countLabel) countLabel.textContent = `${filteredStudents.length} students`;
 
     if (filteredStudents.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">No active students found for this selection.</td></tr>';
+      list.innerHTML = '<div class="attendance-empty">No active students match this selection.</div>';
+      updateAttendanceSummary();
       return;
     }
 
@@ -1645,60 +1654,82 @@ async function loadAttendanceList() {
       });
     }
 
-    tbody.innerHTML = filteredStudents.map(s => {
+    list.innerHTML = filteredStudents.map(s => {
       const record = currentAttendanceMap[s.id] || { status: 'absent', notes: '' };
       return renderAttendanceRow(s, record);
     }).join('');
+    updateAttendanceSummary();
 
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--danger)">Error: ${err.message}</td></tr>`;
+    list.innerHTML = `<div class="attendance-empty attendance-empty-error">${escapeHtml(err.message)}</div>`;
+    updateAttendanceSummary();
   }
 }
 
-
 function renderAttendanceRow(student, record) {
-  const safeStatus = ['present', 'absent', 'late', 'excused'].includes(record.status) ? record.status : 'absent';
-  const statusClass = safeStatus === 'present' ? 'badge-success' : safeStatus === 'absent' ? 'badge-danger' : 'badge-warning';
+  const safeStatus = attendanceStatuses.includes(record.status) ? record.status : 'absent';
   const studentName = escapeHtml(`${student.firstName || ''} ${student.lastName || ''}`.trim());
   const studentMeta = escapeHtml(student.studentId || student.email || '');
   const notes = escapeHtml(record.notes || '');
+  const statusButtons = attendanceStatuses.map(status => `
+    <button type="button" class="attendance-status-option ${status === safeStatus ? 'selected' : ''}" data-status="${status}" onclick="setAttendanceStatus('${student.id}', '${status}')">
+      ${attendanceStatusLabels[status]}
+    </button>
+  `).join('');
 
   return `
-    <tr class="attendance-row" data-student-id="${student.id}">
-      <td class="attendance-student-cell">
+    <div class="attendance-row" data-student-id="${student.id}" data-status="${safeStatus}">
+      <div class="attendance-student-cell">
         <div class="attendance-student-name">${studentName}</div>
         <div class="attendance-student-meta">${studentMeta}</div>
-      </td>
-      <td class="attendance-status-cell">
-        <button type="button" class="attendance-tap-area" onclick="toggleAttendanceStatus('${student.id}')" id="at-status-${student.id}" aria-label="Change attendance status for ${studentName}">
-          <span class="badge ${statusClass}">${safeStatus.toUpperCase()}</span>
-          <span class="attendance-tap-hint">Tap to change</span>
-        </button>
-      </td>
-      <td class="attendance-notes-cell">
-        <input type="text" class="notes-input" placeholder="Optional notes..." value="${notes}">
-      </td>
-    </tr>
+      </div>
+      <div class="attendance-status-cell" role="group" aria-label="Attendance status for ${studentName}">
+        ${statusButtons}
+      </div>
+      <div class="attendance-notes-cell">
+        <input type="text" class="notes-input" placeholder="Add note" value="${notes}" aria-label="Attendance note for ${studentName}">
+      </div>
+    </div>
   `;
 }
 
-function toggleAttendanceStatus(studentId) {
-  const container = document.getElementById(`at-status-${studentId}`);
-  if (!container) return;
-  const badge = container.querySelector('.badge');
-  const statuses = ['present', 'absent', 'late', 'excused'];
-  let current = badge.textContent.toLowerCase();
-  
-  let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
-  let next = statuses[nextIdx];
-  
-  badge.textContent = next.toUpperCase();
-  badge.className = `badge badge-${next === 'present' ? 'success' : next === 'absent' ? 'danger' : 'warning'}`;
-  
-  // Feedback effect
-  container.style.transform = 'scale(1.05)';
-  setTimeout(() => container.style.transform = 'scale(1)', 100);
+function setAttendanceStatus(studentId, status) {
+  if (!attendanceStatuses.includes(status)) return;
+  const row = document.querySelector(`#attendanceTable [data-student-id="${studentId}"]`);
+  if (!row) return;
+
+  row.dataset.status = status;
+  row.querySelectorAll('.attendance-status-option').forEach(button => {
+    button.classList.toggle('selected', button.dataset.status === status);
+  });
+  updateAttendanceSummary();
+}
+
+function markAllAttendance(status) {
+  if (!attendanceStatuses.includes(status)) return;
+  document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]').forEach(row => {
+    setAttendanceStatus(row.dataset.studentId, status);
+  });
+}
+
+function updateAttendanceSummary() {
+  const summaryEl = document.getElementById('attendanceSelectionSummary');
+  if (!summaryEl) return;
+
+  const rows = Array.from(document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]'));
+  if (rows.length === 0) {
+    summaryEl.textContent = 'No attendance loaded';
+    return;
+  }
+
+  const totals = rows.reduce((acc, row) => {
+    const status = row.dataset.status || 'absent';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  summaryEl.textContent = `Present ${totals.present || 0} · Absent ${totals.absent || 0} · Late ${totals.late || 0} · Excused ${totals.excused || 0}`;
 }
 
 async function submitAttendance() {
@@ -1708,10 +1739,15 @@ async function submitAttendance() {
 
   const date = dateInput.value;
   const courseId = courseEl.value;
-  const rows = document.querySelectorAll('#attendanceTable tr[data-student-id]');
+  const rows = document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]');
 
   if (!date) {
     showToast('Please select a date first.', 'error');
+    return;
+  }
+
+  if (rows.length === 0) {
+    showToast('No students available for this selection.', 'error');
     return;
   }
 
@@ -1719,7 +1755,7 @@ async function submitAttendance() {
     studentId: row.dataset.studentId,
     date,
     courseId: courseId || '',
-    status: row.querySelector('.badge').textContent.toLowerCase(),
+    status: row.dataset.status || 'absent',
     notes: row.querySelector('.notes-input').value
   }));
 
@@ -1730,7 +1766,7 @@ async function submitAttendance() {
       body: JSON.stringify({ records })
     });
     showLoading(false);
-    showToast('Attendance saved successfully ✓', 'success');
+    showToast('Attendance saved successfully', 'success');
   } catch (err) {
     showLoading(false);
     showToast(`Error: ${err.message}`, 'error');

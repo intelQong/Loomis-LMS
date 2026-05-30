@@ -40,7 +40,9 @@
         <span class="nav-icon">📢</span> Broadcasts
       </button>
       <button class="nav-item" onclick="showSection('attendance', this)">
-        <span class="nav-icon">📝</span> Attendance
+        <span class="nav-icon nav-icon-svg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h10V5H7Zm2 3h6v2H9V8Zm0 4h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
+        </span> Attendance
       </button>
 
       <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
@@ -488,50 +490,64 @@
 
       <!-- SECTION: Attendance -->
       <section class="page-section" id="section-attendance">
-        <div class="section-header">
-          <div><div class="section-title">Attendance Management</div><p class="attendance-subtitle">Select students with one click, add optional notes, and submit attendance for the selected date.</p></div>
-          <div style="display:flex; gap:10px; align-items:center">
-            <input type="date" id="attendanceDate" class="search-input" style="width:auto" onchange="loadAttendanceList()">
-            <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="submitAttendance()">Submit Attendance</button>
+        <div class="attendance-shell">
+          <div class="attendance-hero">
+            <div>
+              <p class="attendance-eyebrow">Attendance</p>
+              <h2>Daily class attendance</h2>
+              <p>Choose a date and course, then select each student status before submitting.</p>
+            </div>
+            <button class="attendance-submit-btn" type="button" onclick="submitAttendance()">Submit attendance</button>
           </div>
-        </div>
-        <div class="admin-toolbar">
-          <select class="search-input" style="min-width:180px" id="attendanceCourseFilter" onchange="loadAttendanceList()">
-            <option value="">All Courses</option>
-            <optgroup label="IELTS">
-              <option value="ielts-regular">IELTS Regular (AC/GT)</option>
-              <option value="ielts-fast-track">IELTS Fast Track</option>
-              <option value="ielts-platinum">IELTS Platinum</option>
-              <option value="ielts-online">IELTS Live/Online</option>
-              <option value="ielts-skill-focus">IELTS Skill Focus</option>
-              <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
-            </optgroup>
-            <optgroup label="PTE">
-              <option value="pte-academic">PTE Academic</option>
-            </optgroup>
-            <optgroup label="Spoken English">
-              <option value="spoken-english">Spoken English</option>
-              <option value="business-english">Business English for Professionals</option>
-              <option value="spoken-english-online">Spoken English (Online)</option>
-              <option value="foundation-english">Foundation English & Phonetics</option>
-            </optgroup>
-          </select>
-          <p style="font-size:0.85rem;color:var(--gray-500);margin-left:auto" id="attendanceCountLabel">Loading students...</p>
-        </div>
-        <div class="card" style="padding:0;overflow:hidden">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Status (Tap to Change)</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="attendanceTable">
-                <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Select a date to start marking attendance.</td></tr>
-              </tbody>
-            </table>
+
+          <div class="attendance-controls" aria-label="Attendance filters">
+            <label class="attendance-field" for="attendanceDate">
+              <span>Date</span>
+              <input type="date" id="attendanceDate" onchange="loadAttendanceList()">
+            </label>
+            <label class="attendance-field" for="attendanceCourseFilter">
+              <span>Course</span>
+              <select id="attendanceCourseFilter" onchange="loadAttendanceList()">
+                <option value="">All Courses</option>
+                <optgroup label="IELTS">
+                  <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+                  <option value="ielts-fast-track">IELTS Fast Track</option>
+                  <option value="ielts-platinum">IELTS Platinum</option>
+                  <option value="ielts-online">IELTS Live/Online</option>
+                  <option value="ielts-skill-focus">IELTS Skill Focus</option>
+                  <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+                </optgroup>
+                <optgroup label="PTE">
+                  <option value="pte-academic">PTE Academic</option>
+                </optgroup>
+                <optgroup label="Spoken English">
+                  <option value="spoken-english">Spoken English</option>
+                  <option value="business-english">Business English for Professionals</option>
+                  <option value="spoken-english-online">Spoken English (Online)</option>
+                  <option value="foundation-english">Foundation English & Phonetics</option>
+                </optgroup>
+              </select>
+            </label>
+            <div class="attendance-summary-card">
+              <span id="attendanceCountLabel">Loading students...</span>
+              <small id="attendanceSelectionSummary">No attendance loaded</small>
+            </div>
+          </div>
+
+          <div class="attendance-actions" aria-label="Bulk attendance actions">
+            <button type="button" onclick="markAllAttendance('present')">Mark all present</button>
+            <button type="button" onclick="markAllAttendance('absent')">Mark all absent</button>
+          </div>
+
+          <div class="attendance-card">
+            <div class="attendance-list-header">
+              <span>Student</span>
+              <span>Status</span>
+              <span>Notes</span>
+            </div>
+            <div id="attendanceTable" class="attendance-list">
+              <div class="attendance-empty">Select a date to start marking attendance.</div>
+            </div>
           </div>
         </div>
       </section>
