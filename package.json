@@ -2,7 +2,7 @@
   "name": "aims-lms",
   "version": "1.0.0",
   "private": true,
-  "description": "AIMS English LMS for Cloudflare Pages Functions and D1.",
+  "description": "Learning Portal for Cloudflare Pages Functions and D1.",
   "type": "module",
   "scripts": {
     "check": "npm run check:js && npm run check:sql && npm run check:html",

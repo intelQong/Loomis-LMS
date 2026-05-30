@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#FF7F50">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/aims-logo.jpeg">
-  <title>Admin — AIMS English LMS</title>
+  <title>Admin — Learning Portal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
@@ -24,48 +24,50 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <img class="logo-img" src="assets/aims-logo.jpeg" alt="AIMS English logo">
-      <span id="dashboardBrand">AIMS Admin</span>
+      <img class="logo-img" src="assets/aims-logo.jpeg" alt="Learning portal logo">
+      <span id="dashboardBrand">Admin Portal</span>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Dashboard</div>
       <button class="nav-item active" onclick="showSection('overview', this)">
-        <span class="nav-icon">📊</span> Overview
+        <span class="nav-icon">OV</span> Overview
       </button>
       <button class="nav-item" id="nav-students" onclick="showSection('students', this)">
-        <span class="nav-icon">👥</span> Students
+        <span class="nav-icon">ST</span> Students
         <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
       </button>
       <button class="nav-item" onclick="showSection('broadcasts', this)">
-        <span class="nav-icon">📢</span> Broadcasts
+        <span class="nav-icon">BC</span> Broadcasts
       </button>
       <button class="nav-item" onclick="showSection('attendance', this)">
-        <span class="nav-icon">📝</span> Attendance
+        <span class="nav-icon nav-icon-svg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h10V5H7Zm2 3h6v2H9V8Zm0 4h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
+        </span> Attendance
       </button>
 
       <button class="nav-item" data-admin-only onclick="showSection('payments', this)">
-        <span class="nav-icon">💰</span> Payments
+        <span class="nav-icon">PY</span> Payments
       </button>
       <div class="nav-section-label">System</div>
       <button class="nav-item" data-admin-only onclick="showSection('announcements', this)">
-        <span class="nav-icon">✨</span> Announcements
+        <span class="nav-icon">AN</span> Announcements
       </button>
       <button class="nav-item" data-admin-only onclick="showSection('admin-calendar', this)">
-        <span class="nav-icon">📅</span> Academic Calendar
+        <span class="nav-icon">CA</span> Academic Calendar
       </button>
       <button class="nav-item" onclick="showSection('services', this)">
-        <span class="nav-icon">🔗</span> Other Services
+        <span class="nav-icon">LN</span> Other Services
       </button>
       <button class="nav-item" data-admin-only onclick="showSection('site-tools', this)">
-        <span class="nav-icon">⚙️</span> Site Tools
+        <span class="nav-icon">ST</span> Site Tools
       </button>
       <button class="nav-item" onclick="showSection('security', this)">
-        <span class="nav-icon">🔒</span> Security & Privacy
+        <span class="nav-icon">SC</span> Security & Privacy
       </button>
 
       <!-- Super Admin Only -->
       <button class="nav-item hidden" id="navSuperPortal" onclick="showSection('super-portal', this)">
-        <span class="nav-icon">🛡️</span> Secure Portal
+        <span class="nav-icon">SP</span> Secure Portal
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -75,7 +77,7 @@
           <div class="user-name" id="sidebarName">Admin</div>
           <div class="user-role" id="sidebarRole" style="color:var(--accent)">Administrator</div>
         </div>
-        <button class="btn-logout" title="Sign out" onclick="handleLogout()">⏻</button>
+        <button class="btn-logout" title="Sign out" onclick="handleLogout()">Sign out</button>
       </div>
     </div>
   </aside>
@@ -84,7 +86,7 @@
   <div class="main-content">
     <header class="top-bar">
       <div class="top-bar-left">
-        <button class="burger-btn" onclick="toggleSidebar()">☰</button>
+        <button class="burger-btn" onclick="toggleSidebar()">Menu</button>
         <span class="page-title" id="pageTitle">Overview</span>
       </div>
       <div class="top-bar-right">
@@ -127,28 +129,28 @@
 
         <div class="stats-grid" id="adminStatsGrid">
           <div class="stat-card">
-            <div class="stat-icon teal">👥</div>
+            <div class="stat-icon teal">ST</div>
             <div class="stat-body">
               <div class="stat-value" id="ov-total">—</div>
               <div class="stat-label" id="totalStudentsLabel">Total Students</div>
             </div>
           </div>
           <div class="stat-card" id="pendingCard">
-            <div class="stat-icon warning">⏳</div>
+            <div class="stat-icon warning">PN</div>
             <div class="stat-body">
               <div class="stat-value" id="ov-pending">—</div>
               <div class="stat-label">Pending Approval</div>
             </div>
           </div>
           <div class="stat-card" id="revenueCard">
-            <div class="stat-icon success">💰</div>
+            <div class="stat-icon success">PY</div>
             <div class="stat-body">
               <div class="stat-value" id="ov-revenue">৳0</div>
               <div class="stat-label">Total Collected</div>
             </div>
           </div>
           <div class="stat-card" id="dueCollectionCard">
-            <div class="stat-icon danger">📋</div>
+            <div class="stat-icon danger">DU</div>
             <div class="stat-body">
               <div class="stat-value" id="ov-due-collection">৳0</div>
               <div class="stat-label">Due Collection</div>
@@ -174,11 +176,11 @@
       <section class="page-section" id="section-students">
         <div class="section-header">
           <div class="section-title" id="studentsSectionTitle">Students</div>
-          <button class="btn-primary" data-admin-only style="width:auto;padding:9px 18px"
+          <button class="btn-primary" id="addStudentBtn" style="width:auto;padding:9px 18px"
             onclick="openAddStudentModal()">+ Add Student</button>
         </div>
         <div class="admin-toolbar">
-          <input class="search-input" type="text" id="studentSearch" placeholder="🔍  Search by name or email..."
+          <input class="search-input" type="text" id="studentSearch" placeholder="Search by name or email..."
             oninput="filterStudents()">
           <select class="search-input" style="min-width:160px" id="courseFilter" onchange="filterStudents()">
             <option value="">All Courses</option>
@@ -265,7 +267,7 @@
           <div class="section-title">Payment Records</div>
         </div>
         <div class="admin-toolbar">
-          <input class="search-input" type="text" id="paySearch" placeholder="🔍  Search student..."
+          <input class="search-input" type="text" id="paySearch" placeholder="Search student..."
             oninput="filterPayments()">
           <select class="search-input" style="min-width:160px" id="paySort" onchange="filterPayments()">
             <option value="name">Sort by Name</option>
@@ -445,7 +447,7 @@
             This forces all browsers to download fresh files on their next visit.
           </p>
           <button class="btn-danger" style="display:inline-flex;align-items:center;gap:8px" onclick="clearAllCaches()">
-            🗑️ Clear Service Worker Cache
+            Clear Service Worker Cache
           </button>
           <div id="cacheStatus" style="margin-top:12px;font-size:0.85rem;color:var(--gray-400)"></div>
 
@@ -455,7 +457,7 @@
               Unregister the service worker entirely and hard-reload this page. Useful if cached files are stuck.
             </p>
             <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="forceFullReload()">
-              🚀 Unregister SW &amp; Reload
+              Unregister SW &amp; Reload
             </button>
           </div>
         </div>
@@ -488,50 +490,64 @@
 
       <!-- SECTION: Attendance -->
       <section class="page-section" id="section-attendance">
-        <div class="section-header">
-          <div class="section-title">Attendance Management</div>
-          <div style="display:flex; gap:10px; align-items:center">
-            <input type="date" id="attendanceDate" class="search-input" style="width:auto" onchange="loadAttendanceList()">
-            <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="submitAttendance()">Save All</button>
+        <div class="attendance-shell">
+          <div class="attendance-hero">
+            <div>
+              <p class="attendance-eyebrow">Attendance</p>
+              <h2>Daily class attendance</h2>
+              <p>Choose a date and course, then select each student status before submitting.</p>
+            </div>
+            <button class="attendance-submit-btn" type="button" onclick="submitAttendance()">Submit attendance</button>
           </div>
-        </div>
-        <div class="admin-toolbar">
-          <select class="search-input" style="min-width:180px" id="attendanceCourseFilter" onchange="loadAttendanceList()">
-            <option value="">All Courses</option>
-            <optgroup label="IELTS">
-              <option value="ielts-regular">IELTS Regular (AC/GT)</option>
-              <option value="ielts-fast-track">IELTS Fast Track</option>
-              <option value="ielts-platinum">IELTS Platinum</option>
-              <option value="ielts-online">IELTS Live/Online</option>
-              <option value="ielts-skill-focus">IELTS Skill Focus</option>
-              <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
-            </optgroup>
-            <optgroup label="PTE">
-              <option value="pte-academic">PTE Academic</option>
-            </optgroup>
-            <optgroup label="Spoken English">
-              <option value="spoken-english">Spoken English</option>
-              <option value="business-english">Business English for Professionals</option>
-              <option value="spoken-english-online">Spoken English (Online)</option>
-              <option value="foundation-english">Foundation English & Phonetics</option>
-            </optgroup>
-          </select>
-          <p style="font-size:0.85rem;color:var(--gray-500);margin-left:auto" id="attendanceCountLabel">Loading students...</p>
-        </div>
-        <div class="card" style="padding:0;overflow:hidden">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Student</th>
-                  <th>Status (Tap to Change)</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="attendanceTable">
-                <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Select a date to start marking attendance.</td></tr>
-              </tbody>
-            </table>
+
+          <div class="attendance-controls" aria-label="Attendance filters">
+            <label class="attendance-field" for="attendanceDate">
+              <span>Date</span>
+              <input type="date" id="attendanceDate" onchange="loadAttendanceList()">
+            </label>
+            <label class="attendance-field" for="attendanceCourseFilter">
+              <span>Course</span>
+              <select id="attendanceCourseFilter" onchange="loadAttendanceList()">
+                <option value="">All Courses</option>
+                <optgroup label="IELTS">
+                  <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+                  <option value="ielts-fast-track">IELTS Fast Track</option>
+                  <option value="ielts-platinum">IELTS Platinum</option>
+                  <option value="ielts-online">IELTS Live/Online</option>
+                  <option value="ielts-skill-focus">IELTS Skill Focus</option>
+                  <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+                </optgroup>
+                <optgroup label="PTE">
+                  <option value="pte-academic">PTE Academic</option>
+                </optgroup>
+                <optgroup label="Spoken English">
+                  <option value="spoken-english">Spoken English</option>
+                  <option value="business-english">Business English for Professionals</option>
+                  <option value="spoken-english-online">Spoken English (Online)</option>
+                  <option value="foundation-english">Foundation English & Phonetics</option>
+                </optgroup>
+              </select>
+            </label>
+            <div class="attendance-summary-card">
+              <span id="attendanceCountLabel">Loading students...</span>
+              <small id="attendanceSelectionSummary">No attendance loaded</small>
+            </div>
+          </div>
+
+          <div class="attendance-actions" aria-label="Bulk attendance actions">
+            <button type="button" onclick="markAllAttendance('present')">Mark all present</button>
+            <button type="button" onclick="markAllAttendance('absent')">Mark all absent</button>
+          </div>
+
+          <div class="attendance-card">
+            <div class="attendance-list-header">
+              <span>Student</span>
+              <span>Status</span>
+              <span>Notes</span>
+            </div>
+            <div id="attendanceTable" class="attendance-list">
+              <div class="attendance-empty">Select a date to start marking attendance.</div>
+            </div>
           </div>
         </div>
       </section>
@@ -544,7 +560,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3 id="adModalTitle">Create Announcement</h3>
-        <button class="modal-close" onclick="closeModal('announcementModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('announcementModal')">×</button>
       </div>
       <input type="hidden" id="adId">
       <div class="field">
@@ -596,10 +612,10 @@
       <div class="field">
         <label>Banner Style</label>
         <select id="adGradient">
-          <option value="linear-gradient(135deg, #0d9488 0%, #0891b2 100%)">🟢 Teal (Default)</option>
+          <option value="linear-gradient(135deg, #0d9488 0%, #0891b2 100%)">Teal (Default)</option>
           <option value="linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)">🟣 Purple</option>
           <option value="linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)">🟠 Orange / Gold</option>
-          <option value="linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)">🔴 Red / Pink</option>
+          <option value="linear-gradient(135deg, #dc2626 0%, #f43f5e 100%)">Red / Pink</option>
           <option value="linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)">🔵 Blue</option>
           <option value="linear-gradient(135deg, #1e293b 0%, #334155 100%)">⚫ Dark</option>
         </select>
@@ -618,14 +634,14 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Send Broadcast</h3>
-        <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('notifModal')">×</button>
       </div>
 
       <div class="field">
         <label>Target Audience</label>
         <select id="notifTarget" onchange="toggleStudentSelect()">
-          <option value="all">📢 All Students (Mass Notification)</option>
-          <option value="individual">👤 Individual Student</option>
+          <option value="all">BC All Students (Mass Notification)</option>
+          <option value="individual">PR Individual Student</option>
         </select>
       </div>
       <div class="field hidden" id="studentSelectField">
@@ -670,7 +686,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Edit Student</h3>
-        <button class="modal-close" onclick="closeModal('editStudentModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('editStudentModal')">×</button>
       </div>
       <input type="hidden" id="editStudentId">
       <div class="field-row-2">
@@ -779,10 +795,9 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Add Student</h3>
-        <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('addStudentModal')">×</button>
       </div>
-      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Manually create a student account
-        (admin-approved instantly).</p>
+      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Create a student account for attendance and class management. Faculty-created students are assigned to that faculty automatically.</p>
       <div class="field-row-2">
         <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
         <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
@@ -816,7 +831,7 @@
       <div class="field"><label>Temporary Password</label><input type="text" id="addPassword" placeholder="Min 8 chars">
       </div>
       <div class="field"><label>Student ID <span class="optional">(optional)</span></label><input type="text"
-          id="addStudentId" placeholder="AIMS-XXXX"></div>
+          id="addStudentId" placeholder="LMS-XXXX"></div>
       <div class="field"><label>Assigned Faculty UID <span class="optional">(optional)</span></label><input type="text"
           id="addFacultyId" placeholder="Faculty user document ID"></div>
       <div class="field"><label>Enrolled Date</label><input type="date" id="addEnrolledDate"></div>
@@ -865,7 +880,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Send Notification</h3>
-        <button class="modal-close" onclick="closeModal('notifModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('notifModal')">×</button>
       </div>
       <div class="field">
         <label>Target Audience</label>
@@ -900,7 +915,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Update Payment</h3>
-        <button class="modal-close" onclick="closeModal('paymentModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('paymentModal')">×</button>
       </div>
       <input type="hidden" id="paymentStudentId">
 
@@ -960,7 +975,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Add Calendar Entry</h3>
-        <button class="modal-close" onclick="closeModal('calendarModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('calendarModal')">×</button>
       </div>
       <div class="field">
         <label>Title</label>
@@ -996,11 +1011,11 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Add Other Service</h3>
-        <button class="modal-close" onclick="closeModal('serviceModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('serviceModal')">×</button>
       </div>
       <div class="field">
         <label>Service Name</label>
-        <input type="text" id="serviceName" placeholder="e.g. AIMS Website">
+        <input type="text" id="serviceName" placeholder="e.g. Learning Portal Website">
       </div>
       <div class="field">
         <label>Description</label>
@@ -1011,8 +1026,8 @@
         <input type="url" id="serviceUrl" placeholder="https://...">
       </div>
       <div class="field">
-        <label>Icon (Emoji or Image URL)</label>
-        <input type="text" id="serviceIcon" placeholder="e.g. 🌐 or https://...">
+        <label>Icon label or Image URL</label>
+        <input type="text" id="serviceIcon" placeholder="e.g. Link or https://...">
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
         <button class="btn-secondary" onclick="closeModal('serviceModal')">Cancel</button>
@@ -1027,7 +1042,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3 id="editUserModalTitle">Edit User</h3>
-        <button class="modal-close" onclick="closeModal('editUserModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('editUserModal')">×</button>
       </div>
 
       <div
@@ -1075,7 +1090,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Change Password</h3>
-        <button class="modal-close" onclick="closeModal('changePasswordModal')">✕</button>
+        <button class="modal-close" onclick="closeModal('changePasswordModal')">×</button>
       </div>
       <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
         Enter your current password before setting a new one. Other active sessions on your account will be signed out.

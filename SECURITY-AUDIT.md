@@ -1,4 +1,4 @@
-# AIMS LMS Security Audit
+# Learning Portal Security Audit
 
 _Last updated: 2026-05-11_
 

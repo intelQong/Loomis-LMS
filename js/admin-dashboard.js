@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Admin Dashboard Logic
+// Learning Portal — Admin Dashboard Logic
 // ============================================================
 
 let allStudents = [];
@@ -18,10 +18,10 @@ let adminRole = 'admin';
       document.body.innerHTML = `
         <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:white;font-family:'Inter',sans-serif;text-align:center;padding:40px">
           <div style="max-width:500px">
-            <div style="font-size:4rem;margin-bottom:24px">🔐</div>
+            <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.08em;margin-bottom:24px;text-transform:uppercase">System notice</div>
             <h1 style="font-size:2rem;font-weight:600;margin-bottom:16px">Maintenance in Progress</h1>
             <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
-              The AIMS English LMS is currently undergoing essential administrative maintenance.<br><br>
+              The learning portal is currently undergoing essential administrative maintenance.<br><br>
               Access to this portal is restricted to the <strong>System Developer / Super Admin</strong> at this time.
             </p>
             <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;backdrop-filter:blur(8px)">
@@ -109,9 +109,13 @@ function canManageStudents() {
   return adminRole === 'admin';
 }
 
+function canEditStudentInfo() {
+  return ['admin', 'faculty'].includes(adminRole);
+}
+
 function configureDashboardForRole() {
   const roleLabel = isFaculty() ? 'Faculty' : 'Administrator';
-  document.getElementById('dashboardBrand').textContent = isFaculty() ? 'AIMS Faculty' : 'AIMS Admin';
+  document.getElementById('dashboardBrand').textContent = isFaculty() ? 'Faculty Portal' : 'Admin Portal';
   document.getElementById('sidebarRole').textContent = roleLabel;
   document.getElementById('topRoleBadge').textContent = isFaculty() ? 'Faculty' : 'Admin';
 
@@ -125,6 +129,8 @@ function configureDashboardForRole() {
   document.getElementById('dueCollectionCard').classList.toggle('hidden', isFaculty());
   document.getElementById('pendingQuickView').classList.toggle('hidden', isFaculty());
   document.getElementById('studentsSectionTitle').textContent = isFaculty() ? 'Assigned Students' : 'Students';
+  const addStudentBtn = document.getElementById('addStudentBtn');
+  if (addStudentBtn) addStudentBtn.textContent = isFaculty() ? '+ Add Assigned Student' : '+ Add Student';
   document.getElementById('notificationsSectionTitle').textContent = isFaculty() ? 'Send Broadcast' : 'Broadcasts';
 }
 
@@ -207,7 +213,7 @@ async function createCalendarEntry() {
     });
     closeModal('calendarModal');
     loadCalendar();
-    showToast('Calendar entry added ✓', 'success');
+    showToast('Calendar entry added', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -383,11 +389,10 @@ function renderStudentsTable(students) {
         <td>
           <div class="action-btns">
             ${canManageStudents() && s.status === 'pending' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Approve</button>` : ''}
-            ${canManageStudents() ? `<button class="btn-xs btn-xs-edit" onclick="openEditStudent('${s.id}')">Edit</button>` : ''}
+            ${canEditStudentInfo() ? `<button class="btn-xs btn-xs-edit" onclick="openEditStudent('${s.id}')">Edit</button>` : ''}
             ${canManageStudents() ? `<button class="btn-xs" style="background:var(--gray-100);color:var(--gray-700)" onclick="openResetPasswordModal('${s.id}')">🔑</button>` : ''}
             ${canManageStudents() && s.status !== 'suspended' && s.status !== 'pending' ? `<button class="btn-xs btn-xs-suspend" onclick="suspendStudent('${s.id}')">Suspend</button>` : ''}
             ${canManageStudents() && s.status === 'suspended' ? `<button class="btn-xs btn-xs-approve" onclick="approveStudent('${s.id}')">Reactivate</button>` : ''}
-            ${!canManageStudents() ? '<span style="font-size:0.8rem;color:var(--gray-400)">View only</span>' : ''}
           </div>
         </td>
       </tr>
@@ -415,7 +420,7 @@ async function approveStudent(id) {
   try {
     await saveStudentPayload(id, { ...student, status: 'active' });
     await loadStudents();
-    showToast('Student approved ✓', 'success');
+    showToast('Student approved', 'success');
   } catch (e) {
     console.error(e);
     showToast('Failed to approve: ' + e.message, 'error');
@@ -464,7 +469,7 @@ function saveStudentPayload(id, student) {
 // Edit Student Modal
 // ============================================================
 function openEditStudent(id) {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const s = allStudents.find(x => x.id === id);
   if (!s) return;
   document.getElementById('editStudentId').value = id;
@@ -474,7 +479,9 @@ function openEditStudent(id) {
   setSelectedCourseIds('editCourse', getCourseIds(s));
   document.getElementById('editStatus').value = s.status || 'pending';
   document.getElementById('editStudentIdField').value = s.studentId || '';
-  document.getElementById('editFacultyId').value = s.assignedFacultyId || '';
+  document.getElementById('editFacultyId').value = isFaculty() ? adminUser.id : (s.assignedFacultyId || '');
+  document.getElementById('editFacultyId').readOnly = isFaculty();
+  document.getElementById('editStatus').disabled = isFaculty();
   document.getElementById('editEnrolledDate').value = s.enrolledDate ? s.enrolledDate.split('T')[0] : '';
   document.getElementById('editClassDays').value = s.classDays || '';
   document.getElementById('editClassTime').value = s.classTime || '';
@@ -483,7 +490,7 @@ function openEditStudent(id) {
 }
 
 async function saveStudentEdit() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const id = document.getElementById('editStudentId').value;
   const errEl = document.getElementById('editStudentErr');
   try {
@@ -499,11 +506,11 @@ async function saveStudentEdit() {
       phone: document.getElementById('editPhone').value.trim(),
       course,
       courses,
-      status: document.getElementById('editStatus').value,
+      status: isFaculty() && existing ? existing.status : document.getElementById('editStatus').value,
       totalPaid: paid,
       totalDue: due,
       studentId: document.getElementById('editStudentIdField').value.trim(),
-      assignedFacultyId: document.getElementById('editFacultyId').value.trim(),
+      assignedFacultyId: isFaculty() ? adminUser.id : document.getElementById('editFacultyId').value.trim(),
       enrolledDate: document.getElementById('editEnrolledDate').value,
       classDays: document.getElementById('editClassDays').value.trim(),
       classTime: document.getElementById('editClassTime').value.trim()
@@ -511,7 +518,7 @@ async function saveStudentEdit() {
 
     closeModal('editStudentModal');
     await loadStudents();
-    showToast('Student updated ✓', 'success');
+    showToast('Student updated', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -522,7 +529,7 @@ async function saveStudentEdit() {
 // Add Student
 // ============================================================
 function openAddStudentModal() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   document.getElementById('addStudentErr').classList.add('hidden');
   ['addFirst', 'addLast', 'addEmail', 'addPhone', 'addPassword', 'addStudentId', 'addFacultyId', 'addEnrolledDate'].forEach(id => {
     const el = document.getElementById(id);
@@ -530,6 +537,8 @@ function openAddStudentModal() {
   });
   // Default selections
   setSelectedCourseIds('addCourse', []);
+  document.getElementById('addFacultyId').value = isFaculty() ? adminUser.id : '';
+  document.getElementById('addFacultyId').readOnly = isFaculty();
   document.getElementById('addClassDays').value = 'Sat, Mon, Wed';
   document.getElementById('addClassTime').value = '4:00 PM';
   // Default to today
@@ -538,7 +547,7 @@ function openAddStudentModal() {
 }
 
 async function addStudent() {
-  if (!canManageStudents()) return;
+  if (!canEditStudentInfo()) return;
   const first = document.getElementById('addFirst').value.trim();
   const last = document.getElementById('addLast').value.trim();
   const email = document.getElementById('addEmail').value.trim();
@@ -547,7 +556,7 @@ async function addStudent() {
   const course = courses[0] || '';
   const password = document.getElementById('addPassword').value;
   const studentId = document.getElementById('addStudentId').value.trim();
-  const assignedFacultyId = document.getElementById('addFacultyId').value.trim();
+  const assignedFacultyId = isFaculty() ? adminUser.id : document.getElementById('addFacultyId').value.trim();
   const enrolledDate = document.getElementById('addEnrolledDate').value;
   const errEl = document.getElementById('addStudentErr');
   errEl.classList.add('hidden');
@@ -579,7 +588,7 @@ async function addStudent() {
 
     closeModal('addStudentModal');
     await loadStudents();
-    showToast('Student created ✓', 'success');
+    showToast('Student created', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -652,8 +661,8 @@ function toggleStudentSelect() {
 function setupNotificationTargets() {
   const sel = document.getElementById('notifTarget');
   sel.innerHTML = isFaculty()
-    ? '<option value="assigned">👥 All Assigned Students</option><option value="individual">👤 Assigned Individual Student</option>'
-    : '<option value="all">📢 All Students (Mass Notification)</option><option value="individual">👤 Individual Student</option>';
+    ? '<option value="assigned">All Assigned Students</option><option value="individual">Assigned Individual Student</option>'
+    : '<option value="all">All Students (Mass Notification)</option><option value="individual">Individual Student</option>';
 }
 
 function getNotificationTargetLabel(n) {
@@ -720,7 +729,7 @@ async function sendNotification() {
     });
     closeModal('notifModal');
     await loadNotifications();
-    showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'} ✓`, 'success');
+    showToast(`Notification sent to ${target === 'all' ? 'all students' : target === 'assigned' ? 'assigned students' : 'student'}`, 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -870,7 +879,7 @@ function addInstallmentRow(data = {}) {
       <option value="paid" ${status === 'paid' ? 'selected' : ''}>Paid</option>
       <option value="overdue" ${status === 'overdue' ? 'selected' : ''}>Overdue</option>
     </select>
-    <button type="button" class="btn-xs btn-xs-suspend" onclick="this.parentElement.remove(); checkInstEmpty()" style="padding:6px 10px">✕</button>
+    <button type="button" class="btn-xs btn-xs-suspend" onclick="this.parentElement.remove(); checkInstEmpty()" style="padding:6px 10px">×</button>
   `;
   container.appendChild(row);
 }
@@ -930,7 +939,7 @@ async function savePayment() {
 
     closeModal('paymentModal');
     await loadStudents();
-    showToast('Payment and Installment Plan updated ✓', 'success');
+    showToast('Payment and Installment Plan updated', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -977,7 +986,7 @@ function openServiceModal() {
   document.getElementById('serviceName').value = '';
   document.getElementById('serviceDesc').value = '';
   document.getElementById('serviceUrl').value = '';
-  document.getElementById('serviceIcon').value = '🌐';
+  document.getElementById('serviceIcon').value = '';
   document.getElementById('serviceErr').classList.add('hidden');
   openModal('serviceModal');
 }
@@ -1002,7 +1011,7 @@ async function createService() {
     });
     closeModal('serviceModal');
     loadServices();
-    showToast('Service added ✓', 'success');
+    showToast('Service added', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -1066,7 +1075,7 @@ async function updateUserRole(userId, newRole) {
       method: 'PATCH',
       body: JSON.stringify({ role: newRole })
     });
-    showToast('User role updated ✓', 'success');
+    showToast('User role updated', 'success');
     loadSuperUsers();
     loadAuditLogs();
   } catch (e) {
@@ -1183,7 +1192,7 @@ function renderAnnouncementsList(ads) {
     <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:0.5px solid rgba(148,163,184,0.28)">
       <div style="background:${bgGradient};padding:20px 24px;color:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
        ${videoUrl ? `<div style="width:220px;height:124px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.3);overflow:hidden"><iframe src="${videoUrl}" title="Announcement video preview" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade" style="width:100%;height:100%;border:0"></iframe></div>` :
-        (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem">📢</div>`)}
+        (imgUrl ? `<img src="${imgUrl}" onerror="this.style.display='none'" style="width:120px;height:80px;object-fit:cover;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15)" alt="${title}">` : `<div style="width:120px;height:80px;border-radius:8px;flex-shrink:0;background:rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;font-size:2rem"></div>`)}
         <div style="flex:1;min-width:200px">
           <div style="font-weight:600;font-size:1.1rem;margin-bottom:6px">${title}</div>
           <div style="font-size:0.9rem;opacity:0.9;line-height:1.5">${body}</div>
@@ -1307,13 +1316,13 @@ async function createAnnouncement() {
         method: 'PATCH',
         body: JSON.stringify(adData)
       });
-      showToast('Announcement updated ✓', 'success');
+      showToast('Announcement updated', 'success');
     } else {
       await apiFetch('/api/announcements', {
         method: 'POST',
         body: JSON.stringify(adData)
       });
-      showToast('Announcement published ✓', 'success');
+      showToast('Announcement published', 'success');
     }
     closeModal('announcementModal');
     await loadAnnouncements();
@@ -1342,11 +1351,11 @@ async function clearAllCaches() {
     const keys = await caches.keys();
     await Promise.all(keys.map(key => caches.delete(key)));
 
-    statusEl.textContent = `✅ Cleared ${keys.length} cache(s) successfully. Students will get fresh files on next visit.`;
+    statusEl.textContent = `Cleared ${keys.length} cache(s) successfully. Students will get fresh files on next visit.`;
     statusEl.style.color = 'var(--success)';
     showToast(`Cleared ${keys.length} cache(s)`, 'success');
   } catch (e) {
-    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
     statusEl.style.color = 'var(--danger)';
   }
 }
@@ -1376,7 +1385,7 @@ async function loadMaintenanceStatus() {
     if (toggle) {
       toggle.checked = data.enabled;
       updateToggleUI(data.enabled);
-      statusEl.textContent = data.enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+      statusEl.textContent = data.enabled ? 'Maintenance mode is ON — students see a maintenance page.' : 'Site is live — students can access the dashboard normally.';
       statusEl.style.color = data.enabled ? 'var(--danger)' : 'var(--success)';
     }
 
@@ -1394,13 +1403,13 @@ async function toggleMaintenanceMode(enabled) {
       method: 'PUT',
       body: JSON.stringify({ enabled })
     });
-    statusEl.textContent = enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+    statusEl.textContent = enabled ? 'Maintenance mode is ON — students see a maintenance page.' : 'Site is live — students can access the dashboard normally.';
     statusEl.style.color = enabled ? 'var(--danger)' : 'var(--success)';
     updateToggleUI(enabled);
     showToast(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', enabled ? 'error' : 'success');
 
   } catch (e) {
-    statusEl.textContent = '❌ Error: ' + e.message;
+    statusEl.textContent = 'Error: ' + e.message;
     statusEl.style.color = 'var(--danger)';
     document.getElementById('maintenanceToggle').checked = !enabled;
     updateToggleUI(!enabled);
@@ -1458,7 +1467,7 @@ async function saveOwnPassword() {
       body: JSON.stringify({ currentPassword, newPassword })
     });
     closeModal('changePasswordModal');
-    showToast('Password changed successfully ✓', 'success');
+    showToast('Password changed successfully', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -1503,7 +1512,7 @@ async function saveResetPassword() {
       body: JSON.stringify({ newPassword: newPw })
     });
     closeModal('resetPasswordModal');
-    showToast('Password reset successfully ✓', 'success');
+    showToast('Password reset successfully', 'success');
   } catch (e) {
     errEl.textContent = 'Error: ' + e.message;
     errEl.classList.remove('hidden');
@@ -1552,26 +1561,17 @@ async function saveUserChanges() {
     const updateData = { firstName: fName, lastName: lName };
     if (newPass) updateData.password = newPass;
 
-    const endpoint = `/api/super/update-user/${window.targetEditUserId}`;
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await apiFetch(`/api/admin/users/${window.targetEditUserId}`, {
+      method: 'PATCH',
       body: JSON.stringify(updateData)
     });
-
-    if (response.ok) {
-      showToast('User updated successfully');
-      closeModal('editUserModal');
-      if (typeof loadStudents === 'function') loadStudents();
-      if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
-    } else {
-      const data = await response.json();
-      errEl.textContent = data.error || 'Failed to update user';
-      errEl.classList.remove('hidden');
-    }
+    showToast('User updated successfully');
+    closeModal('editUserModal');
+    if (typeof loadStudents === 'function') loadStudents();
+    if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
+    if (typeof loadAuditLogs === 'function' && adminUser.isSuperAdmin) loadAuditLogs();
   } catch (error) {
-    errEl.textContent = 'An error occurred. Please try again.';
+    errEl.textContent = 'Error: ' + error.message;
     errEl.classList.remove('hidden');
   }
 }
@@ -1588,6 +1588,13 @@ document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
 // Attendance Logic
 // ============================================================
 let currentAttendanceMap = {};
+const attendanceStatuses = ['present', 'absent', 'late', 'excused'];
+const attendanceStatusLabels = {
+  present: 'Present',
+  absent: 'Absent',
+  late: 'Late',
+  excused: 'Excused'
+};
 
 function initAttendance() {
   const dateInput = document.getElementById('attendanceDate');
@@ -1603,16 +1610,17 @@ async function loadAttendanceList() {
 
   const date = dateEl.value;
   const courseId = courseEl.value;
-  const tbody = document.getElementById('attendanceTable');
+  const list = document.getElementById('attendanceTable');
   const countLabel = document.getElementById('attendanceCountLabel');
 
   if (!date) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Please select a date.</td></tr>';
+    list.innerHTML = '<div class="attendance-empty">Select a date to continue.</div>';
+    updateAttendanceSummary();
     return;
   }
 
   try {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">Loading students...</td></tr>';
+    list.innerHTML = '<div class="attendance-empty">Loading students...</div>';
 
     const filteredStudents = allStudents.filter(s => {
       if (s.status !== 'active') return false;
@@ -1621,10 +1629,11 @@ async function loadAttendanceList() {
       return true;
     });
 
-    if (countLabel) countLabel.textContent = `${filteredStudents.length} Students`;
+    if (countLabel) countLabel.textContent = `${filteredStudents.length} students`;
 
     if (filteredStudents.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--gray-400)">No active students found for this selection.</td></tr>';
+      list.innerHTML = '<div class="attendance-empty">No active students match this selection.</div>';
+      updateAttendanceSummary();
       return;
     }
 
@@ -1636,48 +1645,82 @@ async function loadAttendanceList() {
       });
     }
 
-    tbody.innerHTML = filteredStudents.map(s => {
+    list.innerHTML = filteredStudents.map(s => {
       const record = currentAttendanceMap[s.id] || { status: 'absent', notes: '' };
-      const statusClass = record.status === 'present' ? 'badge-success' : record.status === 'absent' ? 'badge-danger' : 'badge-warning';
-      return `
-        <tr data-student-id="${s.id}">
-          <td>
-            <div style="font-weight:600">${s.firstName} ${s.lastName}</div>
-            <div style="font-size:0.75rem;color:var(--gray-400)">${s.studentId || s.email}</div>
-          </td>
-          <td>
-            <div class="attendance-tap-area" onclick="toggleAttendanceStatus('${s.id}')" id="at-status-${s.id}" style="cursor:pointer; display:inline-block; padding:8px 16px; border-radius:8px; border:1px solid var(--gray-100); transition:0.2s; user-select:none">
-              <span class="badge ${statusClass}" style="pointer-events:none">${record.status.toUpperCase()}</span>
-            </div>
-          </td>
-          <td>
-            <input type="text" class="notes-input" placeholder="Notes..." value="${record.notes || ''}" style="width:100%;padding:6px 12px;border:1.5px solid var(--gray-100);border-radius:6px;font-size:0.85rem;outline:none">
-          </td>
-        </tr>
-      `;
+      return renderAttendanceRow(s, record);
     }).join('');
+    updateAttendanceSummary();
 
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:32px;color:var(--danger)">Error: ${err.message}</td></tr>`;
+    list.innerHTML = `<div class="attendance-empty attendance-empty-error">${escapeHtml(err.message)}</div>`;
+    updateAttendanceSummary();
   }
 }
 
-function toggleAttendanceStatus(studentId) {
-  const container = document.getElementById(`at-status-${studentId}`);
-  const badge = container.querySelector('.badge');
-  const statuses = ['present', 'absent', 'late', 'excused'];
-  let current = badge.textContent.toLowerCase();
-  
-  let nextIdx = (statuses.indexOf(current) + 1) % statuses.length;
-  let next = statuses[nextIdx];
-  
-  badge.textContent = next.toUpperCase();
-  badge.className = `badge badge-${next === 'present' ? 'success' : next === 'absent' ? 'danger' : 'warning'}`;
-  
-  // Feedback effect
-  container.style.transform = 'scale(1.05)';
-  setTimeout(() => container.style.transform = 'scale(1)', 100);
+function renderAttendanceRow(student, record) {
+  const safeStatus = attendanceStatuses.includes(record.status) ? record.status : 'absent';
+  const studentName = escapeHtml(`${student.firstName || ''} ${student.lastName || ''}`.trim());
+  const studentMeta = escapeHtml(student.studentId || student.email || '');
+  const notes = escapeHtml(record.notes || '');
+  const statusButtons = attendanceStatuses.map(status => `
+    <button type="button" class="attendance-status-option ${status === safeStatus ? 'selected' : ''}" data-status="${status}" onclick="setAttendanceStatus('${student.id}', '${status}')">
+      ${attendanceStatusLabels[status]}
+    </button>
+  `).join('');
+
+  return `
+    <div class="attendance-row" data-student-id="${student.id}" data-status="${safeStatus}">
+      <div class="attendance-student-cell">
+        <div class="attendance-student-name">${studentName}</div>
+        <div class="attendance-student-meta">${studentMeta}</div>
+      </div>
+      <div class="attendance-status-cell" role="group" aria-label="Attendance status for ${studentName}">
+        ${statusButtons}
+      </div>
+      <div class="attendance-notes-cell">
+        <input type="text" class="notes-input" placeholder="Add note" value="${notes}" aria-label="Attendance note for ${studentName}">
+      </div>
+    </div>
+  `;
+}
+
+function setAttendanceStatus(studentId, status) {
+  if (!attendanceStatuses.includes(status)) return;
+  const row = document.querySelector(`#attendanceTable [data-student-id="${studentId}"]`);
+  if (!row) return;
+
+  row.dataset.status = status;
+  row.querySelectorAll('.attendance-status-option').forEach(button => {
+    button.classList.toggle('selected', button.dataset.status === status);
+  });
+  updateAttendanceSummary();
+}
+
+function markAllAttendance(status) {
+  if (!attendanceStatuses.includes(status)) return;
+  document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]').forEach(row => {
+    setAttendanceStatus(row.dataset.studentId, status);
+  });
+}
+
+function updateAttendanceSummary() {
+  const summaryEl = document.getElementById('attendanceSelectionSummary');
+  if (!summaryEl) return;
+
+  const rows = Array.from(document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]'));
+  if (rows.length === 0) {
+    summaryEl.textContent = 'No attendance loaded';
+    return;
+  }
+
+  const totals = rows.reduce((acc, row) => {
+    const status = row.dataset.status || 'absent';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  summaryEl.textContent = `Present ${totals.present || 0} · Absent ${totals.absent || 0} · Late ${totals.late || 0} · Excused ${totals.excused || 0}`;
 }
 
 async function submitAttendance() {
@@ -1687,10 +1730,15 @@ async function submitAttendance() {
 
   const date = dateInput.value;
   const courseId = courseEl.value;
-  const rows = document.querySelectorAll('#attendanceTable tr[data-student-id]');
+  const rows = document.querySelectorAll('#attendanceTable .attendance-row[data-student-id]');
 
   if (!date) {
     showToast('Please select a date first.', 'error');
+    return;
+  }
+
+  if (rows.length === 0) {
+    showToast('No students available for this selection.', 'error');
     return;
   }
 
@@ -1698,7 +1746,7 @@ async function submitAttendance() {
     studentId: row.dataset.studentId,
     date,
     courseId: courseId || '',
-    status: row.querySelector('.badge').textContent.toLowerCase(),
+    status: row.dataset.status || 'absent',
     notes: row.querySelector('.notes-input').value
   }));
 
@@ -1709,7 +1757,7 @@ async function submitAttendance() {
       body: JSON.stringify({ records })
     });
     showLoading(false);
-    showToast('Attendance saved successfully ✓', 'success');
+    showToast('Attendance saved successfully', 'success');
   } catch (err) {
     showLoading(false);
     showToast(`Error: ${err.message}`, 'error');
