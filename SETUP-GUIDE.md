@@ -1,4 +1,4 @@
-# AIMS English LMS — Cloudflare Pages + D1 Deployment
+# Learning Portal — Cloudflare Pages + D1 Deployment
 
 ## Is Cloudflare D1 a good database choice for this LMS?
 

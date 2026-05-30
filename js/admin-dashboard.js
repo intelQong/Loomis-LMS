@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Admin Dashboard Logic
+// Learning Portal — Admin Dashboard Logic
 // ============================================================
 
 let allStudents = [];
@@ -18,10 +18,10 @@ let adminRole = 'admin';
       document.body.innerHTML = `
         <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:white;font-family:'Inter',sans-serif;text-align:center;padding:40px">
           <div style="max-width:500px">
-            <div style="font-size:4rem;margin-bottom:24px">🔐</div>
+            <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.08em;margin-bottom:24px;text-transform:uppercase">System notice</div>
             <h1 style="font-size:2rem;font-weight:600;margin-bottom:16px">Maintenance in Progress</h1>
             <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
-              The AIMS English LMS is currently undergoing essential administrative maintenance.<br><br>
+              The learning portal is currently undergoing essential administrative maintenance.<br><br>
               Access to this portal is restricted to the <strong>System Developer / Super Admin</strong> at this time.
             </p>
             <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;backdrop-filter:blur(8px)">
@@ -115,7 +115,7 @@ function canEditStudentInfo() {
 
 function configureDashboardForRole() {
   const roleLabel = isFaculty() ? 'Faculty' : 'Administrator';
-  document.getElementById('dashboardBrand').textContent = isFaculty() ? 'AIMS Faculty' : 'AIMS Admin';
+  document.getElementById('dashboardBrand').textContent = isFaculty() ? 'Faculty Portal' : 'Admin Portal';
   document.getElementById('sidebarRole').textContent = roleLabel;
   document.getElementById('topRoleBadge').textContent = isFaculty() ? 'Faculty' : 'Admin';
 
@@ -1385,7 +1385,7 @@ async function loadMaintenanceStatus() {
     if (toggle) {
       toggle.checked = data.enabled;
       updateToggleUI(data.enabled);
-      statusEl.textContent = data.enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+      statusEl.textContent = data.enabled ? 'Maintenance mode is ON — students see a maintenance page.' : 'Site is live — students can access the dashboard normally.';
       statusEl.style.color = data.enabled ? 'var(--danger)' : 'var(--success)';
     }
 
@@ -1403,7 +1403,7 @@ async function toggleMaintenanceMode(enabled) {
       method: 'PUT',
       body: JSON.stringify({ enabled })
     });
-    statusEl.textContent = enabled ? '🔴 Maintenance mode is ON — students see a maintenance page.' : '🟢 Site is live — students can access the dashboard normally.';
+    statusEl.textContent = enabled ? 'Maintenance mode is ON — students see a maintenance page.' : 'Site is live — students can access the dashboard normally.';
     statusEl.style.color = enabled ? 'var(--danger)' : 'var(--success)';
     updateToggleUI(enabled);
     showToast(enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled', enabled ? 'error' : 'success');
@@ -1561,26 +1561,17 @@ async function saveUserChanges() {
     const updateData = { firstName: fName, lastName: lName };
     if (newPass) updateData.password = newPass;
 
-    const endpoint = `/api/super/update-user/${window.targetEditUserId}`;
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await apiFetch(`/api/admin/users/${window.targetEditUserId}`, {
+      method: 'PATCH',
       body: JSON.stringify(updateData)
     });
-
-    if (response.ok) {
-      showToast('User updated successfully');
-      closeModal('editUserModal');
-      if (typeof loadStudents === 'function') loadStudents();
-      if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
-    } else {
-      const data = await response.json();
-      errEl.textContent = data.error || 'Failed to update user';
-      errEl.classList.remove('hidden');
-    }
+    showToast('User updated successfully');
+    closeModal('editUserModal');
+    if (typeof loadStudents === 'function') loadStudents();
+    if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
+    if (typeof loadAuditLogs === 'function' && adminUser.isSuperAdmin) loadAuditLogs();
   } catch (error) {
-    errEl.textContent = 'An error occurred. Please try again.';
+    errEl.textContent = 'Error: ' + error.message;
     errEl.classList.remove('hidden');
   }
 }

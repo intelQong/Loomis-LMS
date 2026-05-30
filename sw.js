@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Service Worker
+// Learning Portal — Service Worker
 // Strategy:
 //  - HTML pages: Network-only (always fresh, never cached)
 //  - JS/CSS/Assets: Network-first, fall back to cache

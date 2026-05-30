@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Student Dashboard Logic
+// Learning Portal — Student Dashboard Logic
 // ============================================================
 
 let currentUser = null;
@@ -17,7 +17,7 @@ let notifUnsubscribe = null;
             <div style="font-size:4rem;margin-bottom:16px">🚧</div>
             <h1 style="font-size:2rem;font-weight:600;margin-bottom:12px">Under Maintenance</h1>
             <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
-              AIMS English LMS is currently undergoing scheduled maintenance.<br>
+              Learning Portal is currently undergoing scheduled maintenance.<br>
               We'll be back shortly. Thank you for your patience!
             </p>
             <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;backdrop-filter:blur(4px)">
@@ -250,7 +250,7 @@ function renderCourse() {
           `).join('')}
         </div>
         <div style="margin-top:24px;padding:16px;background:var(--teal-light);border-radius:var(--radius-sm);font-size:0.875rem;color:var(--teal-dark)">
-          <strong>British Council Affiliated</strong> — AIMS English is proud to be affiliated with the British Council, Chattogram.
+          <strong>British Council Affiliated</strong> — The center is proud to be affiliated with the British Council, Chattogram.
         </div>
       </div>
     </div>

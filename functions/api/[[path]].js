@@ -105,7 +105,7 @@ async function signup({ request, env }) {
 
   const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
-  const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
+  const finalStudentId = body.studentId ? String(body.studentId).trim() : `LMS-${Math.floor(100000 + Math.random() * 900000)}`;
 
   await env.DB.prepare(`
     INSERT INTO users (id, first_name, last_name, email, phone, course, student_id, role, status, password_hash, password_salt, total_due)
@@ -156,7 +156,7 @@ async function login({ request, env }) {
     throw httpError('Invalid email or password.', 401);
   }
   if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
-  if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact AIMS admin.', 403);
+  if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact the admin team.', 403);
 
   if (!String(user.password_hash || '').startsWith('pbkdf2$')) {
     const { salt, hash } = await createPasswordHash(password);
@@ -219,7 +219,7 @@ async function createStudent({ request, env }, user) {
 
   const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
-  const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
+  const finalStudentId = body.studentId ? String(body.studentId).trim() : `LMS-${Math.floor(100000 + Math.random() * 900000)}`;
   const assignedFacultyId = user.role === 'faculty' ? user.id : (body.assignedFacultyId || '');
 
   await env.DB.prepare(`
@@ -1057,7 +1057,7 @@ async function createService({ request, env }, user) {
   const name = required(body.name, 'Name');
   const url = required(body.url, 'URL');
   const desc = body.desc || '';
-  const icon = body.icon || '🌐';
+  const icon = body.icon || 'Link';
 
   const id = crypto.randomUUID().slice(0, 8);
   await env.DB.prepare('INSERT INTO other_services (id, name, desc, url, icon) VALUES (?, ?, ?, ?, ?)')
@@ -1088,17 +1088,61 @@ async function listAllUsers({ env }, user) {
 async function updateUserRole({ request, env }, user, targetUserId) {
   if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
   const body = await readJson(request);
-  const newRole = required(body.role, 'Role');
-  if (!['student', 'admin', 'faculty'].includes(newRole)) throw httpError('Invalid role.', 400);
-
   const target = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(targetUserId).first();
   if (!target) throw httpError('User not found.', 404);
 
-  await env.DB.prepare('UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
-    .bind(newRole, targetUserId)
+  const updates = [];
+  const values = [];
+  const auditDetails = [];
+
+  if (body.role !== undefined) {
+    const newRole = required(body.role, 'Role');
+    if (!['student', 'admin', 'faculty'].includes(newRole)) throw httpError('Invalid role.', 400);
+    updates.push('role = ?');
+    values.push(newRole);
+    auditDetails.push(`role from ${target.role} to ${newRole}`);
+  }
+
+  if (body.firstName !== undefined) {
+    const firstName = required(body.firstName, 'First name');
+    updates.push('first_name = ?');
+    values.push(firstName);
+    auditDetails.push('first name updated');
+  }
+
+  if (body.lastName !== undefined) {
+    const lastName = required(body.lastName, 'Last name');
+    updates.push('last_name = ?');
+    values.push(lastName);
+    auditDetails.push('last name updated');
+  }
+
+  const newPassword = body.newPassword || body.password || '';
+  if (newPassword) {
+    await assertRateLimit(env, `superadmin-reset:${clientIp(request)}:${user.id}`, RATE_LIMITS.adminPasswordReset);
+    validatePasswordStrength(newPassword);
+    const { salt, hash } = await createPasswordHash(newPassword);
+    updates.push('password_hash = ?', 'password_salt = ?');
+    values.push(hash, salt);
+    auditDetails.push('password reset');
+  }
+
+  if (updates.length === 0) throw httpError('No user changes provided.', 400);
+
+  await env.DB.prepare(`UPDATE users SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    .bind(...values, targetUserId)
     .run();
 
-  await logAction(env, user, 'UPDATE_USER_ROLE', `Changed role of ${target.email} from ${target.role} to ${newRole}`, targetUserId);
+  if (newPassword) {
+    if (targetUserId === user.id) {
+      const currentSessionId = getCookie(request, 'aims_session');
+      await env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND id != ?').bind(targetUserId, currentSessionId).run();
+    } else {
+      await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(targetUserId).run();
+    }
+  }
+
+  await logAction(env, user, 'UPDATE_USER', `Updated ${target.email}: ${auditDetails.join(', ')}`, targetUserId);
   return json({ ok: true });
 }
 

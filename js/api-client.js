@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Cloudflare Pages Functions API Client
+// Learning Portal — Cloudflare Pages Functions API Client
 // ============================================================
 
 async function apiFetch(path, options = {}) {
