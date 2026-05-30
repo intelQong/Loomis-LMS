@@ -40,7 +40,7 @@ async function apiDelete(path) {
 
 function friendlyHttpError(path, status) {
   if (path.includes('/api/auth/login') && (status === 401 || status === 403)) {
-    return 'Invalid email or password.';
+    return 'Wrong username or password, Try Again.';
   }
   if (status === 401) return 'Please sign in again.';
   if (status === 403) return 'You are not allowed to perform this action.';

@@ -154,7 +154,7 @@ async function login({ request, env }) {
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
 
   if (!user || !(await verifyPassword(password, user))) {
-    throw httpError('Invalid email or password.', 401);
+    throw httpError('Wrong username or password, Try Again.', 401);
   }
   if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact the admin team.', 403);
