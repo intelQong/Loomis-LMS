@@ -174,7 +174,7 @@
       <section class="page-section" id="section-students">
         <div class="section-header">
           <div class="section-title" id="studentsSectionTitle">Students</div>
-          <button class="btn-primary" data-admin-only style="width:auto;padding:9px 18px"
+          <button class="btn-primary" id="addStudentBtn" style="width:auto;padding:9px 18px"
             onclick="openAddStudentModal()">+ Add Student</button>
         </div>
         <div class="admin-toolbar">
@@ -489,10 +489,10 @@
       <!-- SECTION: Attendance -->
       <section class="page-section" id="section-attendance">
         <div class="section-header">
-          <div class="section-title">Attendance Management</div>
+          <div><div class="section-title">Attendance Management</div><p class="attendance-subtitle">Select students with one click, add optional notes, and submit attendance for the selected date.</p></div>
           <div style="display:flex; gap:10px; align-items:center">
             <input type="date" id="attendanceDate" class="search-input" style="width:auto" onchange="loadAttendanceList()">
-            <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="submitAttendance()">Save All</button>
+            <button class="btn-primary" style="width:auto;padding:9px 18px" onclick="submitAttendance()">Submit Attendance</button>
           </div>
         </div>
         <div class="admin-toolbar">
@@ -781,8 +781,7 @@
         <h3>Add Student</h3>
         <button class="modal-close" onclick="closeModal('addStudentModal')">✕</button>
       </div>
-      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Manually create a student account
-        (admin-approved instantly).</p>
+      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Create a student account for attendance and class management. Faculty-created students are assigned to that faculty automatically.</p>
       <div class="field-row-2">
         <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
         <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
