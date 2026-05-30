@@ -28,10 +28,11 @@ export async function onRequest(context) {
   try {
     const { request } = context;
     const url = new URL(request.url);
-    const method = request.method.toUpperCase();
+    const requestMethod = request.method.toUpperCase();
+    const method = resolveRequestMethod(request, url);
     const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
 
-    if (method === 'OPTIONS') return json(null, 204);
+    if (requestMethod === 'OPTIONS') return json(null, 204);
     enforceSameOrigin(request, method);
 
     if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
@@ -153,7 +154,7 @@ async function login({ request, env }) {
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email).first();
 
   if (!user || !(await verifyPassword(password, user))) {
-    throw httpError('Invalid email or password.', 401);
+    throw httpError('Wrong username or password, Try Again.', 401);
   }
   if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact the admin team.', 403);
@@ -904,6 +905,15 @@ function validatePasswordStrength(password) {
   if (password.length < PASSWORD_MIN_LENGTH) {
     throw httpError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`, 400);
   }
+}
+
+
+function resolveRequestMethod(request, url) {
+  const requestMethod = request.method.toUpperCase();
+  if (requestMethod !== 'POST') return requestMethod;
+
+  const overrideMethod = (request.headers.get('X-HTTP-Method-Override') || url.searchParams.get('_method') || '').toUpperCase();
+  return ['DELETE'].includes(overrideMethod) ? overrideMethod : requestMethod;
 }
 
 function enforceSameOrigin(request, method) {
