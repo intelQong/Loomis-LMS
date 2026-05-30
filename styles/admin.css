@@ -40,3 +40,127 @@
 .pending-info { flex: 1; min-width: 0; }
 .pending-name { font-weight: 500; font-size: 0.9rem; color: var(--gray-800); }
 .pending-meta { font-size: 0.8rem; color: var(--gray-500); margin-top: 2px; }
+
+/* Attendance */
+.attendance-subtitle {
+  margin: 4px 0 0;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.attendance-row td {
+  vertical-align: middle;
+}
+
+.attendance-student-name {
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.attendance-student-meta {
+  color: var(--gray-400);
+  font-size: 0.78rem;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.attendance-tap-area {
+  align-items: center;
+  background: white;
+  border: 1.5px solid var(--gray-100);
+  border-radius: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  user-select: none;
+}
+
+.attendance-tap-area:hover,
+.attendance-tap-area:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.12);
+  outline: none;
+}
+
+.attendance-tap-hint {
+  color: var(--gray-400);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.notes-input {
+  border: 1.5px solid var(--gray-100);
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+  padding: 9px 12px;
+  width: 100%;
+}
+
+.notes-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+@media (max-width: 720px) {
+  #section-attendance .section-header,
+  #section-attendance .admin-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #section-attendance .section-header > div:last-child {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  #section-attendance .section-header input,
+  #section-attendance .section-header button,
+  #attendanceCourseFilter {
+    width: 100% !important;
+  }
+
+  #attendanceCountLabel {
+    margin-left: 0 !important;
+  }
+
+  #section-attendance table,
+  #section-attendance thead,
+  #section-attendance tbody,
+  #section-attendance tr,
+  #section-attendance td {
+    display: block;
+    width: 100%;
+  }
+
+  #section-attendance thead {
+    display: none;
+  }
+
+  #section-attendance .table-wrap {
+    overflow: visible;
+  }
+
+  .attendance-row {
+    background: white;
+    border-bottom: 1px solid var(--gray-100);
+    padding: 14px;
+  }
+
+  .attendance-row td {
+    border: 0;
+    padding: 6px 0 !important;
+  }
+
+  .attendance-tap-area {
+    justify-content: space-between;
+    width: 100%;
+  }
+}

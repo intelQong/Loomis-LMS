@@ -49,6 +49,9 @@ export async function onRequest(context) {
     if (path[0] === 'students' && path[1] && method === 'PATCH') return updateStudent(context, user, path[1]);
     if (path[0] === 'students' && method === 'POST') return createStudent(context, user);
 
+    if (path[0] === 'attendance' && method === 'GET') return listAttendance(context, user, url.searchParams);
+    if (path[0] === 'attendance' && method === 'POST') return saveAttendance(context, user);
+
     if (path[0] === 'notifications' && method === 'GET') return listNotifications(context, user);
     if (path[0] === 'notifications' && method === 'POST') return createNotification(context, user);
     if (path[0] === 'notifications' && path[1] && method === 'DELETE') return deleteNotification(context, user, path[1]);
@@ -201,7 +204,7 @@ async function listStudents(context, user) {
 }
 
 async function createStudent({ request, env }, user) {
-  requireRole(user, ['admin']);
+  requireRole(user, ['admin', 'faculty']);
   await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const firstName = required(body.firstName, 'First name');
@@ -217,6 +220,7 @@ async function createStudent({ request, env }, user) {
   const { salt, hash: passwordHash } = await createPasswordHash(password);
   const id = crypto.randomUUID();
   const finalStudentId = body.studentId ? String(body.studentId).trim() : `AIMS-${Math.floor(100000 + Math.random() * 900000)}`;
+  const assignedFacultyId = user.role === 'faculty' ? user.id : (body.assignedFacultyId || '');
 
   await env.DB.prepare(`
     INSERT INTO users (id, first_name, last_name, email, phone, course, courses, student_id, assigned_faculty_id, role, status, password_hash, password_salt, total_due, enrolled_date, class_days, class_time)
@@ -230,7 +234,7 @@ async function createStudent({ request, env }, user) {
     courseIds[0],
     JSON.stringify(courseIds),
     finalStudentId,
-    body.assignedFacultyId || '',
+    assignedFacultyId,
     passwordHash,
     salt,
     totalCourseFee(courseIds),
@@ -245,17 +249,24 @@ async function createStudent({ request, env }, user) {
 }
 
 async function updateStudent({ request, env }, user, studentId) {
-  requireRole(user, ['admin']);
+  requireRole(user, ['admin', 'faculty']);
   await ensureUserCompatibilityColumns(env);
   const body = await readJson(request);
   const existing = await env.DB.prepare("SELECT * FROM users WHERE id = ? AND role = 'student'").bind(studentId).first();
   if (!existing) throw httpError('Student not found.', 404);
+  if (user.role === 'faculty' && existing.assigned_faculty_id !== user.id) {
+    throw httpError('You can only modify students assigned to you.', 403);
+  }
 
   const courseIds = normalizeCourseIds(body.courses || body.course);
   if (courseIds.length === 0) throw httpError('Invalid course.', 400);
 
-  const totalPaid = numberOrZero(body.totalPaid);
+  const totalPaid = user.role === 'faculty' ? numberOrZero(existing.total_paid) : numberOrZero(body.totalPaid);
   const previousPaid = numberOrZero(existing.total_paid);
+  const nextStatus = user.role === 'faculty' ? existing.status : required(body.status, 'Status');
+  const nextTotalDue = user.role === 'faculty' ? numberOrZero(existing.total_due) : numberOrZero(body.totalDue);
+  const nextDiscount = user.role === 'faculty' ? numberOrZero(existing.discount) : numberOrZero(body.discount);
+  const nextAssignedFacultyId = user.role === 'faculty' ? user.id : (body.assignedFacultyId || '');
 
   try {
     await env.DB.prepare(`
@@ -268,13 +279,13 @@ async function updateStudent({ request, env }, user, studentId) {
       body.phone || '',
       courseIds[0],
       JSON.stringify(courseIds),
-      required(body.status, 'Status'),
+      nextStatus,
       totalPaid,
-      numberOrZero(body.totalDue),
-      numberOrZero(body.discount),
+      nextTotalDue,
+      nextDiscount,
       body.studentId || '',
-      body.assignedFacultyId || '',
-      body.nextPaymentDate || '',
+      nextAssignedFacultyId,
+      user.role === 'faculty' ? (existing.next_payment_date || '') : (body.nextPaymentDate || ''),
       body.enrolledDate || existing.enrolled_date,
       body.classDays || existing.class_days || '',
       body.classTime || existing.class_time || '',
@@ -293,13 +304,13 @@ async function updateStudent({ request, env }, user, studentId) {
         body.phone || '',
         courseIds[0],
         JSON.stringify(courseIds),
-        required(body.status, 'Status'),
+        nextStatus,
         totalPaid,
-        numberOrZero(body.totalDue),
-        numberOrZero(body.discount),
+        nextTotalDue,
+        nextDiscount,
         body.studentId || '',
-        body.assignedFacultyId || '',
-        body.nextPaymentDate || '',
+        nextAssignedFacultyId,
+        user.role === 'faculty' ? (existing.next_payment_date || '') : (body.nextPaymentDate || ''),
         body.enrolledDate || existing.enrolled_date,
         studentId
       ).run();
@@ -319,6 +330,120 @@ async function updateStudent({ request, env }, user, studentId) {
   await logAction(env, user, 'UPDATE_STUDENT', updateDetails, studentId);
 
   return json({ ok: true });
+}
+
+
+async function ensureAttendanceTable({ env }) {
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS attendance_records (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL,
+    marked_by TEXT NOT NULL,
+    date TEXT NOT NULL,
+    course_id TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'absent' CHECK (status IN ('present', 'absent', 'late', 'excused')),
+    notes TEXT DEFAULT '',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(student_id, date, course_id)
+  )`).run();
+
+  await ensureColumns(env, 'attendance_records', [
+    ['marked_by', "TEXT DEFAULT ''"],
+    ['course_id', "TEXT DEFAULT ''"],
+    ['status', "TEXT DEFAULT 'absent'"],
+    ['notes', "TEXT DEFAULT ''"],
+    ['created_at', "TEXT DEFAULT ''"],
+    ['updated_at', "TEXT DEFAULT ''"]
+  ]);
+
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_attendance_date_course ON attendance_records(date, course_id)').run();
+  await env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_attendance_student_date ON attendance_records(student_id, date DESC)').run();
+}
+
+async function listAttendance(context, user, searchParams) {
+  requireRole(user, ['admin', 'faculty']);
+  await ensureUserCompatibilityColumns(context.env);
+  await ensureAttendanceTable(context);
+
+  const date = required(searchParams.get('date'), 'Date');
+  const courseId = String(searchParams.get('courseId') || '').trim();
+
+  const stmt = user.role === 'faculty'
+    ? context.env.DB.prepare(`
+      SELECT attendance_records.*
+      FROM attendance_records
+      JOIN users ON users.id = attendance_records.student_id
+      WHERE attendance_records.date = ?
+        AND attendance_records.course_id = ?
+        AND users.role = 'student'
+        AND users.assigned_faculty_id = ?
+      ORDER BY users.first_name, users.last_name
+    `).bind(date, courseId, user.id)
+    : context.env.DB.prepare(`
+      SELECT attendance_records.*
+      FROM attendance_records
+      JOIN users ON users.id = attendance_records.student_id
+      WHERE attendance_records.date = ?
+        AND attendance_records.course_id = ?
+        AND users.role = 'student'
+      ORDER BY users.first_name, users.last_name
+    `).bind(date, courseId);
+
+  const { results } = await stmt.all();
+  return json({ attendance: results || [] });
+}
+
+async function saveAttendance({ request, env }, user) {
+  requireRole(user, ['admin', 'faculty']);
+  await ensureUserCompatibilityColumns(env);
+  await ensureAttendanceTable({ env });
+
+  const body = await readJson(request);
+  const records = Array.isArray(body.records) ? body.records : [];
+  if (records.length === 0) throw httpError('No attendance records submitted.', 400);
+  if (records.length > 500) throw httpError('Too many attendance records in one request.', 400);
+
+  const allowedStatuses = new Set(['present', 'absent', 'late', 'excused']);
+  const studentIds = [...new Set(records.map(record => String(record.studentId || '').trim()).filter(Boolean))];
+  if (studentIds.length === 0) throw httpError('No students selected.', 400);
+
+  const placeholders = studentIds.map(() => '?').join(',');
+  const { results: students } = await env.DB.prepare(`SELECT id, assigned_faculty_id FROM users WHERE role = 'student' AND id IN (${placeholders})`)
+    .bind(...studentIds)
+    .all();
+  const studentMap = new Map((students || []).map(student => [student.id, student]));
+
+  for (const record of records) {
+    const studentId = String(record.studentId || '').trim();
+    const student = studentMap.get(studentId);
+    if (!student) throw httpError('One or more students were not found.', 404);
+    if (user.role === 'faculty' && student.assigned_faculty_id !== user.id) {
+      throw httpError('You can only submit attendance for students assigned to you.', 403);
+    }
+  }
+
+  const now = new Date().toISOString();
+  for (const record of records) {
+    const studentId = String(record.studentId || '').trim();
+    const date = required(record.date, 'Date');
+    const courseId = String(record.courseId || '').trim();
+    const status = String(record.status || 'absent').trim().toLowerCase();
+    const notes = String(record.notes || '').trim().slice(0, 500);
+    if (!allowedStatuses.has(status)) throw httpError('Invalid attendance status.', 400);
+
+    await env.DB.prepare(`
+      INSERT INTO attendance_records (id, student_id, marked_by, date, course_id, status, notes, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(student_id, date, course_id) DO UPDATE SET
+        marked_by = excluded.marked_by,
+        status = excluded.status,
+        notes = excluded.notes,
+        updated_at = excluded.updated_at
+    `).bind(crypto.randomUUID(), studentId, user.id, date, courseId, status, notes, now, now).run();
+  }
+
+  await logAction(env, user, 'SAVE_ATTENDANCE', `Saved ${records.length} attendance record(s) for ${records[0].date || 'selected date'}`);
+  return json({ ok: true, saved: records.length });
 }
 
 async function listNotifications({ env }, user) {
