@@ -1211,3 +1211,127 @@ table th {
     min-height: 0;
   }
 }
+
+/* Responsive hardening for admin/student dashboards */
+.main-content,
+.content-area,
+.page-section,
+.card,
+.table-wrap {
+  min-width: 0;
+}
+
+.admin-toolbar .search-input {
+  flex: 1 1 180px;
+}
+
+.toolbar-date-field {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 180px;
+}
+
+.toolbar-date-field span {
+  color: var(--gray-500);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.toolbar-date-field .search-input {
+  min-width: 0;
+  width: 100%;
+}
+
+.toolbar-reset-btn {
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.responsive-field-grid {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.responsive-field-grid.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.data-table {
+  min-width: 720px;
+}
+
+#pendingList,
+#servicesManageList {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+}
+
+.field-row-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* intelQong wordmark sizing */
+.sidebar-logo .logo-img {
+  background: transparent;
+  border: 0 !important;
+  border-radius: 0;
+  box-shadow: none;
+  height: 32px;
+  object-fit: contain;
+  padding: 0;
+  width: 82px;
+}
+
+@media (max-width: 640px) {
+  .admin-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-toolbar .search-input,
+  .toolbar-date-field,
+  .admin-toolbar .btn-secondary,
+  .toolbar-reset-btn {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .responsive-field-grid.two-col,
+  .responsive-field-grid,
+  .field-row-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .modal-actions,
+  .modal-header + .modal-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn-primary,
+  .modal-actions .btn-secondary {
+    justify-content: center;
+    width: 100% !important;
+  }
+
+  .table-wrap table,
+  .data-table {
+    min-width: 640px;
+  }
+
+  .installment-row {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+}
