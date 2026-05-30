@@ -1,7 +1,7 @@
 {
-  "name": "AIMS-LMS",
-  "short_name": "AIMS",
-  "description": "AIMS English LMS",
+  "name": "Learning Portal",
+  "short_name": "Learning Portal",
+  "description": "Learning Portal",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

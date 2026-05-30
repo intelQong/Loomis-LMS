@@ -1,5 +1,5 @@
 // ============================================================
-// AIMS LMS — Auth Logic (Cloudflare Pages Functions + D1)
+// Learning Portal — Auth Logic (Cloudflare Pages Functions + D1)
 // ============================================================
 
 function switchTab(event, tab) {
@@ -46,7 +46,7 @@ async function handleForgotPassword() {
     });
     showLoading(false);
     msgEl.className = 'success-msg';
-    msgEl.textContent = 'Request sent. If this email is registered, AIMS admin will help reset your password after verification.';
+    msgEl.textContent = 'Request sent. If this email is registered, the admin team will help reset your password after verification.';
     msgEl.classList.remove('hidden');
   } catch (e) {
     showLoading(false);
