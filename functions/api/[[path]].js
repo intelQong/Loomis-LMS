@@ -185,7 +185,7 @@ async function login({ request, env }) {
 }
 
 async function logout({ request, env }) {
-  const sessionId = getCookie(request, 'aims_session');
+  const sessionId = getCookie(request, 'loomis_session');
   if (sessionId) await env.DB.prepare('DELETE FROM sessions WHERE id = ?').bind(sessionId).run();
   return json({ ok: true }, 200, expiredSessionCookie());
 }
@@ -666,7 +666,7 @@ function formatAuditValue(value) {
 }
 
 async function requireUser({ request, env }) {
-  const sessionId = getCookie(request, 'aims_session');
+  const sessionId = getCookie(request, 'loomis_session');
   if (!sessionId) throw httpError('Not authenticated.', 401);
 
   const row = await env.DB.prepare(`
@@ -898,7 +898,7 @@ async function changePassword({ request, env }, user) {
     .bind(hash, salt, new Date().toISOString(), user.id)
     .run();
 
-  const currentSessionId = getCookie(request, 'aims_session');
+  const currentSessionId = getCookie(request, 'loomis_session');
   await env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND id != ?')
     .bind(user.id, currentSessionId)
     .run();
@@ -1081,11 +1081,11 @@ function getCookie(request, name) {
 
 function sessionCookie(sessionId, expiresAt, request) {
   const secure = new URL(request.url).protocol === 'https:' ? '; Secure' : '';
-  return `aims_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax${secure}; Expires=${new Date(expiresAt).toUTCString()}`;
+  return `loomis_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax${secure}; Expires=${new Date(expiresAt).toUTCString()}`;
 }
 
 function expiredSessionCookie() {
-  return 'aims_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  return 'loomis_session=; Path=/; HttpOnly; SameSite=Lax; Secure; Expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
 
 // ============================================================
@@ -1193,7 +1193,7 @@ async function updateUserRole({ request, env }, user, targetUserId) {
 
   if (newPassword) {
     if (targetUserId === user.id) {
-      const currentSessionId = getCookie(request, 'aims_session');
+      const currentSessionId = getCookie(request, 'loomis_session');
       await env.DB.prepare('DELETE FROM sessions WHERE user_id = ? AND id != ?').bind(targetUserId, currentSessionId).run();
     } else {
       await env.DB.prepare('DELETE FROM sessions WHERE user_id = ?').bind(targetUserId).run();

@@ -1,8 +1,8 @@
-# Learning Portal — Admin Problems Mitigated and Student Benefits
+# Loomis LMS — Admin Problems Mitigated and Student Benefits
 
 ## Purpose
 
-Learning Portal is designed to centralize student administration, communication, payment tracking, academic notices, and student self-service into one Cloudflare-hosted learning management system. The project reduces manual coordination for admins while giving students a single dashboard for course, payment, announcement, and support information.
+Loomis LMS is designed to centralize student administration, communication, payment tracking, academic notices, and student self-service into one Cloudflare-hosted learning management system. The project reduces manual coordination for admins while giving students a single dashboard for course, payment, announcement, and support information.
 
 ## Problems the LMS Mitigates for Admins
 
@@ -10,7 +10,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Student information can become split across spreadsheets, chat apps, paper forms, and individual staff devices. This makes it difficult to know who is active, pending, suspended, assigned to faculty, or due for follow-up.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Keeps student profile information in one database-backed system.
 - Supports student statuses such as pending, active, and suspended.
@@ -21,7 +21,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** New student registrations can be missed or delayed when approvals are handled manually.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Shows pending student registrations in the admin dashboard.
 - Gives admins quick actions to approve, edit, suspend, or manage a student.
@@ -31,7 +31,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Fee collection often requires manual checking across payment notes, messages, and spreadsheets. Admins may not quickly know who paid, who is due, or when the next installment is expected.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Tracks total paid, discount, total due, next payment date, and installment plans.
 - Shows financial insight cards for total collected and due collection.
@@ -42,7 +42,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Sending the same message repeatedly through multiple channels can lead to inconsistent announcements and missed students.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Provides broadcast tools for admins and faculty.
 - Supports announcements with text, images, links, and approved video embeds.
@@ -53,7 +53,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Faculty may not always know which students are assigned to them, and admins may struggle to limit faculty access appropriately.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Stores assigned faculty for each student.
 - Allows faculty dashboard access to assigned students only.
@@ -64,7 +64,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Without logs, it is difficult to know who changed a student record, reset a password, changed a role, deleted an item, or handled a security-related request.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Maintains system audit logs for administrative actions.
 - Records meaningful details for student updates, password reset requests, role changes, announcements, services, and calendar changes.
@@ -74,7 +74,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Students may forget passwords, while admins need a safe way to help without exposing accounts to unauthorized resets.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Provides authenticated self-service password changes for logged-in users.
 - Provides a forgot-password request modal that notifies admins without revealing whether an email exists.
@@ -85,7 +85,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Public login/signup forms and cookie-based sessions can be targets for brute-force attacks, cross-site abuse, iframe abuse, and weak password storage.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Uses PBKDF2 password hashing for new and reset passwords.
 - Rate-limits login, signup, forgot-password, password-change, and admin reset attempts.
@@ -97,7 +97,7 @@ Learning Portal is designed to centralize student administration, communication,
 
 **Problem:** Students and admins may continue seeing old files after an update, causing confusion or broken behavior.
 
-**How Learning Portal mitigates it:**
+**How Loomis LMS mitigates it:**
 
 - Includes service worker cache controls and dashboard cache-clearing tools.
 - Uses asset version query strings to force browsers to fetch updated scripts and styles.
@@ -134,7 +134,7 @@ By combining course, payment, announcement, calendar, and service information in
 
 ## Overall Operational Impact
 
-Learning Portal helps admins move from manual, scattered processes to a centralized workflow. It helps students move from asking for information repeatedly to checking a self-service dashboard. Together, this reduces administrative workload, improves communication consistency, strengthens account security, and creates a more professional student experience.
+Loomis LMS helps admins move from manual, scattered processes to a centralized workflow. It helps students move from asking for information repeatedly to checking a self-service dashboard. Together, this reduces administrative workload, improves communication consistency, strengthens account security, and creates a more professional student experience.
 
 ## Recommended Next Steps
 

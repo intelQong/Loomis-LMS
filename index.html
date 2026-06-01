@@ -1,166 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#FF7F50">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/assets/intelqong-logo.svg">
-<title>Student Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/main.css?v=60">
-<link rel="stylesheet" href="styles/auth.css?v=60">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#FF7F50">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/intelqong-logo.svg">
+  <title>Loomis LMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css?v=60">
+  <link rel="stylesheet" href="styles/auth.css?v=60">
 </head>
+
 <body class="auth-page">
 
-<div class="auth-split">
-  <!-- Left Brand Panel -->
-  <div class="brand-panel">
-    <div class="brand-content">
-      <div class="brand-logo">
-        <img class="logo-img" src="assets/intelqong-logo.svg" alt="intelQong logo">
-        <span>Learning Portal</span>
-      </div>
-      <h1 class="brand-headline">Your learning<br><em>journey starts</em><br>here.</h1>
-      <p class="brand-sub">Track your progress, manage fees, and access all learning resources from one place.</p>
+  <div class="auth-split">
+    <!-- Left Brand Panel -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <div class="brand-logo">
+          <img class="logo-img" src="assets/intelqong-logo.svg" alt="intelQong logo">
+          <span>Loomis LMS</span>
+        </div>
+        <h1 class="brand-headline">Your learning<br><em>journey starts</em><br>here.</h1>
+        <p class="brand-sub">Track your progress, manage fees, and access all learning resources from one place.</p>
 
+      </div>
+      <div class="brand-pattern"></div>
     </div>
-    <div class="brand-pattern"></div>
-  </div>
 
-  <!-- Right Auth Panel -->
-  <div class="auth-panel">
-    <div class="auth-container">
-      <div class="auth-tabs">
-        <button class="tab-btn active" onclick="switchTab(event, 'login')">Sign In</button>
-        <button class="tab-btn" onclick="switchTab(event, 'signup')">Sign Up</button>
-      </div>
+    <!-- Right Auth Panel -->
+    <div class="auth-panel">
+      <div class="auth-container">
+        <div class="auth-tabs">
+          <button class="tab-btn active" onclick="switchTab(event, 'login')">Sign In</button>
+          <button class="tab-btn" onclick="switchTab(event, 'signup')">Sign Up</button>
+        </div>
 
-      <!-- Login Form -->
-      <div id="loginForm" class="auth-form active">
-        <h2>Welcome back</h2>
-        <p class="form-sub">Sign in to your student account</p>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <div class="input-wrap">
-            <input type="password" id="loginPassword" placeholder="••••••••">
-            <button class="toggle-pw" onclick="togglePw('loginPassword')">Show</button>
-          </div>
-        </div>
-        <div class="field-row">
-          <label class="checkbox-label"><input type="checkbox"> Remember me</label>
-          <a href="#" class="link-sm" onclick="openForgotPasswordModal(event)">Forgot password?</a>
-        </div>
-        <button class="btn-primary" onclick="handleLogin()">
-          <span>Sign In</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-        <div id="loginError" class="error-msg hidden"></div>
-      </div>
-
-      <!-- Signup Form -->
-      <div id="signupForm" class="auth-form">
-        <h2>Create account</h2>
-        <p class="form-sub">Join the the student portal</p>
-        <div class="field-row-2">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+          <h2>Welcome back</h2>
+          <p class="form-sub">Sign in to your student account</p>
           <div class="field">
-            <label>First Name</label>
-            <input type="text" id="signupFirst" placeholder="Rahim">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
           </div>
           <div class="field">
-            <label>Last Name</label>
-            <input type="text" id="signupLast" placeholder="Uddin">
+            <label>Password</label>
+            <div class="input-wrap">
+              <input type="password" id="loginPassword" placeholder="••••••••">
+              <button class="toggle-pw" onclick="togglePw('loginPassword')">Show</button>
+            </div>
           </div>
-        </div>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="signupEmail" placeholder="you@example.com">
-        </div>
-        <div class="field">
-          <label>Phone</label>
-          <input type="tel" id="signupPhone" placeholder="+880 1XXX XXXXXX">
-        </div>
-        <div class="field">
-          <label>Course</label>
-          <select id="signupCourse">
-            <option value="">Select your course</option>
-            <optgroup label="IELTS Courses">
-              <option value="ielts-regular">IELTS Regular (AC/GT)</option>
-              <option value="ielts-fast-track">IELTS Fast Track</option>
-              <option value="ielts-platinum">IELTS Platinum</option>
-              <option value="ielts-online">IELTS Live/Online</option>
-              <option value="ielts-skill-focus">IELTS Skill Focus</option>
-              <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
-            </optgroup>
-            <optgroup label="PTE">
-              <option value="pte-academic">PTE Academic</option>
-            </optgroup>
-            <optgroup label="Spoken English">
-              <option value="spoken-english">Spoken English</option>
-              <option value="business-english">Business English for Professionals</option>
-              <option value="spoken-english-online">Spoken English (Online)</option>
-              <option value="foundation-english">Foundation English & Phonetics</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <div class="input-wrap">
-            <input type="password" id="signupPassword" placeholder="Min. 8 characters">
-            <button class="toggle-pw" onclick="togglePw('signupPassword')">Show</button>
+          <div class="field-row">
+            <label class="checkbox-label"><input type="checkbox"> Remember me</label>
+            <a href="#" class="link-sm" onclick="openForgotPasswordModal(event)">Forgot password?</a>
           </div>
+          <button class="btn-primary" onclick="handleLogin()">
+            <span>Sign In</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+          <div id="loginError" class="error-msg hidden"></div>
         </div>
 
-        <button class="btn-primary" onclick="handleSignup()">
-          <span>Create Account</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
-        <div id="signupError" class="error-msg hidden"></div>
-        <p class="form-note">Account requires admin approval before access.</p>
+        <!-- Signup Form -->
+        <div id="signupForm" class="auth-form">
+          <h2>Create account</h2>
+          <p class="form-sub">Join the the student portal</p>
+          <div class="field-row-2">
+            <div class="field">
+              <label>First Name</label>
+              <input type="text" id="signupFirst" placeholder="Rahim">
+            </div>
+            <div class="field">
+              <label>Last Name</label>
+              <input type="text" id="signupLast" placeholder="Uddin">
+            </div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="signupEmail" placeholder="you@example.com">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="tel" id="signupPhone" placeholder="+880 1XXX XXXXXX">
+          </div>
+          <div class="field">
+            <label>Course</label>
+            <select id="signupCourse">
+              <option value="">Select your course</option>
+              <optgroup label="IELTS Courses">
+                <option value="ielts-regular">IELTS Regular (AC/GT)</option>
+                <option value="ielts-fast-track">IELTS Fast Track</option>
+                <option value="ielts-platinum">IELTS Platinum</option>
+                <option value="ielts-online">IELTS Live/Online</option>
+                <option value="ielts-skill-focus">IELTS Skill Focus</option>
+                <option value="executive-ielts">Executive IELTS (Fri/Sat)</option>
+              </optgroup>
+              <optgroup label="PTE">
+                <option value="pte-academic">PTE Academic</option>
+              </optgroup>
+              <optgroup label="Spoken English">
+                <option value="spoken-english">Spoken English</option>
+                <option value="business-english">Business English for Professionals</option>
+                <option value="spoken-english-online">Spoken English (Online)</option>
+                <option value="foundation-english">Foundation English & Phonetics</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <div class="input-wrap">
+              <input type="password" id="signupPassword" placeholder="Min. 8 characters">
+              <button class="toggle-pw" onclick="togglePw('signupPassword')">Show</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="handleSignup()">
+            <span>Create Account</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </button>
+          <div id="signupError" class="error-msg hidden"></div>
+          <p class="form-note">Account requires admin approval before access.</p>
+        </div>
+
       </div>
-
     </div>
   </div>
-</div>
 
 
-<!-- Forgot Password Modal -->
-<div class="modal-backdrop hidden" id="forgotPasswordModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Forgot Password</h3>
-      <button class="modal-close" onclick="closeForgotPasswordModal()">×</button>
+  <!-- Forgot Password Modal -->
+  <div class="modal-backdrop hidden" id="forgotPasswordModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Forgot Password</h3>
+        <button class="modal-close" onclick="closeForgotPasswordModal()">×</button>
+      </div>
+      <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
+        Enter your account email. For security, the admin team will verify your identity before resetting your password.
+      </p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="btn-primary" onclick="handleForgotPassword()">
+        <span>Request Password Help</span>
+      </button>
+      <div id="forgotPasswordMsg" class="error-msg hidden"></div>
     </div>
-    <p style="font-size:0.9rem;color:var(--gray-500);line-height:1.5;margin-bottom:18px">
-      Enter your account email. For security, the admin team will verify your identity before resetting your password.
-    </p>
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email">
-    </div>
-    <button class="btn-primary" onclick="handleForgotPassword()">
-      <span>Request Password Help</span>
-    </button>
-    <div id="forgotPasswordMsg" class="error-msg hidden"></div>
   </div>
-</div>
 
-<script src="js/app-data.js?v=57"></script>
-<script src="js/api-client.js?v=57"></script>
-<script src="js/auth.js?v=57"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js?v=57', { updateViaCache: 'none' });
-    
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('New version ready.');
-    });
-  }
-</script>
+  <script src="js/app-data.js?v=57"></script>
+  <script src="js/api-client.js?v=57"></script>
+  <script src="js/auth.js?v=57"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js?v=57', { updateViaCache: 'none' });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('New version ready.');
+      });
+    }
+  </script>
 </body>
+
 </html>

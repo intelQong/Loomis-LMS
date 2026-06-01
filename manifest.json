@@ -1,7 +1,7 @@
 {
-  "name": "Learning Portal",
-  "short_name": "Learning Portal",
-  "description": "Learning Portal",
+  "name": "Loomis LMS",
+  "short_name": "Loomis LMS",
+  "description": "Loomis LMS",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

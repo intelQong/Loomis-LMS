@@ -1,4 +1,4 @@
-# Learning Portal Security Audit
+# Loomis LMS Security Audit
 
 _Last updated: 2026-05-11_
 

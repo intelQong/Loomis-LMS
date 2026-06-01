@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       create_database:
-        description: "Create the aims_lms D1 database. Run once only."
+        description: "Create the loomis_lms D1 database. Run once only."
         required: true
         default: "false"
         type: choice
         options: ["false", "true"]
       apply_migrations:
-        description: "Apply migrations to the remote aims_lms D1 database."
+        description: "Apply migrations to the remote loomis_lms D1 database."
         required: true
         default: "true"
         type: choice
@@ -37,11 +37,11 @@ jobs:
 
       - name: Create D1 database
         if: ${{ inputs.create_database == 'true' }}
-        run: npx --yes wrangler@4 d1 create aims_lms
+        run: npx --yes wrangler@4 d1 create loomis_lms
 
       - name: Apply D1 migrations
         if: ${{ inputs.apply_migrations == 'true' }}
-        run: npx --yes wrangler@4 d1 migrations apply aims_lms --remote
+        run: npx --yes wrangler@4 d1 migrations apply loomis_lms --remote
 
       - name: Build admin promotion SQL
         if: ${{ inputs.promote_admin_email != '' }}
@@ -59,4 +59,4 @@ jobs:
         if: ${{ inputs.promote_admin_email != '' }}
         env:
           ADMIN_SQL: ${{ steps.admin_sql.outputs.sql }}
-        run: npx --yes wrangler@4 d1 execute aims_lms --remote --command "$ADMIN_SQL"
+        run: npx --yes wrangler@4 d1 execute loomis_lms --remote --command "$ADMIN_SQL"

@@ -1,5 +1,5 @@
 // ============================================================
-// Learning Portal — Service Worker
+// Loomis LMS — Service Worker
 // Strategy:
 //  - HTML pages: Network-only (always fresh, never cached)
 //  - JS/CSS/Assets: Network-first, fall back to cache
@@ -7,7 +7,7 @@
 // Bump CACHE_VERSION on every deployment to bust stale caches.
 // ============================================================
 
-const CACHE_VERSION = 'aims-lms-v59';
+const CACHE_VERSION = 'loomis-lms-v59';
 
 // Static assets that are safe to cache (NOT html pages)
 const STATIC_ASSETS = [

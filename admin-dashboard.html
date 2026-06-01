@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#FF7F50">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/intelqong-logo.svg">
-  <title>Admin — Learning Portal</title>
+  <title>Admin — Loomis LMS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap"
@@ -281,7 +281,8 @@
             <option value="name">Sort by Name</option>
             <option value="due_desc">Sort by Due (High to Low)</option>
           </select>
-          <button type="button" class="btn-secondary toolbar-reset-btn" onclick="clearPaymentDateFilters()">Clear dates</button>
+          <button type="button" class="btn-secondary toolbar-reset-btn" onclick="clearPaymentDateFilters()">Clear
+            dates</button>
         </div>
         <div class="card" style="padding:0;overflow:hidden">
           <div class="table-wrap">
@@ -809,7 +810,8 @@
         <h3>Add Student</h3>
         <button class="modal-close" onclick="closeModal('addStudentModal')">×</button>
       </div>
-      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Create a student account for attendance and class management. Faculty-created students are assigned to that faculty automatically.</p>
+      <p style="font-size:0.875rem;color:var(--gray-500);margin-bottom:20px">Create a student account for attendance and
+        class management. Faculty-created students are assigned to that faculty automatically.</p>
       <div class="field-row-2">
         <div class="field"><label>First Name</label><input type="text" id="addFirst"></div>
         <div class="field"><label>Last Name</label><input type="text" id="addLast"></div>
@@ -992,7 +994,7 @@
       </div>
       <div class="field">
         <label>Service Name</label>
-        <input type="text" id="serviceName" placeholder="e.g. Learning Portal Website">
+        <input type="text" id="serviceName" placeholder="e.g. Loomis LMS Website">
       </div>
       <div class="field">
         <label>Description</label>
@@ -1072,7 +1074,8 @@
       <div
         style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
         <div style="font-size:0.85rem;color:var(--gray-500)">Resetting password for:</div>
-        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="resetUserDisplayEmail">user@example.com</div>
+        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="resetUserDisplayEmail">user@example.com
+        </div>
       </div>
       <input type="hidden" id="resetUserId">
       <div class="field">
@@ -1088,7 +1091,8 @@
       </p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeModal('userPasswordResetModal')">Cancel</button>
-        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveUserPasswordReset()">Reset Password</button>
+        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveUserPasswordReset()">Reset
+          Password</button>
       </div>
       <div id="resetUserErr" class="error-msg hidden"></div>
     </div>

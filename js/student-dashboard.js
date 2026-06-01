@@ -1,5 +1,5 @@
 // ============================================================
-// Learning Portal — Student Dashboard Logic
+// Loomis LMS — Student Dashboard Logic
 // ============================================================
 
 let currentUser = null;
@@ -17,7 +17,7 @@ let notifUnsubscribe = null;
             <div style="font-size:4rem;margin-bottom:16px">🚧</div>
             <h1 style="font-size:2rem;font-weight:600;margin-bottom:12px">Under Maintenance</h1>
             <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
-              Learning Portal is currently undergoing scheduled maintenance.<br>
+              Loomis LMS is currently undergoing scheduled maintenance.<br>
               We'll be back shortly. Thank you for your patience!
             </p>
             <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:20px;backdrop-filter:blur(4px)">
@@ -108,7 +108,7 @@ const THEMES = {
 };
 
 function initTheme() {
-  const saved = localStorage.getItem('aims-theme') || 'teal';
+  const saved = localStorage.getItem('loomis-theme') || 'teal';
   applyTheme(saved);
 }
 
@@ -123,7 +123,7 @@ function applyTheme(name) {
   root.style.setProperty('--shadow-lg', `0 8px 32px ${theme.shadow.replace('0.12', '0.18')}`);
 
   // Update sidebar gradient if needed (dashboard.css uses var(--teal-dark))
-  localStorage.setItem('aims-theme', name);
+  localStorage.setItem('loomis-theme', name);
 
   // Update UI selection state if palette exists
   document.querySelectorAll('.theme-opt').forEach(opt => {

@@ -1,5 +1,5 @@
 // ============================================================
-// Learning Portal — Auth Logic (Cloudflare Pages Functions + D1)
+// Loomis LMS — Auth Logic (Cloudflare Pages Functions + D1)
 // ============================================================
 
 function switchTab(event, tab) {

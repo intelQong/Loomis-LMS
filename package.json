@@ -1,19 +1,19 @@
 {
-  "name": "aims-lms",
+  "name": "loomis-lms",
   "version": "1.0.0",
   "private": true,
-  "description": "Learning Portal for Cloudflare Pages Functions and D1.",
+  "description": "Loomis LMS — Open-source learning management system for Cloudflare Pages + D1.",
   "type": "module",
   "scripts": {
     "check": "npm run check:js && npm run check:sql && npm run check:html",
     "check:js": "node --check functions/api/[[path]].js && for f in js/*.js; do node --check \"$f\"; done",
     "check:sql": "sqlite3 :memory: < migrations/0001_init.sql",
     "check:html": "python3 scripts/check-html.py",
-    "dev": "wrangler pages dev . --d1 DB=aims_lms",
-    "deploy": "wrangler pages deploy . --project-name aims-lms",
-    "d1:create": "wrangler d1 create aims_lms",
-    "d1:migrate:local": "wrangler d1 migrations apply aims_lms --local",
-    "d1:migrate:remote": "wrangler d1 migrations apply aims_lms --remote"
+    "dev": "wrangler pages dev . --d1 DB=loomis_lms",
+    "deploy": "wrangler pages deploy . --project-name loomis-lms",
+    "d1:create": "wrangler d1 create loomis_lms",
+    "d1:migrate:local": "wrangler d1 migrations apply loomis_lms --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply loomis_lms --remote"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"

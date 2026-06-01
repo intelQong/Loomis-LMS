@@ -1,5 +1,5 @@
 // ============================================================
-// Learning Portal — Admin Dashboard Logic
+// Loomis LMS — Admin Dashboard Logic
 // ============================================================
 
 let allStudents = [];
@@ -21,7 +21,7 @@ let adminRole = 'admin';
             <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.08em;margin-bottom:24px;text-transform:uppercase">System notice</div>
             <h1 style="font-size:2rem;font-weight:600;margin-bottom:16px">Maintenance in Progress</h1>
             <p style="font-size:1.1rem;opacity:0.8;line-height:1.7;margin-bottom:32px">
-              The learning portal is currently undergoing essential administrative maintenance.<br><br>
+              The Loomis LMS portal is currently undergoing essential administrative maintenance.<br><br>
               Access to this portal is restricted to the <strong>System Developer / Super Admin</strong> at this time.
             </p>
             <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:24px;backdrop-filter:blur(8px)">
