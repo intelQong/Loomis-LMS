@@ -5,7 +5,7 @@
 <h1 align="center">Loomis LMS</h1>
 
 <p align="center">
-  <strong>A self-hosted learning management system for coaching centers, built entirely on Cloudflare's edge.</strong>
+  <strong>A self-hosted learning management system for English language teaching, built entirely on Cloudflare's edge.</strong>
 </p>
 
 <p align="center">
@@ -33,7 +33,7 @@
 
 ## What It Does
 
-Small coaching centers run on WhatsApp threads, paper ledgers, and a spreadsheet somebody forgot to back up. Enrollment lives in one place, fee collection in another, and the answer to "has this student paid?" depends on who you ask.
+Most ELT centers run on WhatsApp threads, paper ledgers, and a spreadsheet somebody forgot to back up. Enrollment lives in one place, fee collection in another, and the answer to "has this student paid?" depends on who you ask.
 
 Loomis LMS replaces that with one system:
 
@@ -45,7 +45,9 @@ It is deliberately small. No framework, no build step, no runtime dependencies �
 
 ### Who It's For
 
-Learning centers, coaching institutes, test-prep academies, and training providers that have outgrown spreadsheets but can't justify enterprise LMS licensing — particularly single-branch or few-branch operations that need one admin to run enrollment, fees, and attendance without a dedicated IT budget.
+English language teaching organizations: IELTS, PTE, and test-preparation centers, spoken and business English programs, and language schools running cohort-based courses. It fits centers that have outgrown spreadsheets but can't justify enterprise LMS licensing — particularly single-branch or few-branch operations where one admin runs enrollment, fees, and attendance without a dedicated IT budget.
+
+The shipped course catalog reflects that: IELTS (regular, fast track, platinum, online, skill-focus, executive), PTE Academic, spoken English, business English, and foundation English. It is plain configuration in [`js/app-data.js`](js/app-data.js) — edit it for your own programs.
 
 ### Origin
 
@@ -216,7 +218,7 @@ npm run deploy
 
 ## Forking & Customization
 
-Loomis LMS is designed to be **forked and customized** for your own learning center. It ships with placeholder content only — no real contact details, credentials, or infrastructure IDs.
+Loomis LMS is designed to be **forked and customized** for your own center. It ships with placeholder content only — no real contact details, credentials, or infrastructure IDs.
 
 ### ⚙️ Required
 
