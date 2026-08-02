@@ -5,11 +5,18 @@
 <h1 align="center">Loomis LMS</h1>
 
 <p align="center">
-  <strong>Open-source learning management system built on Cloudflare Pages + D1</strong><br>
-  A modern, self-hosted LMS for learning centers, coaching institutes, and small educational organizations.
+  <strong>A self-hosted learning management system for coaching centers, built entirely on Cloudflare's edge.</strong>
 </p>
 
 <p align="center">
+  <a href="https://github.com/qongBIT/Loomis-LMS/actions/workflows/ci.yml"><img src="https://github.com/qongBIT/Loomis-LMS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="License: GPLv3">
+  <img src="https://img.shields.io/badge/runtime-Cloudflare%20Pages%20%2B%20D1-orange.svg" alt="Cloudflare Pages + D1">
+  <img src="https://img.shields.io/badge/dependencies-0-brightgreen.svg" alt="Zero runtime dependencies">
+</p>
+
+<p align="center">
+  <a href="#what-it-does">What It Does</a> •
   <a href="#features">Features</a> •
   <a href="#tech-stack">Tech Stack</a> •
   <a href="#quick-start">Quick Start</a> •
@@ -24,43 +31,82 @@
 
 ---
 
+## What It Does
+
+Small coaching centers run on WhatsApp threads, paper ledgers, and a spreadsheet somebody forgot to back up. Enrollment lives in one place, fee collection in another, and the answer to "has this student paid?" depends on who you ask.
+
+Loomis LMS replaces that with one system:
+
+- **Students** sign in to see their courses, class schedule, fee balance, installment plan, attendance record, and announcements from the center.
+- **Admins and faculty** enroll and approve students, record payments, set up installment plans, mark attendance by course, broadcast notices, and manage the academic calendar.
+- **A super admin** controls roles and reads an immutable audit log of every administrative action.
+
+It is deliberately small. No framework, no build step, no runtime dependencies — static HTML, CSS, and JavaScript in front of a single Cloudflare Pages Function and a D1 database. The whole thing runs comfortably inside Cloudflare's free tier, which matters when the alternative is a per-seat SaaS bill in a currency your center doesn't earn in.
+
+### Who It's For
+
+Learning centers, coaching institutes, test-prep academies, and training providers that have outgrown spreadsheets but can't justify enterprise LMS licensing — particularly single-branch or few-branch operations that need one admin to run enrollment, fees, and attendance without a dedicated IT budget.
+
+### Origin
+
+Loomis LMS is the first commercial product from **[QongBit](https://github.com/qongBIT)**.
+
+It was built for and is in daily production use at **AIMS English, Chattogram branch**, managing live student enrollment, fee collection, and attendance. Everything center-specific has been replaced with placeholders so the repository can be forked and deployed for any institution — see [Forking & Customization](#forking--customization).
+
+---
+
 ## Features
 
+### 👥 Accounts & Roles
+
+Three roles (`student`, `faculty`, `admin`) and three account states (`pending`, `active`, `suspended`), enforced at the database level with `CHECK` constraints rather than in application code.
+
+- **Self-signup with approval gate** — new accounts land in `pending` and cannot sign in until an admin activates them, so a public signup form can't populate your roster with junk
+- **Faculty assignment** — each student is assignable to a faculty member; faculty then see only their own students and cannot alter fee discounts, so teaching staff get roster access without financial authority
+- **Super admin** — a single account, designated by the `SUPER_ADMIN_EMAIL` environment variable, that can change roles and read the audit log; auto-promoted on first login
+- **Suspension** — revokes access immediately without deleting the student's payment or attendance history
+
 ### 🎓 Student Dashboard
-- **Course overview** — View enrolled courses, class schedule, duration, and included features
-- **Payment tracking** — See total fees, amount paid, remaining dues, and installment plans
-- **Broadcast inbox** — Receive targeted or mass announcements from admins/faculty
-- **Academic calendar** — View upcoming holidays, exams, and events
-- **Attendance history** — Track personal attendance records
-- **Profile management** — View enrollment info, student ID, and account details
-- **Theme customization** — Choose from Teal, Indigo, Coral, or Emerald color themes
-- **Self-service password change** — Update password without contacting support
 
-### 🛡️ Admin Dashboard
-- **Student management** — Create, approve, edit, suspend, or search students with filters
-- **Financial insights** — Track total collected, due collections, with period-based filtering
-- **Broadcast system** — Send rich notifications (text + images) to all, individual, or assigned students
-- **Announcement banners** — Create rich banners with images, video embeds, gradients, and CTA buttons
-- **Payment records** — View and sort payment history across all students
-- **Installment plans** — Create and manage installment schedules per student
-- **Academic calendar** — Add/remove events, holidays, and exam dates
-- **Other services** — Manage external links displayed on the student dashboard
-- **Attendance tracking** — Mark daily attendance by course, with bulk actions
-- **Maintenance mode** — Toggle a site-wide maintenance page for students
-- **Service worker tools** — Clear browser caches and force-reload for all visitors
+- **Multi-course enrollment** — a student can hold several concurrent courses; each shows duration, session count, class days and time, and its included perks
+- **Fee ledger** — total fee, discount applied, amount paid, outstanding balance, and next payment date
+- **Installment plan** — scheduled amounts with due dates, each marked `pending`, `paid`, or `overdue`
+- **Attendance record** — per-class history with four states: present, absent, late, excused
+- **Announcement banners** — image, video embed, gradient background, and a call-to-action link
+- **Broadcast inbox** — notices sent to everyone, to this student specifically, or to their assigned faculty group
+- **Academic calendar** — events, holidays, and exam dates
+- **Four color themes** — Teal, Indigo, Coral, Emerald; the choice persists per browser
+- **Self-service password change** — requires the current password and signs out the account's other sessions
 
-### 👑 Super Admin Portal
-- **User management** — View all users and change roles (student → admin/faculty)
-- **System audit logs** — Permanent, immutable history of all administrative actions
-- **Auto-promotion** — Configure a super admin email that auto-promotes on first login
+### 🛡️ Admin & Faculty Dashboard
+
+- **Student records** — create, approve, edit, suspend, and search; assign courses, faculty, student ID, class schedule, and discounts
+- **Payment collection** — update a student's paid total and the system writes the difference to an immutable payment history automatically; filter collection totals by period
+- **Installment scheduling** — build a payment plan per student and track it against actual payments
+- **Attendance marking** — pick a course and date, mark the roster in bulk, and correct past records
+- **Broadcasts** — rich notifications with images, targeted to all students, one student, or a faculty member's assigned group
+- **Announcement management** — create, edit, activate, and delete the banners students see
+- **Academic calendar** — add and remove events, holidays, and exam dates
+- **External services** — curate the links surfaced on the student dashboard
+- **Maintenance mode** — a toggle that swaps the student dashboard for a maintenance notice, without a redeploy
+- **Cache control** — force the service worker to purge caches and reload for every visitor, so a fix reaches students immediately
+- **Password reset** — admins reset a student's password after verifying identity out of band; all that student's sessions are invalidated
+
+### 👑 Super Admin
+
+- **Role management** — promote or demote any user between student, faculty, and admin
+- **Audit log** — an append-only record of every administrative action: student edits, password resets, role changes, announcements, calendar changes, and service edits, each stamped with the acting admin's email, the action, a detail string, the target record, and a timestamp. There is no delete endpoint.
+- **Forgot-password queue** — public reset requests land in the audit log as a verification queue instead of emailing a reset link to an unverified address
 
 ### 🔐 Security
-- **PBKDF2 password hashing** — 100,000 iterations with unique salts
-- **Application-level rate limiting** — Protects login, signup, password reset, and admin actions
-- **Same-origin enforcement** — Blocks cross-site form submissions
-- **HTTP security headers** — CSP, X-Frame-Options, HSTS, Referrer-Policy
-- **Session management** — HTTP-only cookies, automatic invalidation on password change
-- **Account enumeration protection** — Generic error messages on failed login
+
+- **PBKDF2-SHA-256 hashing** — 100,000 iterations, unique per-user salt; legacy SHA-256 hashes verify once and upgrade transparently on next login
+- **D1-backed rate limiting** — login is limited per IP *and* email (10 / 15 min); signup (5 / hr), password change (5 / 15 min), forgot-password (5 / hr), and admin reset (10 / 15 min) are limited per IP
+- **Fail-closed super admin** — with `SUPER_ADMIN_EMAIL` unset the role simply does not exist; there is no default placeholder for an attacker to claim
+- **Same-origin enforcement** — state-changing requests from other origins are rejected
+- **HTTP-only session cookies** — with `SameSite`, invalidated across other sessions on password change
+- **Account enumeration protection** — login and forgot-password give identical responses whether or not the email exists
+- **Security headers** — CSP, `X-Frame-Options`, HSTS, and `Referrer-Policy`, set in [`_headers`](_headers)
 
 ---
 
@@ -352,20 +398,25 @@ See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for a detailed security review.
 
 ## Contributing
 
+Issues and pull requests are welcome.
+
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit your changes: `git commit -m 'Add my feature'`
-4. Push to the branch: `git push origin feature/my-feature`
+3. Run `npm run check` — syntax checks, SQL, HTML, and tests must pass
+4. Commit and push: `git push origin feature/my-feature`
 5. Open a Pull Request
+
+Please don't commit real contact details, credentials, account identifiers, or student data. Everything center-specific belongs in a placeholder or an environment variable.
 
 ---
 
 ## License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+Licensed under the [GNU General Public License v3.0](LICENSE). You are free to use, modify, and distribute this software, including commercially, provided derivative works remain under the same license.
 
 ---
 
 <p align="center">
-  Built with ❤️ on <a href="https://pages.cloudflare.com/">Cloudflare Pages</a> + <a href="https://developers.cloudflare.com/d1/">Cloudflare D1</a>
+  Built by <a href="https://github.com/qongBIT">QongBit</a> on <a href="https://pages.cloudflare.com/">Cloudflare Pages</a> + <a href="https://developers.cloudflare.com/d1/">Cloudflare D1</a><br>
+  <sub>In production at AIMS English, Chattogram</sub>
 </p>
