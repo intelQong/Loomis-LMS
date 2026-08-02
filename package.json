@@ -5,7 +5,8 @@
   "description": "Loomis LMS — Open-source learning management system for Cloudflare Pages + D1.",
   "type": "module",
   "scripts": {
-    "check": "npm run check:js && npm run check:sql && npm run check:html",
+    "check": "npm run check:js && npm run check:sql && npm run check:html && npm run test",
+    "test": "node scripts/test-super-admin.mjs",
     "check:js": "node --check functions/api/[[path]].js && for f in js/*.js; do node --check \"$f\"; done",
     "check:sql": "sqlite3 :memory: < migrations/0001_init.sql",
     "check:html": "python3 scripts/check-html.py",

@@ -18,6 +18,7 @@
   <a href="#project-structure">Structure</a> •
   <a href="#api-reference">API</a> •
   <a href="#security">Security</a> •
+  <a href="#documentation">Docs</a> •
   <a href="#license">License</a>
 </p>
 
@@ -104,15 +105,32 @@ npm run dev
 
 The app will be available at `http://localhost:8788`.
 
+### Configuration
+
+All deployment-specific values are environment variables — nothing sensitive lives in the repo.
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `SUPER_ADMIN_EMAIL` | Yes | Account auto-promoted to super admin on first login |
+| `CLOUDFLARE_ACCOUNT_ID` | Deploy only | Used by the GitHub Actions workflows |
+| `CLOUDFLARE_API_TOKEN` | Deploy only | Used by the GitHub Actions workflows |
+
+Set `SUPER_ADMIN_EMAIL` in **Cloudflare Dashboard → Pages → your project → Settings → Environment variables**. For local development, copy `.env.example` to `.dev.vars` (git-ignored) and fill it in.
+
+**There is no default, by design.** If `SUPER_ADMIN_EMAIL` is unset the super admin role simply does not exist — every super-admin-only endpoint returns 403 and no account is auto-promoted. A placeholder default would be an address anyone could sign up as to claim admin.
+
+`wrangler.toml` ships with `database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"`. Replace it with the ID printed by `npm run d1:create`, or bind D1 in the Pages dashboard instead (Settings → Functions → D1 bindings → variable name `DB`).
+
 ### First Admin Setup
 
-1. Open the app and **sign up** with any email
-2. The first user matching the `SUPER_ADMIN_EMAIL` in [`functions/api/[[path]].js`](functions/api/%5B%5Bpath%5D%5D.js) will be auto-promoted to admin
-3. Or manually promote via D1:
+1. Set `SUPER_ADMIN_EMAIL` to the email you plan to use
+2. Open the app and **sign up** with that email — the account is auto-promoted to admin on first login
+3. Or promote any existing user manually:
    ```bash
    npx wrangler d1 execute loomis_lms --local --command \
-     "UPDATE users SET role='admin', status='active' WHERE email='your@email.com';"
+     "UPDATE users SET role='admin', status='active' WHERE email='you@example.com';"
    ```
+   In production, the **Cloudflare D1 Setup** workflow does the same via its `promote_admin_email` input.
 
 ---
 
@@ -121,12 +139,13 @@ The app will be available at `http://localhost:8788`.
 ### Option A: GitHub Actions (Recommended)
 
 1. Fork this repo
-2. Add these secrets in **Settings → Secrets → Actions**:
+2. Add these secrets in **Settings → Secrets and variables → Actions**:
    - `CLOUDFLARE_API_TOKEN` — API token with Pages + D1 permissions
    - `CLOUDFLARE_ACCOUNT_ID` — Your Cloudflare account ID
 3. Run the **"Cloudflare D1 Setup"** workflow with `create_database=true` (once only)
 4. Copy the `database_id` from the workflow output into `wrangler.toml`
-5. Push to `main` — the **"Deploy Cloudflare Pages"** workflow auto-deploys
+5. Set `SUPER_ADMIN_EMAIL` as a Pages environment variable
+6. Push to `main` — the **"Deploy Cloudflare Pages"** workflow auto-deploys
 
 ### Option B: Manual Deployment
 
@@ -151,51 +170,36 @@ npm run deploy
 
 ## Forking & Customization
 
-Loomis LMS is designed to be **forked and customized** for your own learning center. Here's what you need to change:
+Loomis LMS is designed to be **forked and customized** for your own learning center. It ships with placeholder content only — no real contact details, credentials, or infrastructure IDs.
 
-### ⚙️ Required Changes
+### ⚙️ Required
 
-| What | File | Line | Description |
-|------|------|------|-------------|
-| **Super Admin Email** | [`functions/api/[[path]].js`](functions/api/%5B%5Bpath%5D%5D.js) | `16` | Change `SUPER_ADMIN_EMAIL` to your email |
-| **D1 Database ID** | [`wrangler.toml`](wrangler.toml) | `13` | Replace with your own D1 database ID |
-| **Project Name** | [`wrangler.toml`](wrangler.toml) | `1` | Change to your Cloudflare Pages project name |
-| **Project Name** | [`package.json`](package.json) | `2, 12-16` | Update npm scripts with your project/db name |
+| What | Where |
+|------|-------|
+| **Super Admin Email** | `SUPER_ADMIN_EMAIL` environment variable |
+| **D1 Database ID** | [`wrangler.toml`](wrangler.toml) — replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` |
+| **Project & DB Name** | [`wrangler.toml`](wrangler.toml) and the npm scripts in [`package.json`](package.json) — both use `loomis_lms` / `loomis-lms` |
 
-### 🎨 Optional Branding Changes
+### 🎨 Placeholders to Replace
 
-| What | File(s) | Description |
-|------|---------|-------------|
-| **Logo** | [`assets/intelqong-logo.svg`](assets/intelqong-logo.svg) | Replace with your own SVG logo |
-| **App Name** | `index.html`, `student-dashboard.html`, `admin-dashboard.html`, `manifest.json` | Search for "Loomis LMS" and replace |
-| **Contact Info** | [`student-dashboard.html`](student-dashboard.html) | Update address, email, phone, WhatsApp, Maps link, LinkedIn |
-| **Courses** | [`js/app-data.js`](js/app-data.js) + [`functions/api/[[path]].js`](functions/api/%5B%5Bpath%5D%5D.js) | Modify `COURSES` object in both files |
-| **Theme Colors** | [`styles/main.css`](styles/main.css) | Update CSS custom properties |
-| **Seeded Services** | [`migrations/0008_other_services.sql`](migrations/0008_other_services.sql) | Change initial "Other Services" links |
+Every value below is a stub. Grep for it and swap in your own.
 
-### 🔗 Hardcoded Values to Update
+| Placeholder | Where | What it is |
+|-------------|-------|------------|
+| `contact@example.com` | `student-dashboard.html` | Support email on the Contact page |
+| `https://wa.me/10000000000` | `student-dashboard.html`, `js/student-dashboard.js` | WhatsApp contact + maintenance-mode fallback |
+| `https://maps.google.com/` | `student-dashboard.html` | "Open in Maps" link |
+| `Your Center Name, Street Address` | `student-dashboard.html` | Physical address block |
+| `https://example.com` | `migrations/0008_other_services.sql` | Seeded "Other Services" link |
 
-These values are specific to the original deployment and should be changed when forking:
+### 🖌️ Branding
 
-```
-student-dashboard.html:
-  - WhatsApp link:  https://wa.me/10000000000
-  - Google Maps:    https://maps.google.com
-  - Email:          contact@example.com
-  - Address:         Your Center Address,15  Your AreaRoad, Chattogram
-  - Contact name:   Operations Team
-  - LinkedIn:       https://example.com
-
-js/student-dashboard.js:
-  - Maintenance WhatsApp:  https://wa.me/00000000000(line ~25)
-  - British Council text: line ~253
-
-functions/api/[[path]].js:
-  - SUPER_ADMIN_EMAIL:  admin@example.com(line 16)
-
-migrations/0008_other_services.sql:
-  - Seeded URL: https://example.com
-```
+| What | Where |
+|------|-------|
+| **Logo** | [`assets/intelqong-logo.svg`](assets/intelqong-logo.svg) — replace the file, or rename it and update `index.html`, both dashboards, `manifest.json`, and `sw.js` |
+| **App Name** | Search for `Loomis LMS` across the HTML files and `manifest.json` |
+| **Courses** | `COURSES` in [`js/app-data.js`](js/app-data.js) (display data) **and** [`functions/api/[[path]].js`](functions/api/%5B%5Bpath%5D%5D.js) (fee validation) — keep the IDs in sync |
+| **Theme Colors** | CSS custom properties in [`styles/main.css`](styles/main.css) |
 
 ---
 
@@ -212,6 +216,7 @@ loomis-lms/
 ├── _redirects                      # Cloudflare URL redirects
 ├── wrangler.toml                   # Cloudflare Pages + D1 config
 ├── package.json                    # npm scripts for dev/deploy
+├── .env.example                    # Documented env vars (copy to .dev.vars locally)
 │
 ├── assets/
 │   └── intelqong-logo.svg          # Brand logo (replace with yours)
@@ -232,6 +237,10 @@ loomis-lms/
 ├── functions/
 │   └── api/
 │       └── [[path]].js             # All backend API routes (single file)
+│
+├── scripts/
+│   ├── check-html.py               # HTML parse check (npm run check:html)
+│   └── test-super-admin.mjs        # Super admin gating test (npm test)
 │
 ├── migrations/
 │   ├── 0001_init.sql               # Core tables: users, sessions, etc.
@@ -322,10 +331,22 @@ See [SECURITY-AUDIT.md](SECURITY-AUDIT.md) for a detailed security review.
 - Automatic session invalidation on password change
 - Immutable audit logs for all admin actions
 
+**Secrets policy:** no credentials, API tokens, or account identifiers are committed. Cloudflare credentials live in GitHub Actions secrets, `SUPER_ADMIN_EMAIL` is a Pages environment variable, and `.dev.vars` is git-ignored for local overrides.
+
 **Recommended Cloudflare WAF rules** for production:
 1. Managed Challenge for high-rate `POST /api/auth/login` traffic
 2. Bot Fight Mode or Super Bot Fight Mode
 3. Cloudflare Turnstile on login/signup if automated abuse is detected
+
+---
+
+## Documentation
+
+| Document | Contents |
+|----------|----------|
+| [SETUP-GUIDE.md](SETUP-GUIDE.md) | Step-by-step deployment walkthrough (also available as [PDF](SETUP-GUIDE.pdf)) |
+| [SECURITY-AUDIT.md](SECURITY-AUDIT.md) | Security review, findings, and remediations |
+| [LOOMIS-LMS-BENEFITS.md](LOOMIS-LMS-BENEFITS.md) | Problems this system solves, written for non-technical stakeholders |
 
 ---
 

@@ -13,7 +13,11 @@ const COURSES = {
 };
 
 const SESSION_DAYS = 1;
-const SUPER_ADMIN_EMAIL = 'admin@example.com';
+// Fails closed: with SUPER_ADMIN_EMAIL unset there is no super admin at all. Never give
+// this a default — any placeholder here is an address an attacker can simply sign up as.
+// ponytail: module-level cache of an env value. Same string for every request in a
+// deployment, assigned synchronously. Thread `env` through if it ever becomes per-tenant.
+let SUPER_ADMIN_EMAIL = '';
 const PASSWORD_MIN_LENGTH = 8;
 const PBKDF2_ITERATIONS = 100000;
 const RATE_LIMITS = {
@@ -25,69 +29,76 @@ const RATE_LIMITS = {
 };
 
 export async function onRequest(context) {
+  // `return await` matters: a bare `return route(context)` would hand the rejected promise
+  // straight past this catch, so every thrown httpError became an opaque 500.
   try {
-    const { request } = context;
-    const url = new URL(request.url);
-    const requestMethod = request.method.toUpperCase();
-    const method = resolveRequestMethod(request, url);
-    const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
-
-    if (requestMethod === 'OPTIONS') return json(null, 204);
-    enforceSameOrigin(request, method);
-
-    if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
-    if (path[0] === 'auth' && path[1] === 'login' && method === 'POST') return login(context);
-    if (path[0] === 'auth' && path[1] === 'forgot-password' && method === 'POST') return forgotPassword(context);
-    if (path[0] === 'auth' && path[1] === 'logout' && method === 'POST') return logout(context);
-    if (path[0] === 'auth' && path[1] === 'me' && method === 'GET') return me(context);
-
-    const user = await requireUser(context);
-
-    if (path[0] === 'auth' && path[1] === 'change-password' && method === 'POST') return changePassword(context, user);
-
-    if (path[0] === 'students' && method === 'GET') return listStudents(context, user);
-    if (path[0] === 'students' && path[1] && path[2] === 'reset-password' && method === 'POST') return resetStudentPassword(context, user, path[1]);
-    if (path[0] === 'students' && path[1] && method === 'PATCH') return updateStudent(context, user, path[1]);
-    if (path[0] === 'students' && method === 'POST') return createStudent(context, user);
-
-    if (path[0] === 'attendance' && method === 'GET') return listAttendance(context, user, url.searchParams);
-    if (path[0] === 'attendance' && method === 'POST') return saveAttendance(context, user);
-
-    if (path[0] === 'notifications' && method === 'GET') return listNotifications(context, user);
-    if (path[0] === 'notifications' && !path[1] && method === 'POST') return createNotification(context, user);
-    if (path[0] === 'notifications' && path[1] && method === 'DELETE') return deleteNotification(context, user, path[1]);
-
-    if (path[0] === 'payments' && method === 'GET') return listPayments(context, user, url.searchParams.get('userId'));
-
-    if (path[0] === 'announcements' && path[1] && method === 'GET') return getAnnouncement(context, user, path[1]);
-    if (path[0] === 'announcements' && path[1] && method === 'PATCH') return updateAnnouncement(context, user, path[1]);
-    if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
-    if (path[0] === 'announcements' && !path[1] && method === 'GET') return listAnnouncements(context);
-    if (path[0] === 'announcements' && !path[1] && method === 'POST') return createAnnouncement(context, user);
-
-    if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
-    if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
-
-    if (path[0] === 'installments' && method === 'GET') return listInstallments(context, user, url.searchParams.get('userId'));
-    if (path[0] === 'installments' && method === 'POST') return saveInstallments(context, user);
-
-    if (path[0] === 'services' && !path[1] && method === 'GET') return listServices(context);
-    if (path[0] === 'services' && !path[1] && method === 'POST') return createService(context, user);
-    if (path[0] === 'services' && path[1] && method === 'DELETE') return deleteService(context, user, path[1]);
-
-    if (path[0] === 'admin' && path[1] === 'users' && method === 'GET') return listAllUsers(context, user);
-    if (path[0] === 'admin' && path[1] === 'users' && path[2] && method === 'PATCH') return updateUserRole(context, user, path[2]);
-    if (path[0] === 'admin' && path[1] === 'logs' && method === 'GET') return listAuditLogs(context, user);
-
-    if (path[0] === 'calendar' && !path[1] && method === 'GET') return listCalendar(context);
-    if (path[0] === 'calendar' && !path[1] && method === 'POST') return createCalendarEntry(context, user);
-    if (path[0] === 'calendar' && path[1] && method === 'DELETE') return deleteCalendarEntry(context, user, path[1]);
-
-
-    return error('Not found', 404);
+    return await route(context);
   } catch (e) {
     return error(e.message || 'Server error', e.status || 500);
   }
+}
+
+async function route(context) {
+  const { request } = context;
+  SUPER_ADMIN_EMAIL = normalizeEmail(String(context.env.SUPER_ADMIN_EMAIL || '').trim());
+  const url = new URL(request.url);
+  const requestMethod = request.method.toUpperCase();
+  const method = resolveRequestMethod(request, url);
+  const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
+
+  if (requestMethod === 'OPTIONS') return json(null, 204);
+  enforceSameOrigin(request, method);
+
+  if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
+  if (path[0] === 'auth' && path[1] === 'login' && method === 'POST') return login(context);
+  if (path[0] === 'auth' && path[1] === 'forgot-password' && method === 'POST') return forgotPassword(context);
+  if (path[0] === 'auth' && path[1] === 'logout' && method === 'POST') return logout(context);
+  if (path[0] === 'auth' && path[1] === 'me' && method === 'GET') return me(context);
+
+  const user = await requireUser(context);
+
+  if (path[0] === 'auth' && path[1] === 'change-password' && method === 'POST') return changePassword(context, user);
+
+  if (path[0] === 'students' && method === 'GET') return listStudents(context, user);
+  if (path[0] === 'students' && path[1] && path[2] === 'reset-password' && method === 'POST') return resetStudentPassword(context, user, path[1]);
+  if (path[0] === 'students' && path[1] && method === 'PATCH') return updateStudent(context, user, path[1]);
+  if (path[0] === 'students' && method === 'POST') return createStudent(context, user);
+
+  if (path[0] === 'attendance' && method === 'GET') return listAttendance(context, user, url.searchParams);
+  if (path[0] === 'attendance' && method === 'POST') return saveAttendance(context, user);
+
+  if (path[0] === 'notifications' && method === 'GET') return listNotifications(context, user);
+  if (path[0] === 'notifications' && !path[1] && method === 'POST') return createNotification(context, user);
+  if (path[0] === 'notifications' && path[1] && method === 'DELETE') return deleteNotification(context, user, path[1]);
+
+  if (path[0] === 'payments' && method === 'GET') return listPayments(context, user, url.searchParams.get('userId'));
+
+  if (path[0] === 'announcements' && path[1] && method === 'GET') return getAnnouncement(context, user, path[1]);
+  if (path[0] === 'announcements' && path[1] && method === 'PATCH') return updateAnnouncement(context, user, path[1]);
+  if (path[0] === 'announcements' && path[1] && method === 'DELETE') return deleteAnnouncement(context, user, path[1]);
+  if (path[0] === 'announcements' && !path[1] && method === 'GET') return listAnnouncements(context);
+  if (path[0] === 'announcements' && !path[1] && method === 'POST') return createAnnouncement(context, user);
+
+  if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'GET') return getMaintenanceMode(context);
+  if (path[0] === 'settings' && path[1] === 'maintenance' && method === 'PUT') return setMaintenanceMode(context, user);
+
+  if (path[0] === 'installments' && method === 'GET') return listInstallments(context, user, url.searchParams.get('userId'));
+  if (path[0] === 'installments' && method === 'POST') return saveInstallments(context, user);
+
+  if (path[0] === 'services' && !path[1] && method === 'GET') return listServices(context);
+  if (path[0] === 'services' && !path[1] && method === 'POST') return createService(context, user);
+  if (path[0] === 'services' && path[1] && method === 'DELETE') return deleteService(context, user, path[1]);
+
+  if (path[0] === 'admin' && path[1] === 'users' && method === 'GET') return listAllUsers(context, user);
+  if (path[0] === 'admin' && path[1] === 'users' && path[2] && method === 'PATCH') return updateUserRole(context, user, path[2]);
+  if (path[0] === 'admin' && path[1] === 'logs' && method === 'GET') return listAuditLogs(context, user);
+
+  if (path[0] === 'calendar' && !path[1] && method === 'GET') return listCalendar(context);
+  if (path[0] === 'calendar' && !path[1] && method === 'POST') return createCalendarEntry(context, user);
+  if (path[0] === 'calendar' && path[1] && method === 'DELETE') return deleteCalendarEntry(context, user, path[1]);
+
+
+  return error('Not found', 404);
 }
 
 async function signup({ request, env }) {
@@ -158,7 +169,7 @@ async function login({ request, env }) {
   if (!user || !(await verifyPassword(password, user))) {
     throw httpError('Wrong username or password, Try Again.', 401);
   }
-  if (user.status === 'pending' && email !== SUPER_ADMIN_EMAIL) throw httpError('Your account is pending admin approval.', 403);
+  if (user.status === 'pending' && !isSuperAdminEmail(email)) throw httpError('Your account is pending admin approval.', 403);
   if (user.status === 'suspended') throw httpError('Your account has been suspended. Contact the admin team.', 403);
 
   if (!String(user.password_hash || '').startsWith('pbkdf2$')) {
@@ -169,7 +180,7 @@ async function login({ request, env }) {
   }
 
   // Super Admin Promotion
-  if (email === SUPER_ADMIN_EMAIL && (user.role !== 'admin' || user.status !== 'active')) {
+  if (isSuperAdminEmail(email) && (user.role !== 'admin' || user.status !== 'active')) {
     await env.DB.prepare("UPDATE users SET role = 'admin', status = 'active' WHERE id = ?").bind(user.id).run();
     user.role = 'admin';
     user.status = 'active';
@@ -693,7 +704,7 @@ function serializeUser(row) {
     assignedFacultyId: row.assigned_faculty_id || '',
     role: row.role,
     status: row.status,
-    isSuperAdmin: row.email === SUPER_ADMIN_EMAIL,
+    isSuperAdmin: isSuperAdminEmail(row.email),
     totalPaid: row.total_paid || 0,
     totalDue: row.total_due || 0,
     discount: row.discount || 0,
@@ -1008,6 +1019,11 @@ function normalizeEmail(email) {
   return email.toLowerCase();
 }
 
+// Never true when SUPER_ADMIN_EMAIL is unset, or when the candidate email is blank.
+export function isSuperAdminEmail(email) {
+  return Boolean(SUPER_ADMIN_EMAIL) && normalizeEmail(String(email || '').trim()) === SUPER_ADMIN_EMAIL;
+}
+
 function numberOrZero(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0;
@@ -1137,14 +1153,14 @@ async function deleteService({ env }, user, id) {
 // ============================================================
 
 async function listAllUsers({ env }, user) {
-  if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  if (!isSuperAdminEmail(user.email)) throw httpError('Unauthorized.', 403);
   await ensureUserCompatibilityColumns(env);
   const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY created_at DESC').all();
   return json({ users: results.map(serializeUser) });
 }
 
 async function updateUserRole({ request, env }, user, targetUserId) {
-  if (user.email !== SUPER_ADMIN_EMAIL) throw httpError('Unauthorized.', 403);
+  if (!isSuperAdminEmail(user.email)) throw httpError('Unauthorized.', 403);
   const body = await readJson(request);
   const target = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(targetUserId).first();
   if (!target) throw httpError('User not found.', 404);

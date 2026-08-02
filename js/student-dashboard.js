@@ -249,9 +249,6 @@ function renderCourse() {
             </div>
           `).join('')}
         </div>
-        <div style="margin-top:24px;padding:16px;background:var(--teal-light);border-radius:var(--radius-sm);font-size:0.875rem;color:var(--teal-dark)">
-          <strong>British Council Affiliated</strong> — The center is proud to be affiliated with the British Council, Chattogram.
-        </div>
       </div>
     </div>
   `).join('');
