@@ -420,5 +420,6 @@ Licensed under the [GNU General Public License v3.0](LICENSE). You are free to u
 
 <p align="center">
   Built by <a href="https://github.com/qongBIT">QongBit</a> on <a href="https://pages.cloudflare.com/">Cloudflare Pages</a> + <a href="https://developers.cloudflare.com/d1/">Cloudflare D1</a><br>
-  <sub>In production at AIMS English, Chattogram</sub>
+  <sub>In production at AIMS English, Chattogram</sub><br>
+  <sub>Made with the help of Claude Code, OpenCode, and Codex</sub>
 </p>
