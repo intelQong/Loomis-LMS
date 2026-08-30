@@ -3,7 +3,6 @@
 // ============================================================
 
 let currentUser = null;
-let notifUnsubscribe = null;
 
 // Auth guard
 (async function requireStudent() {
@@ -55,7 +54,6 @@ function initDashboard() {
   renderSidebarUser();
   renderGreeting();
   renderSchedule();
-  renderStats();
   renderCourse();
   renderPayments();
   renderServices();
@@ -152,50 +150,6 @@ function renderGreeting() {
   document.getElementById('enrollStatus').textContent = `Enrolled in ${courseNames}`;
 
   startLiveClock();
-}
-
-function startLiveClock() {
-  const clockEl = document.getElementById('liveClock');
-  const dateEl = document.getElementById('liveDate');
-
-  function update() {
-    const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    dateEl.textContent = now.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  }
-
-  update();
-  setInterval(update, 1000);
-}
-
-function renderStats() {
-  // Stats cards removed from UI
-}
-
-async function fetchLatestBroadcastForStat() {
-  const el = document.getElementById('statLastBroadcast');
-  if (!el) return;
-  try {
-    const notifications = await apiFetch('/api/notifications');
-    const personal = await apiFetch(`/api/notifications/${currentUser.id}`);
-    const all = [...notifications, ...personal].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    if (all.length > 0) {
-      el.textContent = all[0].title;
-    } else {
-      el.textContent = 'No new messages';
-    }
-  } catch (e) {
-    el.textContent = 'Check broadcasts';
-  }
 }
 
 function renderCourse() {
@@ -334,10 +288,6 @@ async function renderServices() {
     console.error(err);
     grid.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);grid-column:1/-1">Failed to load services.</div>';
   }
-}
-
-function toggleDropdown() {
-  document.getElementById('dropdownContent').classList.toggle('hidden');
 }
 
 async function loadCalendar() {
@@ -483,12 +433,6 @@ async function loadAdBanners() {
   }
 }
 
-function safeAnnouncementBackground(value) {
-  const background = String(value || '').trim();
-  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
-  return 'linear-gradient(135deg, #0c4a6e 0%, #075985 100%)';
-}
-
 function startAdTimer() {
   if (_adSlideTimer) {
     clearInterval(_adSlideTimer);
@@ -538,8 +482,6 @@ function goToAdSlide(index) {
 
 // Real-time notifications listener
 async function listenNotifications() {
-  if (notifUnsubscribe) notifUnsubscribe();
-
   try {
     const data = await apiFetch('/api/notifications?t=' + Date.now());
     const notifs = data.notifications;
@@ -621,56 +563,6 @@ function markRead(id) {
 }
 
 
-// ============================================================
-// Password Reset (Self-Service)
-// ============================================================
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-function openChangePasswordModal() {
-  document.getElementById('ownCurrentPassword').value = '';
-  document.getElementById('ownNewPassword').value = '';
-  document.getElementById('ownConfirmPassword').value = '';
-  document.getElementById('ownPasswordErr').classList.add('hidden');
-  openModal('changePasswordModal');
-}
-
-async function saveOwnPassword() {
-  const currentPassword = document.getElementById('ownCurrentPassword').value;
-  const newPassword = document.getElementById('ownNewPassword').value;
-  const confirmPassword = document.getElementById('ownConfirmPassword').value;
-  const errEl = document.getElementById('ownPasswordErr');
-
-  errEl.classList.add('hidden');
-  if (!currentPassword) {
-    errEl.textContent = 'Current password is required.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  if (!newPassword || newPassword.length < 8) {
-    errEl.textContent = 'New password must be at least 8 characters.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  if (newPassword !== confirmPassword) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    await apiFetch('/api/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify({ currentPassword, newPassword })
-    });
-    closeModal('changePasswordModal');
-    showToast('Password changed successfully', 'success');
-  } catch (e) {
-    errEl.textContent = 'Error: ' + e.message;
-    errEl.classList.remove('hidden');
-  }
-}
-
 // UI helpers
 function showSection(name, btn) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -695,27 +587,8 @@ function showSection(name, btn) {
   closeSidebar();
 }
 
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('show');
-}
-
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('show');
-}
-
 function toggleNotifPanel() {
   document.getElementById('notifPanel').classList.toggle('open');
-}
-
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
 }
 
 // ============================================================

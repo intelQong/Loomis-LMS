@@ -77,30 +77,6 @@ function renderGreeting() {
   if (greetEl) greetEl.textContent = `${greet}, ${adminUser.firstName}!`;
 }
 
-function startLiveClock() {
-  const clockEl = document.getElementById('liveClock');
-  const dateEl = document.getElementById('liveDate');
-  if (!clockEl || !dateEl) return;
-
-  function update() {
-    const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    dateEl.textContent = now.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  }
-
-  update();
-  setInterval(update, 1000);
-}
-
 function isFaculty() {
   return adminRole === 'faculty';
 }
@@ -1173,28 +1149,6 @@ function showSection(name, btn) {
   closeSidebar();
 }
 
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('show');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('show');
-}
-
-
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
 // ============================================================
 // Announcements / Ads
 // ============================================================
@@ -1247,13 +1201,6 @@ function renderAnnouncementsList(ads) {
   `}).join('');
 }
 
-
-function safeAnnouncementBackground(value) {
-  const background = String(value || '').trim();
-  if (background === 'var(--primary)') return background;
-  if (/^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) return background;
-  return 'var(--primary)';
-}
 
 function openAnnouncementModal() {
   const adId = document.getElementById('adId');
@@ -1470,50 +1417,6 @@ function updateToggleUI(enabled) {
 // ============================================================
 // Password Reset (Self-Service)
 // ============================================================
-function openChangePasswordModal() {
-  document.getElementById('ownCurrentPassword').value = '';
-  document.getElementById('ownNewPassword').value = '';
-  document.getElementById('ownConfirmPassword').value = '';
-  document.getElementById('ownPasswordErr').classList.add('hidden');
-  openModal('changePasswordModal');
-}
-
-async function saveOwnPassword() {
-  const currentPassword = document.getElementById('ownCurrentPassword').value;
-  const newPassword = document.getElementById('ownNewPassword').value;
-  const confirmPassword = document.getElementById('ownConfirmPassword').value;
-  const errEl = document.getElementById('ownPasswordErr');
-
-  errEl.classList.add('hidden');
-  if (!currentPassword) {
-    errEl.textContent = 'Current password is required.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  if (!newPassword || newPassword.length < 8) {
-    errEl.textContent = 'New password must be at least 8 characters.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-  if (newPassword !== confirmPassword) {
-    errEl.textContent = 'New passwords do not match.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  try {
-    await apiFetch('/api/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify({ currentPassword, newPassword })
-    });
-    closeModal('changePasswordModal');
-    showToast('Password changed successfully', 'success');
-  } catch (e) {
-    errEl.textContent = 'Error: ' + e.message;
-    errEl.classList.remove('hidden');
-  }
-}
-
 // ============================================================
 // Password Reset (Admin)
 // ============================================================
@@ -1559,15 +1462,6 @@ async function saveResetPassword() {
   }
 }
 
-function openEditUserFromPayload(encodedPayload) {
-  try {
-    const user = JSON.parse(decodeURIComponent(encodedPayload));
-    openEditUser(user.id, user.firstName, user.lastName, user.email);
-  } catch (error) {
-    showToast('Unable to open user editor: ' + error.message, 'error');
-  }
-}
-
 function openUserPasswordReset(userId, email) {
   document.getElementById('resetUserId').value = decodeURIComponent(userId);
   document.getElementById('resetUserDisplayEmail').textContent = decodeURIComponent(email);
@@ -1602,63 +1496,6 @@ async function saveUserPasswordReset() {
     });
     showToast('User password reset successfully', 'success');
     closeModal('userPasswordResetModal');
-    if (typeof loadAuditLogs === 'function' && adminUser.isSuperAdmin) loadAuditLogs();
-  } catch (error) {
-    errEl.textContent = 'Error: ' + error.message;
-    errEl.classList.remove('hidden');
-  }
-}
-
-function openEditUser(userId, fName, lName, email) {
-  window.targetEditUserId = userId;
-  document.getElementById('editUserDisplayEmail').textContent = email;
-  document.getElementById('editFirstName').value = fName || '';
-  document.getElementById('editLastName').value = lName || '';
-  document.getElementById('editUserNewPw').value = '';
-  document.getElementById('editUserConfirmPw').value = '';
-  document.getElementById('editUserErr').classList.add('hidden');
-  openModal('editUserModal');
-}
-
-async function saveUserChanges() {
-  const fName = document.getElementById('editFirstName').value.trim();
-  const lName = document.getElementById('editLastName').value.trim();
-  const newPass = document.getElementById('editUserNewPw').value;
-  const confirmPass = document.getElementById('editUserConfirmPw').value;
-  const errEl = document.getElementById('editUserErr');
-  errEl.classList.add('hidden');
-
-  if (!fName || !lName) {
-    errEl.textContent = 'First and Last name are required.';
-    errEl.classList.remove('hidden');
-    return;
-  }
-
-  if (newPass) {
-    if (newPass.length < 8) {
-      errEl.textContent = 'Password must be at least 8 characters.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-    if (newPass !== confirmPass) {
-      errEl.textContent = 'Passwords do not match.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-  }
-
-  try {
-    const updateData = { firstName: fName, lastName: lName };
-    if (newPass) updateData.password = newPass;
-
-    await apiFetch(`/api/admin/users/${window.targetEditUserId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updateData)
-    });
-    showToast('User updated successfully');
-    closeModal('editUserModal');
-    if (typeof loadStudents === 'function') loadStudents();
-    if (typeof loadSuperUsers === 'function' && adminUser.isSuperAdmin) loadSuperUsers();
     if (typeof loadAuditLogs === 'function' && adminUser.isSuperAdmin) loadAuditLogs();
   } catch (error) {
     errEl.textContent = 'Error: ' + error.message;

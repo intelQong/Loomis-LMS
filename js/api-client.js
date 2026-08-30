@@ -1,5 +1,5 @@
 // ============================================================
-// Loomis LMS — Cloudflare Pages Functions API Client
+// Loomis LMS — Cloudflare Pages Functions API Client & Shared UI
 // ============================================================
 
 async function apiFetch(path, options = {}) {
@@ -28,23 +28,8 @@ async function apiFetch(path, options = {}) {
   return data;
 }
 
-
-
 async function apiDelete(path) {
-  try {
-    return await apiFetch(path, { method: 'DELETE' });
-  } catch (deleteError) {
-    const separator = path.includes('?') ? '&' : '?';
-    try {
-      return await apiFetch(`${path}${separator}_method=DELETE`, {
-        method: 'POST',
-        headers: { 'X-HTTP-Method-Override': 'DELETE' },
-        body: '{}'
-      });
-    } catch (overrideError) {
-      throw overrideError || deleteError;
-    }
-  }
+  return apiFetch(path, { method: 'DELETE' });
 }
 
 function friendlyHttpError(path, status) {
@@ -89,6 +74,13 @@ function safeMediaUrl(value) {
   }
 }
 
+function safeAnnouncementBackground(value) {
+  const background = String(value || '').trim();
+  if (background === 'var(--primary)' || /^linear-gradient\([#%,.\s\w()-]+\)$/i.test(background)) {
+    return background;
+  }
+  return 'linear-gradient(135deg, #0d9488 0%, #0891b2 100%)';
+}
 
 function normalizeVideoEmbedUrl(value) {
   if (!value) return '';
@@ -133,18 +125,15 @@ async function getCurrentUserData() {
   try {
     const data = await apiFetch('/api/auth/me');
     return data.user;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
-function toDate(value) {
-  return value ? new Date(value) : null;
-}
-
 function formatDate(value) {
-  const date = toDate(value);
-  return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('en-GB') : '—';
+  if (!value) return '—';
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) ? date.toLocaleDateString('en-GB') : '—';
 }
 
 async function handleLogout() {
@@ -152,14 +141,101 @@ async function handleLogout() {
   window.location.href = 'index.html';
 }
 
-function getValidityEnd(enrolledDate) {
-  if (!enrolledDate) return null;
-  const d = new Date(enrolledDate);
-  d.setMonth(d.getMonth() + 6);
-  return d;
+// Modal & Sidebar Controls
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('hidden');
 }
 
-function formatValidity(enrolledDate) {
-  const d = getValidityEnd(enrolledDate);
-  return d ? d.toLocaleDateString('en-GB') : '—';
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('hidden');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar')?.classList.toggle('open');
+  document.getElementById('sidebarOverlay')?.classList.toggle('show');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('show');
+}
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function startLiveClock() {
+  const clockEl = document.getElementById('liveClock');
+  const dateEl = document.getElementById('liveDate');
+  if (!clockEl || !dateEl) return;
+
+  function update() {
+    const now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+    dateEl.textContent = now.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
+  update();
+  setInterval(update, 1000);
+}
+
+function openChangePasswordModal() {
+  document.getElementById('ownCurrentPassword').value = '';
+  document.getElementById('ownNewPassword').value = '';
+  document.getElementById('ownConfirmPassword').value = '';
+  document.getElementById('ownPasswordErr').classList.add('hidden');
+  openModal('changePasswordModal');
+}
+
+async function saveOwnPassword() {
+  const currentPassword = document.getElementById('ownCurrentPassword').value;
+  const newPassword = document.getElementById('ownNewPassword').value;
+  const confirmPassword = document.getElementById('ownConfirmPassword').value;
+  const errEl = document.getElementById('ownPasswordErr');
+
+  errEl.classList.add('hidden');
+  if (!currentPassword) {
+    errEl.textContent = 'Current password is required.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (!newPassword || newPassword.length < 8) {
+    errEl.textContent = 'New password must be at least 8 characters.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    errEl.textContent = 'New passwords do not match.';
+    errEl.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    await apiFetch('/api/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    closeModal('changePasswordModal');
+    showToast('Password changed successfully', 'success');
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.classList.remove('hidden');
+  }
 }

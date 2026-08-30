@@ -42,11 +42,10 @@ async function route(context) {
   const { request } = context;
   SUPER_ADMIN_EMAIL = normalizeEmail(String(context.env.SUPER_ADMIN_EMAIL || '').trim());
   const url = new URL(request.url);
-  const requestMethod = request.method.toUpperCase();
-  const method = resolveRequestMethod(request, url);
+  const method = request.method.toUpperCase();
   const path = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
 
-  if (requestMethod === 'OPTIONS') return json(null, 204);
+  if (method === 'OPTIONS') return json(null, 204);
   enforceSameOrigin(request, method);
 
   if (path[0] === 'auth' && path[1] === 'signup' && method === 'POST') return signup(context);
@@ -282,56 +281,28 @@ async function updateStudent({ request, env }, user, studentId) {
   const nextDiscount = user.role === 'faculty' ? numberOrZero(existing.discount) : numberOrZero(body.discount);
   const nextAssignedFacultyId = user.role === 'faculty' ? user.id : (body.assignedFacultyId || '');
 
-  try {
-    await env.DB.prepare(`
-      UPDATE users
-      SET first_name = ?, last_name = ?, phone = ?, course = ?, courses = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ? AND role = 'student'
-    `).bind(
-      required(body.firstName, 'First name'),
-      required(body.lastName, 'Last name'),
-      body.phone || '',
-      courseIds[0],
-      JSON.stringify(courseIds),
-      nextStatus,
-      totalPaid,
-      nextTotalDue,
-      nextDiscount,
-      body.studentId || '',
-      nextAssignedFacultyId,
-      user.role === 'faculty' ? (existing.next_payment_date || '') : (body.nextPaymentDate || ''),
-      body.enrolledDate || existing.enrolled_date,
-      body.classDays || existing.class_days || '',
-      body.classTime || existing.class_time || '',
-      studentId
-    ).run();
-  } catch (e) {
-    if (e.message.includes('no such column')) {
-      // Fallback: update without class_days/class_time if migration not applied yet
-      await env.DB.prepare(`
-        UPDATE users
-        SET first_name = ?, last_name = ?, phone = ?, course = ?, courses = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ? AND role = 'student'
-      `).bind(
-        required(body.firstName, 'First name'),
-        required(body.lastName, 'Last name'),
-        body.phone || '',
-        courseIds[0],
-        JSON.stringify(courseIds),
-        nextStatus,
-        totalPaid,
-        nextTotalDue,
-        nextDiscount,
-        body.studentId || '',
-        nextAssignedFacultyId,
-        user.role === 'faculty' ? (existing.next_payment_date || '') : (body.nextPaymentDate || ''),
-        body.enrolledDate || existing.enrolled_date,
-        studentId
-      ).run();
-    } else {
-      throw e;
-    }
-  }
+  await env.DB.prepare(`
+    UPDATE users
+    SET first_name = ?, last_name = ?, phone = ?, course = ?, courses = ?, status = ?, total_paid = ?, total_due = ?, discount = ?, student_id = ?, assigned_faculty_id = ?, next_payment_date = ?, enrolled_date = ?, class_days = ?, class_time = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE id = ? AND role = 'student'
+  `).bind(
+    required(body.firstName, 'First name'),
+    required(body.lastName, 'Last name'),
+    body.phone || '',
+    courseIds[0],
+    JSON.stringify(courseIds),
+    nextStatus,
+    totalPaid,
+    nextTotalDue,
+    nextDiscount,
+    body.studentId || '',
+    nextAssignedFacultyId,
+    user.role === 'faculty' ? (existing.next_payment_date || '') : (body.nextPaymentDate || ''),
+    body.enrolledDate || existing.enrolled_date,
+    body.classDays || existing.class_days || '',
+    body.classTime || existing.class_time || '',
+    studentId
+  ).run();
 
   const paymentDelta = totalPaid - previousPaid;
   if (paymentDelta > 0) {
@@ -616,21 +587,19 @@ async function saveInstallments({ request, env }, user) {
 
 
 
-function normalizeCourseIds(value) {
-  const raw = Array.isArray(value) ? value : (typeof value === 'string' && value.trim().startsWith('[') ? parseCourseIds(value) : String(value || '').split(','));
-  return [...new Set(raw.map(id => String(id).trim()).filter(id => COURSES[id]))];
-}
-
 function parseCourseIds(value) {
   if (!value) return [];
-  if (Array.isArray(value)) return normalizeCourseIds(value);
-  const text = String(value).trim();
-  if (!text) return [];
+  if (Array.isArray(value)) return value;
   try {
-    const parsed = JSON.parse(text);
-    if (Array.isArray(parsed)) return normalizeCourseIds(parsed);
-  } catch (e) { /* fall through */ }
-  return normalizeCourseIds(text);
+    const parsed = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed;
+  } catch { /* fallback to string splitting */ }
+  return String(value).split(',');
+}
+
+function normalizeCourseIds(value) {
+  const raw = parseCourseIds(value);
+  return [...new Set(raw.map(id => String(id).trim()).filter(id => COURSES[id]))];
 }
 
 function totalCourseFee(courseIds) {
@@ -948,15 +917,6 @@ function validatePasswordStrength(password) {
   }
 }
 
-
-function resolveRequestMethod(request, url) {
-  const requestMethod = request.method.toUpperCase();
-  if (requestMethod !== 'POST') return requestMethod;
-
-  const overrideMethod = (request.headers.get('X-HTTP-Method-Override') || url.searchParams.get('_method') || '').toUpperCase();
-  return ['DELETE'].includes(overrideMethod) ? overrideMethod : requestMethod;
-}
-
 function enforceSameOrigin(request, method) {
   if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return;
   const secFetchSite = request.headers.get('Sec-Fetch-Site');
@@ -1085,9 +1045,7 @@ function bytesToHex(bytes) {
 }
 
 function randomId() {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return bytesToHex(bytes);
+  return (crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '')).slice(0, 32);
 }
 
 function getCookie(request, name) {

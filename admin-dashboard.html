@@ -1016,52 +1016,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Edit User (Name & Password) -->
-  <div class="modal-backdrop hidden" id="editUserModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="editUserModalTitle">Edit User</h3>
-        <button class="modal-close" onclick="closeModal('editUserModal')">×</button>
-      </div>
 
-      <div
-        style="background:var(--gray-50);padding:14px 16px;border-radius:var(--radius-sm);margin-bottom:20px;border:1px solid var(--gray-200)">
-        <div style="font-size:0.85rem;color:var(--gray-500)">Editing:</div>
-        <div style="font-weight:600;font-size:1.05rem;color:var(--gray-800)" id="editUserDisplayEmail">user@example.com
-        </div>
-      </div>
-
-      <div class="responsive-field-grid two-col">
-        <div class="field">
-          <label>First Name</label>
-          <input type="text" id="editFirstName" placeholder="First Name">
-        </div>
-        <div class="field">
-          <label>Last Name</label>
-          <input type="text" id="editLastName" placeholder="Last Name">
-        </div>
-      </div>
-
-      <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-100)">
-        <h4 style="font-size:0.9rem; color:var(--gray-700); margin-bottom:12px">Security Updates</h4>
-        <div class="field">
-          <label>New Password (leave blank to keep current)</label>
-          <input type="password" id="editUserNewPw" placeholder="Minimum 8 characters">
-        </div>
-        <div class="field">
-          <label>Confirm Password</label>
-          <input type="password" id="editUserConfirmPw" placeholder="Re-enter new password">
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
-        <button class="btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
-        <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="saveUserChanges()">Save
-          Changes</button>
-      </div>
-      <div id="editUserErr" class="error-msg hidden"></div>
-    </div>
-  </div>
 
 
   <!-- MODAL: Super Admin Password Reset -->

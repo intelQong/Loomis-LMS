@@ -9,7 +9,7 @@
     "test": "node scripts/test-super-admin.mjs",
     "check:js": "node --check functions/api/[[path]].js && for f in js/*.js; do node --check \"$f\"; done",
     "check:sql": "sqlite3 :memory: < migrations/0001_init.sql",
-    "check:html": "python3 scripts/check-html.py",
+    "check:html": "node scripts/check-html.mjs",
     "dev": "wrangler pages dev . --d1 DB=loomis_lms",
     "deploy": "wrangler pages deploy . --project-name loomis-lms",
     "d1:create": "wrangler d1 create loomis_lms",
