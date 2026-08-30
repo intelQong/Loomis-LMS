@@ -7,10 +7,11 @@
   "scripts": {
     "check": "npm run check:js && npm run check:sql && npm run check:html && npm run test",
     "test": "node scripts/test-super-admin.mjs",
+    "test:e2e": "node scripts/e2e-test.mjs",
     "check:js": "node --check functions/api/[[path]].js && for f in js/*.js; do node --check \"$f\"; done",
     "check:sql": "sqlite3 :memory: < migrations/0001_init.sql",
     "check:html": "node scripts/check-html.mjs",
-    "dev": "wrangler pages dev . --d1 DB=loomis_lms",
+    "dev": "wrangler pages dev .",
     "deploy": "wrangler pages deploy . --project-name loomis-lms",
     "d1:create": "wrangler d1 create loomis_lms",
     "d1:migrate:local": "wrangler d1 migrations apply loomis_lms --local",
