@@ -2,7 +2,7 @@
   "name": "loomis-lms",
   "version": "1.0.0",
   "private": true,
-  "description": "Loomis LMS — Open-source learning management system for English language teaching, on Cloudflare Pages + D1.",
+  "description": "Loomis LMS — Open-source edge SaaS learning management system with RBAC for English language teaching, on Cloudflare Pages + D1.",
   "type": "module",
   "scripts": {
     "check": "npm run check:js && npm run check:sql && npm run check:html && npm run test",

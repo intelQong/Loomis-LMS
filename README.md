@@ -5,19 +5,21 @@
 <h1 align="center">Loomis LMS</h1>
 
 <p align="center">
-  <strong>Production-Ready, Ultra-Lightweight Learning Management System for English Language Teaching (ELT) & Coaching Centers — Built Entirely on Cloudflare's Edge.</strong>
+  <strong>Production-Ready, Ultra-Lightweight Edge SaaS Learning Management System with Strict Role-Based Access Control (RBAC) for English Language Teaching (ELT) & Coaching Centers — Built Entirely on Cloudflare's Edge.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/intelQong/Loomis-LMS/actions/workflows/ci.yml"><img src="https://github.com/intelQong/Loomis-LMS/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/model-Edge%20SaaS-7928CA.svg" alt="Edge SaaS Model">
+  <img src="https://img.shields.io/badge/auth-RBAC%20Enforced-0070F3.svg" alt="RBAC Enforced">
   <img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="License: GPLv3">
   <img src="https://img.shields.io/badge/runtime-Cloudflare%20Pages%20%2B%20D1-F38020.svg" alt="Cloudflare Pages + D1">
   <img src="https://img.shields.io/badge/runtime%20deps-0-brightgreen.svg" alt="Zero runtime dependencies">
-  <img src="https://img.shields.io/badge/architecture-Serverless%20Edge-success.svg" alt="Serverless Edge Architecture">
 </p>
 
 <p align="center">
   <a href="#-overview">Overview</a> •
+  <a href="#-saas-architecture--rbac">SaaS & RBAC</a> •
   <a href="#-core-architecture">Architecture</a> •
   <a href="#-key-features">Features</a> •
   <a href="#-tech-stack">Tech Stack</a> •
@@ -36,17 +38,45 @@
 
 Most English Language Teaching (ELT) and test-prep centers (IELTS, PTE, Spoken English) rely on fragile combinations of WhatsApp groups, paper receipt books, and unbacked spreadsheets. Crucial records — payment statuses, installment schedules, attendance logs, and student approvals — get fragmented.
 
-**Loomis LMS** consolidates operations into a unified, zero-overhead portal:
+**Loomis LMS** is an edge-native **Software-as-a-Service (SaaS)** solution designed specifically for language institutions, coaching centers, and branch networks:
 
 * 🎓 **For Students:** Self-service portal to check active course enrollment, schedules, installment timelines, payment receipts, attendance track record, announcements, and center notices.
 * 👨‍🏫 **For Faculty:** Access assigned student rosters, take class attendance with custom status codes (Present, Absent, Late, Excused), edit student notes, and send targeted broadcasts.
 * 🛠️ **For Administrators:** Comprehensive control over student admissions, approvals/suspensions, fee collection logs, installment plan generators, broadcast notifications, academic calendar events, external service portals, and dynamic maintenance mode toggles.
 * 👑 **For Super Admins:** Strict role-based governance, user access escalation, and an immutable, append-only system audit log tracking every administrative operation.
 
-### 💡 Why Loomis LMS?
+### 💡 Why Loomis LMS SaaS?
+* **Turnkey Edge SaaS:** Deployable instantly per organization or branch with zero infrastructure setup and automated CI/CD pipelines.
 * **Zero Runtime Overhead:** No heavyweight JS frameworks (no React, Next.js, or Angular build matrix). Pure high-performance vanilla web standards.
 * **$0 Monthly Hosting:** Runs natively inside Cloudflare's generous free tier across Pages and serverless D1 (SQLite at the edge).
 * **Battle-Tested:** Proven in daily production operations at **AIMS English (Chattogram Branch)**.
+
+---
+
+## 🔐 SaaS Architecture & RBAC
+
+Loomis LMS operates a hardened **Role-Based Access Control (RBAC)** architecture enforced at both the database schema level (`CHECK` constraints) and API edge middleware (`requireRole` gating).
+
+### 📋 RBAC Permission Matrix
+
+| Capability / Resource | Student | Faculty | Admin | Super Admin |
+|---|:---:|:---:|:---:|:---:|
+| **Self-Service Dashboard & Profile** | ✅ | ✅ | ✅ | ✅ |
+| **View Own Enrolled Courses & Installments** | ✅ | — | — | — |
+| **View Own Attendance Record** | ✅ | — | — | — |
+| **Self-Service Password Change** | ✅ | ✅ | ✅ | ✅ |
+| **View Assigned Student Roster** | — | ✅ | ✅ | ✅ |
+| **Mark Class Attendance (Batch / Per Student)** | — | ✅ | ✅ | ✅ |
+| **Send Broadcasts to Assigned Students** | — | ✅ | ✅ | ✅ |
+| **Approve / Suspend Student Accounts** | — | — | ✅ | ✅ |
+| **Manage Fees, Discounts & Installment Plans** | — | — | ✅ | ✅ |
+| **Publish Global Announcements & Banners** | — | — | ✅ | ✅ |
+| **Manage Academic Calendar & Services** | — | — | ✅ | ✅ |
+| **Toggle System Maintenance Mode** | — | — | ✅ | ✅ |
+| **Reset Student Credentials (Out-of-band)** | — | — | ✅ | ✅ |
+| **Assign User Roles (Student / Faculty / Admin)** | — | — | — | ✅ |
+| **View Immutable Administrative Audit Logs** | — | — | — | ✅ |
+| **Direct System Super-User Management** | — | — | — | ✅ |
 
 ---
 
@@ -64,6 +94,7 @@ flowchart TD
     subgraph Edge ["Cloudflare Global Network (Edge Runtime)"]
         Pages["Cloudflare Pages (Global CDN & Asset Delivery)"]
         API["Cloudflare Pages Functions API (/functions/api/[[path]].js)"]
+        RBAC["RBAC Middleware & Role Verification"]
         D1[("Cloudflare D1 Database (Serverless SQLite)")]
     end
 
@@ -76,7 +107,8 @@ flowchart TD
     UI_Admin -- "Secure Cookie Session" --> API
     UI_Auth -- "REST JSON" --> API
 
-    API --> D1
+    API --> RBAC
+    RBAC --> D1
 ```
 
 ---
@@ -84,7 +116,7 @@ flowchart TD
 ## ✨ Key Features
 
 ### 👥 Multi-Tier Role & Account Management
-* **Role Separation:** Native database-enforced role constraints (`student`, `faculty`, `admin`).
+* **Database-Enforced RBAC:** Role constraints (`student`, `faculty`, `admin`) enforced directly in SQLite schema tables.
 * **Admission Pipeline:** New self-signups land in a `pending` queue; accounts must be approved by an administrator before gaining access.
 * **Faculty Isolation:** Faculty members only see and manage students assigned to their roster without accessing financial totals or center-wide private metrics.
 * **Fail-Closed Super Admin:** The super admin is designated via the secure `SUPER_ADMIN_EMAIL` environment variable. If unset, elevated privileges fail closed automatically.
@@ -159,6 +191,12 @@ flowchart TD
    ```
    Open `http://localhost:8788` in your browser.
 
+6. **Run Verification & E2E Tests:**
+   ```bash
+   npm test
+   npm run test:e2e
+   ```
+
 ---
 
 ## 🚢 Deployment Guide
@@ -197,7 +235,7 @@ npm run deploy
 
 ## 🎨 Customization & Branding
 
-Loomis LMS is designed for fast white-labeling:
+Loomis LMS is designed for fast SaaS white-labeling:
 
 ### 1. Course Catalog & Pricing
 Modify courses, fees, durations, and included perks in:
@@ -239,26 +277,27 @@ Loomis-LMS/
 │
 ├── js/
 │   ├── app-data.js                 # Course definitions, metadata & helpers
-│   ├── api-client.js               # Resilient fetch client with XSS sanitizers
+│   ├── api-client.js               # Resilient fetch client with XSS sanitizers & UI helpers
 │   ├── auth.js                     # Authentication, session & signup flow
 │   ├── student-dashboard.js        # Student portal UI logic & interactions
 │   └── admin-dashboard.js          # Admin & Faculty management portal logic
 │
 ├── functions/
 │   └── api/
-│       └── [[path]].js             # High-performance serverless REST API router
+│       └── [[path]].js             # High-performance serverless REST API router & RBAC
 │
 ├── migrations/                     # Sequential D1 SQL schema migrations (0001 - 0013)
 └── scripts/
     ├── check-html.mjs              # Pure Node.js HTML structural validator
-    └── test-super-admin.mjs        # Security gating & permissions test suite
+    ├── test-super-admin.mjs        # Security gating & permissions test suite
+    └── e2e-test.mjs                # Complete end-to-end integration test suite
 ```
 
 ---
 
 ## 📡 API Reference
 
-All requests communicate over JSON with HTTP-only session cookies.
+All requests communicate over JSON with HTTP-only session cookies and RBAC verification.
 
 <details>
 <summary><strong>🔐 Authentication Endpoints</strong></summary>
@@ -275,7 +314,7 @@ All requests communicate over JSON with HTTP-only session cookies.
 </details>
 
 <details>
-<summary><strong>👨‍🎓 Student Management</strong></summary>
+<summary><strong>👨‍🎓 Student Management (RBAC: Admin / Faculty)</strong></summary>
 
 | Method | Route | Access | Purpose |
 |---|---|---|---|
